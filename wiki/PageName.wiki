@@ -1,10 +1,11 @@
 #summary One-sentence summary of this page.
 
 = Introduction =
-
 [http://scons.org SCons] is very good software contraction tool written on Python.
+= =
 Builds scripts of simple projects look very simple.
-But once a project is getting complicated its build scripts is getting complicated too.
+= =
+But once a project is getting bigger its builds scripts are getting complicated too.
 
 [http://scons.org SCons]
 
