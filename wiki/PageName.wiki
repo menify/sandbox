@@ -1,5 +1,4 @@
-#summary One-sentence summary of this page.
-#labels Featured
+#summary Aqualid build system
 
 = Introduction =
 [http://scons.org SCons] is very good software contraction tool written on Python.

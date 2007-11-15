@@ -1012,10 +1012,7 @@ class   EnumOption (OptionBase):
     
     #//=======================================================//
     
-    def     AddAliases( self, aliases, values = None ):
-        
-        if not aliases:
-            return
+    def     AddAlias( self, alias, values ):
         
         if _is_dict( aliases ):
             
