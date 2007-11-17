@@ -231,7 +231,7 @@ class Options:
         
         options = Options()
         
-        for id, id_list     in    self.__dict__['__ids_dict'].iteritems():
+        for ident, id_list     in    self.__dict__['__ids_dict'].iteritems():
             
             opt = id_list[0].Clone( options )
             names = id_list[1:]
@@ -276,7 +276,7 @@ class Options:
         
         condition = lambda options, name = linker_name : options[ name ] != 0
         
-        for id, id_list   in   self.__dict__['__ids_dict'].iteritems():
+        for ident, id_list   in   self.__dict__['__ids_dict'].iteritems():
             opt = id_list[0]
             opt.AppendPreCondition( condition )
         
@@ -286,7 +286,7 @@ class Options:
     #//-------------------------------------------------------//
     
     def     UnlinkToEnv( self ):
-        for id, id_list  in  self.__dict__['__ids_dict'].iteritems():
+        for ident, id_list  in  self.__dict__['__ids_dict'].iteritems():
             opt = id_list[0]
             opt.UndoPreCondition()
     
@@ -311,21 +311,21 @@ class Options:
 #//===========================================================================//
 #//===========================================================================//
 
-def     _append_values( list, values, unique ):
+def     _append_values( values_list, values, unique ):
     if unique:
         for v in values:
-            if not v in list:
-                list.append( v )
+            if not v in values_list:
+                values_list.append( v )
     else:
-        list += values
+        values_list += values
 
 #//---------------------------------------------------------------------------//
 
-def     _remove_values( list, values ):
+def     _remove_values( values_list, values ):
     for v in values:
         while 1:
             try:
-                list.remove( v )
+                values_list.remove( v )
             except ValueError:
                 break
 
@@ -550,7 +550,7 @@ class       _NoOptions:
 
 class   OptionBase:
     
-    def     _init_base( self, help, default, list, separator, unique, options = None ):
+    def     _init_base( self, help, default, is_list, separator, unique, options = None ):
         
         if options is None:
             options = _NoOptions()
@@ -559,7 +559,7 @@ class   OptionBase:
         self.help = help
         self.conditions = []
         self.preconditions_list = _ConditionsList()
-        self.is_list = list
+        self.is_list = is_list
         self.separator = separator
         self.unique = unique
         self.changed = 0
@@ -890,8 +890,8 @@ class   BoolOption (OptionBase):
              }
     
     #//-------------------------------------------------------//
-    def     __init__( self, default = 0, list = 0, separator = ' ', unique = 1, help = None ):
-        self._init_base( help, default, list, separator, unique )
+    def     __init__( self, default = 0, is_list = 0, separator = ' ', unique = 1, help = None ):
+        self._init_base( help, default, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     
@@ -929,14 +929,14 @@ class   BoolOption (OptionBase):
 
 class   EnumOption (OptionBase):
     
-    def     __init__( self, default, allowed_values = None, aliases = None, list = 0, separator = ' ', unique = 1, help = None, options = None):
+    def     __init__( self, default, allowed_values = None, aliases = None, is_list = 0, separator = ' ', unique = 1, help = None, options = None):
         
         self.allowed_values = []
         self.aliases = {}
         
         self.AddValues( allowed_values )
         
-        self._init_base( help, default, list, separator, unique, options )
+        self._init_base( help, default, is_list, separator, unique, options )
         
         self.AddAliases( aliases )
         
@@ -1012,7 +1012,10 @@ class   EnumOption (OptionBase):
     
     #//=======================================================//
     
-    def     AddAlias( self, alias, values ):
+    def     AddAliases( self, aliases, values = None ):
+        
+        if not aliases:
+            return
         
         if _is_dict( aliases ):
             
@@ -1090,7 +1093,7 @@ class   EnumOption (OptionBase):
         clone = EnumOption( default = self.default,
                             allowed_values = self.allowed_values,
                             aliases = self.aliases,
-                            list = self.is_list,
+                            is_list = self.is_list,
                             separator = self.separator,
                             unique = self.unique,
                             help = self.help,
@@ -1107,7 +1110,7 @@ class   EnumOption (OptionBase):
 
 class   IntOption (OptionBase):
     
-    def     __init__( self, default, min = -(sys.maxint - 1), max = sys.maxint, list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, default, min = -(sys.maxint - 1), max = sys.maxint, is_list = 0, separator = ' ', unique = 1, help = None ):
         
         self.min_value = int( min )
         self.max_value = int( max )
@@ -1116,7 +1119,7 @@ class   IntOption (OptionBase):
             if self.min_value > self.max_value:
                 _Error( "Minimal value: %d is greater than maximal value: %d " % (min, max) )
         
-        self._init_base( help, default, list, separator, unique )
+        self._init_base( help, default, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     
@@ -1143,13 +1146,13 @@ class   IntOption (OptionBase):
 
 class   StrOption (OptionBase):
     
-    def     __init__( self, default = None, list = 0, separator = ' ', unique = 1, ignore_case = 0, help = None ):
+    def     __init__( self, default = None, is_list = 0, separator = ' ', unique = 1, ignore_case = 0, help = None ):
         
         if default is None:
             default = ''
         
         self.ignore_case = ignore_case
-        self._init_base( help, default, list, separator, unique )
+        self._init_base( help, default, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     
@@ -1171,11 +1174,11 @@ class   StrOption (OptionBase):
 
 class   LinkedOption (OptionBase):
     
-    def     __init__( self, default, options, linked_opt_name, list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, default, options, linked_opt_name, is_list = 0, separator = ' ', unique = 1, help = None ):
         
         self.linked_opt_name = linked_opt_name
         
-        self._init_base( help, default, list, separator, unique, options )
+        self._init_base( help, default, is_list, separator, unique, options )
     
     #//-------------------------------------------------------//
     
@@ -1197,12 +1200,12 @@ class   LinkedOption (OptionBase):
 
 class   VersionOption (OptionBase):
     
-    def     __init__( self, default = None, list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, default = None, is_list = 0, separator = ' ', unique = 1, help = None ):
         
         if default is None:
             default = ''
         
-        self._init_base( help, default, list, separator, unique )
+        self._init_base( help, default, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     
@@ -1220,7 +1223,7 @@ class   VersionOption (OptionBase):
 
 class   PathOption (OptionBase):
     
-    def     __init__( self, default = None, list = 0, separator = None, unique = 1, help = None ):
+    def     __init__( self, default = None, is_list = 0, separator = None, unique = 1, help = None ):
         
         if default is None:
             default = ''
@@ -1228,7 +1231,7 @@ class   PathOption (OptionBase):
         if (separator is None):
             separator = os.pathsep
         
-        self._init_base( help, default, list, separator, unique )
+        self._init_base( help, default, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     

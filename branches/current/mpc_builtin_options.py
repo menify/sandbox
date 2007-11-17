@@ -16,9 +16,9 @@ _BoolOption = mpc_options.BoolOption
 
 def     _add_build_options( options ):
     
-    options.setup = _StrOption( separator = ',', list = 1, help = "Setup options" )
+    options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options" )
     
-    options.build_dir = _StrOption( 'build/', help = "Build directory suffix", list = 1, separator = '', unique = 0 )
+    options.build_dir = _StrOption( 'build/', help = "Build directory suffix", is_list = 1, separator = '', unique = 0 )
 
 #//===========================================================================//
 
@@ -27,37 +27,28 @@ import platform
 
 def     _add_platform_options( options ):
     
-    if (sys.platform == 'cygwin'):
-        system = sys.platform
-    else:
-        system = platform.system()
-    
-    options.target_os = _StrOption( default = system,
-                                    ignore_case = 1,
+    options.target_os = _EnumOption( default = '', allowed_values = ( '', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
                                     help = "The system/OS name, e.g. 'Linux', 'Windows', or 'Java'." )
     
     options.target_os_release = _StrOption( default = '',
-                                           ignore_case = 1,
+                                            ignore_case = 1,
                                             help = "The system's release, e.g. '2.2.0' or 'XP'" )
     
     options.target_os_version = _VersionOption( default = '',
                                                 help = "The system's release version, e.g. '2.2.0' or '5.1.2600'" )
     
-    if_default_target_os = options.If().target_os[ system ]
-    if_default_target_os.target_os_release = platform.release()
-    if_default_target_os.target_os_version = platform.version()
-    
-    machine = platform.machine()
-    
-    options.target_machine = _StrOption( default = machine,
-                                         ignore_case = 1,
-                                         help = "The machine type, e.g. 'i386'" )
+    options.target_machine = _EnumOption( default = '',
+                                          allowed_values = ('', 'i386', 'x86-64','arm' ),
+                                          aliases = {'i686':'i386','i586':'i386', 'pc':'i386'},
+                                          help = "The machine type, e.g. 'i386'" )
     
     options.target_cpu = _StrOption( default = '',
                                      ignore_case = 1,
                                      help = "The real processor name, e.g. 'amdk6'." )
     
-    options.If().target_machine[ machine ].target_cpu = platform.processor()
+    options.target_cpu_flags = _StrOption( default = '',
+                                     ignore_case = 1, is_list = 1,
+                                     help = "The CPU flags, e.g. 'mmx', 'sse2'." )
 
 #//===========================================================================//
 
@@ -109,10 +100,10 @@ def     _set_build_dir( options ):
 
 def     _add_variants( options ):
     
-    build_variants = _EnumOption( 'debug', ['debug', 'release_speed', 'release_size', 'final'],
+    build_variants = _EnumOption( 'debug', ('debug', 'release_speed', 'release_size', 'final'),
                                             {'release': 'release_speed'},
                                             separator = ',',
-                                            help = "Active build variants", list = 1 )
+                                            help = "Active build variants", is_list = 1 )
     
     options.build_variants = build_variants
     options.builds = build_variants
@@ -139,7 +130,7 @@ def     _add_variants( options ):
     debug.debug_symbols         = 'on'
     debug.runtime_debugging     = 'on'
     
-    release_speed = if_bv.one_of( ['release_speed', 'final'] )
+    release_speed = if_bv.one_of( ('release_speed', 'final') )
     release_speed.optimization          = 'speed'
     release_speed.inlining              = 'full'
     release_speed.whole_optimization    = 'on'
@@ -157,7 +148,7 @@ def     _add_variants( options ):
 
 def     _add_optimization_options( options ):
     
-    optimization = _EnumOption(  'off', ['off', 'size', 'speed'],
+    optimization = _EnumOption(  'off', ('off', 'size', 'speed'),
                                         {'0': 'off', '1': 'size', '2': 'speed'},
                                         help = 'Compiler optimization level' )
     options.optimization = optimization
@@ -167,7 +158,7 @@ def     _add_optimization_options( options ):
     
     #//-------------------------------------------------------//
     
-    inlining = _EnumOption( 'off', ['off', 'on', 'full'], help = 'Inline function expansion' )
+    inlining = _EnumOption( 'off', ('off', 'on', 'full'), help = 'Inline function expansion' )
     options.inlining = inlining
     options.inline = inlining
     
@@ -264,10 +255,10 @@ def     _add_runtime_options( options ):
 
 def     _add_cc_options( options ):
     
-    options.cflags = _StrOption( list = 1, help = "C compiler options" )
-    options.ccflags = _StrOption( list = 1, help = "Common C/C++ compiler options" )
-    options.cxxflags = _StrOption( list = 1, help = "C++ compiler options" )
-    options.linkflags = _StrOption( list = 1, help = "Linker options" )
+    options.cflags = _StrOption( is_list = 1, help = "C compiler options" )
+    options.ccflags = _StrOption( is_list = 1, help = "Common C/C++ compiler options" )
+    options.cxxflags = _StrOption( is_list = 1, help = "C++ compiler options" )
+    options.linkflags = _StrOption( is_list = 1, help = "Linker options" )
     
     options.cc_name = _StrOption( help = "C/C++ compiler name" )
     options.cc_ver = _VersionOption( help = "C/C++ compiler version" )
@@ -275,10 +266,10 @@ def     _add_cc_options( options ):
     options.gcc_prefix = _StrOption( help = "GCC C/C++ compiler prefix" )
     options.gcc_suffix = _StrOption( help = "GCC C/C++ compiler suffix" )
     
-    options.cppdefines = _StrOption( list = 1, help = "C/C++ preprocessor defines" )
-    options.cpppaths = _StrOption( list = 1, help = "C/C++ preprocessor paths to headers" )
+    options.cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines" )
+    options.cpppaths = _StrOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
     
-    const_cpppaths = _StrOption( list = 1, help = "C/C++ preprocessor path to library headers" )
+    const_cpppaths = _StrOption( is_list = 1, help = "C/C++ preprocessor path to library headers" )
     options.const_cpppaths = const_cpppaths
     options.lib_cpppaths = const_cpppaths
     
@@ -296,7 +287,7 @@ def     _add_lint_options( options ):
     
     options.lint_passes = _IntOption( 3, min=1, help = 'The number of passes Flexelint makes over the source code' )
     
-    options.lint_flags = _StrOption( list = 1, help = "Flexelint options" )
+    options.lint_flags = _StrOption( is_list = 1, help = "Flexelint options" )
 
 #//===========================================================================//
 
