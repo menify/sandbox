@@ -2,7 +2,14 @@
 
 = Introduction =
 [http://scons.org SCons] is very good software contraction tool written on Python.
-= =
+For more information about [http://scons.org SCons] go to the [http://scons.org SCons's] site.
+
+SCons allows to create cross-platform build scripts.
+The same build scripts are used to build a code with various compilers and/or on different platforms.
+
+SCons incapsulates specifics of platforms and compilers.
+
+
 Builds scripts of simple projects look very simple.
 = =
 But once a project is getting bigger its builds scripts are getting complicated too.
