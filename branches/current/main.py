@@ -79,7 +79,10 @@ def     Env( options, tools=None, **kw ):
 
 #//===========================================================================//
 
-def     BuildVariant( scriptfile, options, **kw ):
+def     BuildVariant( options, scriptfile = None, **kw ):
+    
+    if scriptfile is None:
+        scriptfile = 'SConscript'
     
     if kw.get('duplicate') is None:
         kw['duplicate'] = 0
@@ -96,7 +99,7 @@ def     BuildVariant( scriptfile, options, **kw ):
 
 #//---------------------------------------------------------------------------//
 
-def     Build( scriptfile, options = None, **kw ):
+def     Build( scriptfile = None, options = None, **kw ):
     
     if options is None:
         options = _BuiltinOptions()
@@ -115,5 +118,5 @@ def     Build( scriptfile, options = None, **kw ):
         env_options = options.Clone()
         env_options.bv = bv
         
-        BuildVariant( scriptfile, env_options, **kw.copy() )
+        BuildVariant( options = env_options, scriptfile = scriptfile, **kw.copy() )
 
