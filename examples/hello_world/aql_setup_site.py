@@ -39,7 +39,7 @@ def     SetupTool_aql_tool_flexelint( options, env, os_env ):
 
 def     SetupTool_aql_tool_qt( options, env, os_env ):
     
-    options = env['MPC_OPTIONS']
+    options = env['AQL_OPTIONS']
     
     QTDIR = 'd:/work/src/lib3party/qt-4.2.2'
     

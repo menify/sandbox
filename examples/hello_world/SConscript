@@ -5,7 +5,6 @@ files = [
               'src/main/main.cpp'
         ]
 
-#~ print mpc_env.Dump()
 
 env.Program( 'test_mpc', files )
 

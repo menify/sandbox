@@ -2,7 +2,6 @@
 import os
 import aql
 
-#~ bv = mpc.BuildVariants()
 
 #~ bv.AddValues('pre_release')
 #~ bv.AddAliases( 'prerel', 'pre_release' )
