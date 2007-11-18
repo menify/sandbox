@@ -2,7 +2,13 @@
 import sys
 import os
 
-def     SetupTool_mpc_tool_flexelint( options, env, os_env ):
+import aql
+
+_Target = aql.Target
+
+#//---------------------------------------------------------------------------//
+
+def     SetupTool_aql_tool_flexelint( options, env, os_env ):
     
     FLEXELINTDIR = 'd:/bin/development/code-analyzers/flexlint'
     FLEXLINT_USER_DIR = 'd:/work/settings/flexelint'
@@ -31,7 +37,7 @@ def     SetupTool_mpc_tool_flexelint( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_mpc_tool_qt( options, env, os_env ):
+def     SetupTool_aql_tool_qt( options, env, os_env ):
     
     options = env['MPC_OPTIONS']
     
@@ -44,7 +50,7 @@ def     SetupTool_mpc_tool_qt( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_mpc_tool_wxwidgets( options, env, os_env  ):
+def     SetupTool_aql_tool_wxwidgets( options, env, os_env  ):
     
     WXWIDGETSDIR = 'd:/work/src/lib3party/qt-4.2.2/wxwidgets/wxWidgets-2.8.3'
     
@@ -105,9 +111,15 @@ def     _setup_vc8( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_mpc_tool_msvc( options, env, os_env  ):
+def     SetupTool_aql_tool_msvc( options, env, os_env  ):
     
     if options.cc_name != '' and options.cc_name != 'msvc':
+        return
+    
+    if options.target_os == '':
+        options.target_os = _Target.os
+    
+    if options.target_os != 'windows':
         return
     
     if options.cc_ver == '' or options.cc_ver == '8':
@@ -117,21 +129,21 @@ def     SetupTool_mpc_tool_msvc( options, env, os_env  ):
     
     elif options.cc_ver == '6':
         _setup_vc6( options )
-    
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_mpc_tool_gcc( options, env, os_env  ):
+def     SetupTool_aql_tool_gcc( options, env, os_env  ):
     
     if options.cc_name != '' and options.cc_name != 'gcc':
         return
     
-    target_os = str(options.target_os)
+    if options.target_os == '':
+        options.target_os = _Target.os
     
-    if sys.platform == 'cygwin':
-        os_env.update( os.environ ) 
+    if options.target_os == 'cygwin':
+        os_env.update( os.environ )
     
-    elif (target_os == 'windows'):
+    elif options.target_os == 'windows':
         _setup_mingw( options, os_env )
     
     #~ elif (target_os == 'avr') or (options.target_cpu == 'avr'):

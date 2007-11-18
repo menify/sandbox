@@ -1,6 +1,6 @@
 
 import os
-import mpc_current as mpc
+import aql
 
 #~ bv = mpc.BuildVariants()
 
@@ -11,6 +11,6 @@ import mpc_current as mpc
 #~ bv.SetDefault( 'some' )
 
 #~ mpc.Build( 'Sconscript', ENV = {'PATH': os.environ['PATH']} )
-mpc.Build( 'Sconscript' )
+aql.Build()
 #~ mpc.SconsBuild( 'Sconscript' )
 
