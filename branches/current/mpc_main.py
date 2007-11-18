@@ -24,7 +24,10 @@ _Environment = SCons.Script.Environment
 
 #//-------------------------------------------------------//
 
-SCons.Tool.DefaultToolpath.insert( 0, os.path.normpath( os.path.dirname( __file__ ) + '/tools' ) )
+def     AddToDefaultToolPath( toolpath ):
+    SCons.Tool.DefaultToolpath.insert( 0, toolpath )
+
+AddToDefaultToolPath( os.path.normpath( os.path.dirname( __file__ ) + '/tools' ) )
 
 #//===========================================================================//
 

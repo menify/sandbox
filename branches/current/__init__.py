@@ -5,7 +5,7 @@ from mpc_options import Options, BoolOption, EnumOption, IntOption, StrOption, V
 
 from mpc_builtin_options import BuiltinOptions
 
-from mpc_main import Env, Build
+from mpc_main import AddToDefaultToolPath, Env, BuildVariant, Build
 
 import sys, os
 sys.path.insert( 0, os.path.dirname( __file__ ) )
