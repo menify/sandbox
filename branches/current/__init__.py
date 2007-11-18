@@ -1,12 +1,12 @@
 
-from mpc_log import LogLevel
+from logging import LogLevel, Error, ErrorException, Warning, Msg, Info, DebugMsg
 
-from mpc_options import Options, BoolOption, EnumOption, IntOption, StrOption, VersionOption, PathOption
+from options import Options, BoolOption, EnumOption, IntOption, StrOption, VersionOption, PathOption
 
-from mpc_builtin_options import BuiltinOptions
+from builtin_options import BuiltinOptions
 
-from mpc_main import AddToDefaultToolPath, Env, BuildVariant, Build
+from main import AddToDefaultToolPath, Env, BuildVariant, Build
 
-import sys, os
-sys.path.insert( 0, os.path.dirname( __file__ ) )
+#~ import sys, os
+#~ sys.path.insert( 0, os.path.dirname( __file__ ) )
 

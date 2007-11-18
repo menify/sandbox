@@ -21,11 +21,11 @@ def     LogLevel( level = None ):
 
 #//-------------------------------------------------------//
 
-class   MPC_Error( StandardError ):
+class   ErrorException( StandardError ):
     pass
 
 def     Error( exception ):
-    raise MPC_Error( exception )
+    raise ErrorException( exception )
 
 def     Msg( msg ):
         print 'MPC: ***', msg

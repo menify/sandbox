@@ -6,11 +6,11 @@ import string
 import thread
 import threading
 
-import mpc_log
-import mpc_version
+import logging
+import version
 
-_Error = mpc_log.Error
-_Version = mpc_version.Version
+_Error = logging.Error
+_Version = version.Version
 
 #//---------------------------------------------------------------------------//
 

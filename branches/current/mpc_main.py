@@ -4,20 +4,20 @@ import os.path
 import SCons.Script
 import SCons.Tool
 
-import mpc_log
-import mpc_options
-import mpc_builtin_options
-import mpc_setup
+import logging
+import options
+import builtin_options
+import setup
 
 #//===========================================================================//
 
-_Info = mpc_log.Info
+_Info = logging.Info
 
-_BuiltinOptions = mpc_builtin_options.BuiltinOptions
+_BuiltinOptions = builtin_options.BuiltinOptions
 
-_Setup = mpc_setup.Setup
+_Setup = setup.Setup
 
-_EnvOptions = mpc_options.EnvOptions
+_EnvOptions = options.EnvOptions
 
 _ARGUMENTS = SCons.Script.ARGUMENTS
 _Environment = SCons.Script.Environment
@@ -62,7 +62,7 @@ def     Env( options, tools=None, **kw ):
     kw['MPC_OPTIONS'] = options
     
     if tools is None:
-        tools = [ 'mpc_deftool_cc' ]
+        tools = [ 'aql_deftool_cc' ]
     
     os_env = kw.setdefault( 'ENV', {} )
     os_env.setdefault( 'PATH', '' )

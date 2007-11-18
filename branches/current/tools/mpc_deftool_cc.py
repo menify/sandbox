@@ -1,15 +1,12 @@
-# mpc_toolset_cc
-# mpc_deftool_cc
-
 
 import os.path
 import SCons.Tool
 
-import mpc_log
+import aql
 
 #//---------------------------------------------------------------------------//
 
-_Warning = mpc_log.Warning
+_Warning = aql.Warning
 _Tool = SCons.Tool.Tool
 
 #//---------------------------------------------------------------------------//
@@ -17,8 +14,8 @@ _Tool = SCons.Tool.Tool
 def     generate( env ):
     
     toolsets =  (
-                    "mpc_tool_gcc",
-                    "mpc_tool_msvc",
+                    "aql_tool_gcc",
+                    "aql_tool_msvc",
                     #~ "mpc_tool_bcc"
                 )
     

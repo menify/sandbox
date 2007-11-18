@@ -1,16 +1,16 @@
 
-import mpc_log
-import mpc_options
+import logging
+import options
 
-_Error = mpc_log.Error
-_Options = mpc_options.Options
-_StrOption = mpc_options.StrOption
-_IntOption = mpc_options.IntOption
-_PathOption = mpc_options.PathOption
-_EnumOption = mpc_options.EnumOption
-_LinkedOption = mpc_options.LinkedOption
-_VersionOption = mpc_options.VersionOption
-_BoolOption = mpc_options.BoolOption
+_Error = logging.Error
+_Options = options.Options
+_StrOption = options.StrOption
+_IntOption = options.IntOption
+_PathOption = options.PathOption
+_EnumOption = options.EnumOption
+_LinkedOption = options.LinkedOption
+_VersionOption = options.VersionOption
+_BoolOption = options.BoolOption
 
 #//===========================================================================//
 

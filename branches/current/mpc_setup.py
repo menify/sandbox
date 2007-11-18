@@ -4,10 +4,10 @@ import os
 import os.path
 import types
 
-import mpc_log
+import logging
 
-_Info = mpc_log.Info
-_Msg = mpc_log.Msg
+_Info = logging.Info
+_Msg = logging.Msg
 
 def     _GetShellScriptEnv( os_env, script ):
     
@@ -75,19 +75,19 @@ def     _user_module():
     
     if _user_setup_module is None:
         try:
-            import mpc_setup_site
+            import aql_setup_site
             
-            _Msg( "Using setup file: " + mpc_setup_site.__file__ )
+            _Msg( "Using setup file: " + aql_setup_site.__file__ )
             
-            # export functions into mpc_setup_site module
-            _user_setup_module = mpc_setup_site.__dict__
+            # export functions into aql_setup_site module
+            _user_setup_module = aql_setup_site.__dict__
             _user_setup_module['GetShellScriptEnv'] = _GetShellScriptEnv
             _user_setup_module['AppendPath'] = _add_path
             
         except ImportError:
             
             if __debug__:
-                _Info( "Module 'mpc_setup_site' has been not found...Skipped." )
+                _Info( "Module 'aql_setup_site' has been not found...Skipped." )
             
             _user_setup_module = {}
     

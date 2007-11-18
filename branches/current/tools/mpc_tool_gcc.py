@@ -191,8 +191,6 @@ def     generate( env ):
     
 #//---------------------------------------------------------------------------//
 
-import mpc_log
-
 def exists( env ):
     return _find_gcc( env, env['MPC_OPTIONS'] ) is not None
 
