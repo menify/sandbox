@@ -173,7 +173,7 @@ assert opt.build_variant == 'debug'
 env = env1.copy()
 env.update( env2 )
 
-env['MPC_OPTIONS'] = opt
+env['AQL_OPTIONS'] = opt
 env_opt = _EnvOptions( env )
 
 assert '-O9' in env_opt.ccflags
@@ -209,7 +209,7 @@ opt.UnlinkToEnv()
 assert opt.runtime_linking == 'shared'
 assert opt.lint_passes == 3
 
-env2['MPC_OPTIONS'] = opt
+env2['AQL_OPTIONS'] = opt
 env_opt = _EnvOptions( env2 )
 
 assert env_opt.runtime_linking == 'static'

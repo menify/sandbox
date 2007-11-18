@@ -45,21 +45,21 @@ def     _linkflags( target, source, env, for_signature ):   return _flags( env, 
 
 def     _link_flags( env ):
     
-    env['MPC_CFLAGS'] = _cflags
-    env['MPC_CCFLAGS'] = _ccflags
-    env['MPC_CXXFLAGS'] = _cxxflags
-    env['MPC_LINKFLAGS'] = _linkflags
+    env['AQL_CFLAGS'] = _cflags
+    env['AQL_CCFLAGS'] = _ccflags
+    env['AQL_CXXFLAGS'] = _cxxflags
+    env['AQL_LINKFLAGS'] = _linkflags
     
-    env.AppendUnique( CFLAGS = "$MPC_CFLAGS",
-                      CCFLAGS = "$MPC_CCFLAGS",
-                      CXXFLAGS = "$MPC_CXXFLAGS",
-                      LINKFLAGS = "$MPC_LINKFLAGS" )
+    env.AppendUnique( CFLAGS = "$AQL_CFLAGS",
+                      CCFLAGS = "$AQL_CCFLAGS",
+                      CXXFLAGS = "$AQL_CXXFLAGS",
+                      LINKFLAGS = "$AQL_LINKFLAGS" )
 
 #//---------------------------------------------------------------------------//
 
 def     Env( options, tools=None, **kw ):
     
-    kw['MPC_OPTIONS'] = options
+    kw['AQL_OPTIONS'] = options
     
     if tools is None:
         tools = [ 'aql_deftool_cc' ]

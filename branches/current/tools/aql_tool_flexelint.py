@@ -1,8 +1,6 @@
 import os.path
 import string
 
-from mpc_env_options import MPC_EnvOptionsProxy
-
 def     _quote_spaces( arg ):
     # Generic function for putting double quotes around any string that has white space in it.
     if ' ' in arg or '\t' in arg:

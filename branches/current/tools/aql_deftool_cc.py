@@ -16,7 +16,7 @@ def     generate( env ):
     toolsets =  (
                     "aql_tool_gcc",
                     "aql_tool_msvc",
-                    #~ "mpc_tool_bcc"
+                    #~ "aql_tool_bcc"
                 )
     
     for tool in toolsets:

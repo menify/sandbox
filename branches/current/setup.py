@@ -100,7 +100,7 @@ def     _setup_tool( env, tool ):
     user_module = _user_module()
     
     try:
-        user_module[ 'SetupTool_' + tool ]( env['MPC_OPTIONS'], env, env['ENV'] )
+        user_module[ 'SetupTool_' + tool ]( env['AQL_OPTIONS'], env, env['ENV'] )
     
     except (TypeError, KeyError):
         if __debug__:

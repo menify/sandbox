@@ -45,13 +45,13 @@ def     _is_string( value ):
 #//---------------------------------------------------------------------------//
 
 def     _env_key( key ):
-    return 'MPC_O_' + key.upper()
+    return 'AQL_O_' + key.upper()
 
 #//---------------------------------------------------------------------------//
 
 def     EnvOptions( env ):
     
-    options = env['MPC_OPTIONS']
+    options = env['AQL_OPTIONS']
     overridden_options = None
     
     options.Lock()      # lock the changing of the environment
@@ -72,7 +72,7 @@ def     EnvOptions( env ):
             env[ env_key ] = None
         
         if overridden_options is not None:
-            env['MPC_OPTIONS'] = overridden_options
+            env['AQL_OPTIONS'] = overridden_options
             return overridden_options
     
     finally:
@@ -254,7 +254,7 @@ class Options:
     #//-------------------------------------------------------//
     
     def     __repr__( self ):
-        return "<MPC options>"
+        return "<AQL options>"
     
     def     __str__( self ):
         return str( self.__dict__['__names_dict'] )

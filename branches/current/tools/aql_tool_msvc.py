@@ -80,7 +80,7 @@ def     _try_tools( env, options, check_exists_only = 0 ):
 
 def     generate( env ):
     
-    options = env['MPC_OPTIONS']
+    options = env['AQL_OPTIONS']
     
     _try_tools( env, options )
     
@@ -99,5 +99,5 @@ def     generate( env ):
 #//---------------------------------------------------------------------------//
 
 def     exists( env ):
-    return _try_tools( env, env['MPC_OPTIONS'] )
+    return _try_tools( env, env['AQL_OPTIONS'] )
 

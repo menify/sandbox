@@ -146,7 +146,7 @@ def     _get_gcc_specs( options, gcc ):
 
 def     generate( env ):
     
-    options = env['MPC_OPTIONS']
+    options = env['AQL_OPTIONS']
     
     gcc_env, path = _find_gcc( env, options )
     
@@ -192,7 +192,7 @@ def     generate( env ):
 #//---------------------------------------------------------------------------//
 
 def exists( env ):
-    return _find_gcc( env, env['MPC_OPTIONS'] ) is not None
+    return _find_gcc( env, env['AQL_OPTIONS'] ) is not None
 
 
 #//===========================================================================//
