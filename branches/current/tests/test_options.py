@@ -1,17 +1,22 @@
 
-import mpc_options
-import mpc_builtin_options
+import sys, os.path
+sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..' ) )
 
-_Options = mpc_options.Options
-_StrOption = mpc_options.StrOption
-_IntOption = mpc_options.IntOption
-_PathOption = mpc_options.PathOption
-_EnumOption = mpc_options.EnumOption
-_VersionOption = mpc_options.VersionOption
-_BoolOption = mpc_options.BoolOption
-_BuiltinOptions = mpc_builtin_options.BuiltinOptions
+import options
+import builtin_options
 
-_EnvOptions = mpc_options.EnvOptions
+del sys.path[0]
+
+_Options = options.Options
+_StrOption = options.StrOption
+_IntOption = options.IntOption
+_PathOption = options.PathOption
+_EnumOption = options.EnumOption
+_VersionOption = options.VersionOption
+_BoolOption = options.BoolOption
+_BuiltinOptions = builtin_options.BuiltinOptions
+
+_EnvOptions = options.EnvOptions
 
 options = _Options()
 
