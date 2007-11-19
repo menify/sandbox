@@ -1,25 +1,80 @@
-#summary Aqualid build system
-
 = Introduction =
-[http://scons.org SCons] is very good software contraction tool written on Python.
+[http://scons.org SCons] is very good software constraction tool written on Python.
 For more information about [http://scons.org SCons] go to the [http://scons.org SCons's] site.
 
 SCons allows to create cross-platform build scripts.
 The same build scripts are used to build a code with various compilers and/or on different platforms.
+SCons encapsulates specifics of platforms and compilers.
+So it doesn't provide any information about what compiler is used or what platform the code is being compiled for.
 
-SCons incapsulates specifics of platforms and compilers.
+It's fine if the project doesn't need this information.
+But usually for big cross-platform projects this information is very important.
+
+Sometimes we need to use some specific compiler's options according to the current compiler and/or the target platform
+(it may be not equal to the current platform).
+
+Some files should be compiled only for the specific platforms.
+And etc.
+
+Aqualid extension helps to get such (and other) information from the build scripts.
 
 
-Builds scripts of simple projects look very simple.
-= =
-But once a project is getting bigger its builds scripts are getting complicated too.
+= Architecture =
 
-[http://scons.org SCons]
+The heart of the Aqualid is 'Options'. Standard SCons's options are not enough flexible.
+So Aqualid implements its own options.
+
+These options keep a lot information about the build process.
+
+The most useful feature of the options is that values are are kept together with conditions.
+I.e. value is valid only if its condition is true, otherwise default (or other) value is used.
+
+For example:
+    {{{
+    options.If().cc_name['gcc'].target_os['windows'].user_interface['console'].linkflags += '-Wl,--subsystem,console'
+    }}}
+    
+This is eqaul to:
+    {{{
+    if (options.cc_name == 'gcc') and (options.target_os == 'windows') and (options.user_interface == 'console'):
+        options.linkflags += '-Wl,--subsystem,console'
+    }}}
+
+    
+'options' is container object of options.
+Method 'If' creates an conditional object to create a condition to set a value of an option.
+The conditional object is saved together with value. Conditions are checked upon access to the option.
+
+In our example value '-Wl,--subsystem,console' will be added to 'linkflags' only if the condition is true.
+
+For example:
+    {{{
+    options.linkflags = '-Wl,--strip-all'
+    
+    options.cc_name = ''
+    options.target_os = ''
+    options.user_interface = ''
+    
+    options.If().cc_name['gcc'].target_os['windows'].user_interface['console'].linkflags += '-Wl,--subsystem,console'
+    
+    print "options.linkflags:", str( options.linkflags )
+    
+    options.cc_name = 'gcc'
+    options.target_os = 'windows'
+    options.user_interface = 'console'
+    
+    print "options.linkflags:", str( options.linkflags )
+    
+    options.target_os = 'linux'
+    print "options.linkflags:", str( options.linkflags )
+    }}}
+    
+Will print:
+    {{{
+    options.linkflags: -Wl,--strip-all
+    options.linkflags: -Wl,--strip-all -Wl,--subsystem,console
+    options.linkflags: -Wl,--strip-all
+    }}}
+    
 
 
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
