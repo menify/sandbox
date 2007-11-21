@@ -1,4 +1,4 @@
-=== Why? ===
+=== Idea ===
 [http://scons.org SCons] is very good software construction tool written on Python.
 For more information about [http://scons.org SCons] go to the [http://scons.org SCons's] site.
 
@@ -16,13 +16,13 @@ Sometimes we need to use some specific compiler's options according to the curre
 Some files should be compiled only for the specific platforms.
 And etc.
 
-Aqualid extension helps to get such (and other) information from the build scripts.
+This extension helps to get such (and other) information from the build scripts.
 
 
-=== How? ===
+=== Aqualid ===
 
-The heart of the Aqualid is 'Options'. Standard SCons's options are not enough flexible.
-So Aqualid implements its own options.
+Standard SCons's options are not enough flexible.
+So *Aqualid* implements its own options.
 
 These options keep a lot information about the build process.
 
@@ -42,7 +42,7 @@ This is eqaul to:
 
     
 'options' is container object of options.
-Method 'If' creates an conditional object to create a condition to set a value of an option.
+Method `If()` creates an conditional object to create a condition to set a value of an option.
 The conditional object is saved together with value. Conditions are checked upon access to the option.
 
 In our example value '-Wl,--subsystem,console' will be added to 'linkflags' only if the condition is true.
@@ -77,11 +77,13 @@ Will print:
     }}}
 
 At line 1, we simply set option 'linkflags' to '-Wl,--strip-all'. This value doesn't depend from any option.
+
 At lines 3-5, we reset options 'cc_name', 'target_os' and 'user_interface' to an empty string.
 
-At line 7, we create a conditional object via function *If()*, and set up a condition similar to:
-    cc_name == 'gcc' and target_os == 'windows' and user_interface == 'console'
-(operator [] is interpreted as '==', e.g. cc_name['gcc'] is similar to cc_name == 'gcc')
+At line 7, we create a conditional object via method `If()`, and set up a condition equal to:
+    `cc_name == 'gcc' and target_os == 'windows' and user_interface == 'console'`
+
+Operator [] is interpreted as '==', e.g. cc_name['gcc'] is similar to cc_name == 'gcc'.
 
 Then a value '-Wl,--subsystem,console', operation '+=' and the conditional object is added to the option 'linkflags'.
 The condition is not evaluated at this line.
@@ -102,5 +104,10 @@ Result value will be '-Wl,--strip-all -Wl,--subsystem,console'
 At line 17, we set 'target_os' to 'linux' and our condition became false again.
 The result value of option 'linkflags' at line 18 will be '-Wl,--strip-all'.
 
+Conditional values make options are very flexible and powerful.
+We can easily set up any number _live_ dependecies between options and any number of _live_ combinations of values.
 
+All other *Aqualid* functionality is based on conditional values of options.
+
+*[http://www.lib.ru/RUFANT/SHEFNER/girl.txt Aqualid]* is universal building material. 
 
