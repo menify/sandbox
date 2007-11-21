@@ -1,4 +1,5 @@
-[http://scons.org SCons] is very good software constraction tool written on Python.
+=== Why? ===
+[http://scons.org SCons] is very good software construction tool written on Python.
 For more information about [http://scons.org SCons] go to the [http://scons.org SCons's] site.
 
 SCons allows to create cross-platform build scripts.
@@ -17,6 +18,8 @@ And etc.
 
 Aqualid extension helps to get such (and other) information from the build scripts.
 
+
+=== How? ===
 
 The heart of the Aqualid is 'Options'. Standard SCons's options are not enough flexible.
 So Aqualid implements its own options.
@@ -46,32 +49,58 @@ In our example value '-Wl,--subsystem,console' will be added to 'linkflags' only
 
 For example:
     {{{
-    options.linkflags = '-Wl,--strip-all'
-    
-    options.cc_name = ''
-    options.target_os = ''
-    options.user_interface = ''
-    
-    options.If().cc_name['gcc'].target_os['windows'].user_interface['console'].linkflags += '-Wl,--subsystem,console'
-    
-    print "options.linkflags:", str( options.linkflags )
-    
-    options.cc_name = 'gcc'
-    options.target_os = 'windows'
-    options.user_interface = 'console'
-    
-    print "options.linkflags:", str( options.linkflags )
-    
-    options.target_os = 'linux'
-    print "options.linkflags:", str( options.linkflags )
+1    options.linkflags = '-Wl,--strip-all'
+2    
+3    options.cc_name = ''
+4    options.target_os = ''
+5    options.user_interface = ''
+6    
+7    options.If().cc_name['gcc'].target_os['windows'].user_interface['console'].linkflags += '-Wl,--subsystem,console'
+8    
+9    print "options.linkflags:", str( options.linkflags )
+10   
+11   options.cc_name = 'gcc'
+12   options.target_os = 'windows'
+13   options.user_interface = 'console'
+14   
+15   print "options.linkflags:", str( options.linkflags )
+16   
+17   options.target_os = 'linux'
+18   print "options.linkflags:", str( options.linkflags )
     }}}
-    
+
 Will print:
     {{{
     options.linkflags: -Wl,--strip-all
     options.linkflags: -Wl,--strip-all -Wl,--subsystem,console
     options.linkflags: -Wl,--strip-all
     }}}
+
+At line 1, we simply set option 'linkflags' to '-Wl,--strip-all'. This value doesn't depend from any option.
+At lines 3-5, we reset options 'cc_name', 'target_os' and 'user_interface' to an empty string.
+
+At line 7, we create a conditional object via function *If()*, and set up a condition similar to:
+    cc_name == 'gcc' and target_os == 'windows' and user_interface == 'console'
+(operator [] is interpreted as '==', e.g. cc_name['gcc'] is similar to cc_name == 'gcc')
+
+Then a value '-Wl,--subsystem,console', operation '+=' and the conditional object is added to the option 'linkflags'.
+The condition is not evaluated at this line.
+This condition will evaluated later upon an access to the option 'linkflags'
+
+In our case the value '-Wl,--subsystem,console' will be added to the value of the option 'linkflags'
+only if cc_name == 'gcc', target_os == 'windows' and user_interface == 'console'.
+
+At line 9, cc_name == '', target_os == '' and user_interface == '', i.e the condition is false
+and the value '-Wl,--subsystem,console' is not added to the result value.
+Result will be '-Wl,--strip-all'
+
+At lines 11-13, we change options 'cc_name', 'target_os' and 'user_interface' to values 'gcc', 'windows' and 'console' respectively.
+
+At line 15, the condition is true and value '-Wl,--subsystem,console' will be added to the result.
+Result value will be '-Wl,--strip-all -Wl,--subsystem,console'
+
+At line 17, we set 'target_os' to 'linux' and our condition became false again.
+The result value of option 'linkflags' at line 18 will be '-Wl,--strip-all'.
 
 
 
