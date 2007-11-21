@@ -22,7 +22,7 @@ This extension helps to get such (and other) information from the build scripts.
 === Aqualid ===
 
 Standard SCons's options are not enough flexible.
-So *Aqualid* implements its own options.
+So more flexible options were implemented (these options are most important part of this extension).
 
 These options keep a lot information about the build process.
 
@@ -107,7 +107,7 @@ The result value of option 'linkflags' at line 18 will be '-Wl,--strip-all'.
 Conditional values make options are very flexible and powerful.
 We can easily set up any number _live_ dependecies between options and any number of _live_ combinations of values.
 
-All other *Aqualid* functionality is based on conditional values of options.
+All other functionality is based on the conditional values.
 
 *[http://www.lib.ru/RUFANT/SHEFNER/girl.txt Aqualid]* is universal building material. 
 
