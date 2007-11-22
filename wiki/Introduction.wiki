@@ -1,11 +1,13 @@
-=== Idea ===
-[http://scons.org SCons] is very good software construction tool written on Python.
+=== Issues ===
+
+[http://scons.org SCons] is good software construction tool written on Python.
 For more information about [http://scons.org SCons] go to the [http://scons.org SCons's] site.
 
 SCons allows to create cross-platform build scripts.
-The same build scripts are used to build a code with various compilers and/or on different platforms.
+The same build scripts are used to build a code by different compilers and/or on different platforms.
 SCons encapsulates specifics of platforms and compilers.
-So it doesn't provide any information about what compiler is used or what platform the code is being compiled for.
+And it doesn't provide any information about what compiler is used or what platform the code is being compiled for
+(actually SCons assumes that the target platform is the host platform).
 
 It's fine if the project doesn't need this information.
 But usually for big cross-platform projects this information is very important.
@@ -19,14 +21,21 @@ And etc.
 This extension helps to get such (and other) information from the build scripts.
 
 
+=== Features ===
+ * Build variants: debug, release, final, as well as user's build variants
+ * Cross-compilation, support host and target platforms
+ * Easy customizable compilation flags for certain targets
+ * Specific OS environment setup for any tool
+ * Very flexible options
+
 === Aqualid ===
 
 Standard SCons's options are not enough flexible.
 So more flexible options were implemented (these options are most important part of this extension).
 
-These options keep a lot information about the build process.
+These options keep lot information about the build process.
 
-The most useful feature of the options is that values are are kept together with conditions.
+The most useful feature of the options is that values are kept together with conditions.
 I.e. value is valid only if its condition is true, otherwise default (or other) value is used.
 
 For example:
@@ -41,11 +50,11 @@ This is eqaul to:
     }}}
 
     
-'options' is container object of options.
+`options` is container object of options.
 Method `If()` creates an conditional object to create a condition to set a value of an option.
 The conditional object is saved together with value. Conditions are checked upon access to the option.
 
-In our example value '-Wl,--subsystem,console' will be added to 'linkflags' only if the condition is true.
+In our example value `-Wl,--subsystem,console` will be added to `linkflags` only if the condition is true.
 
 For example:
     {{{
@@ -76,38 +85,40 @@ Will print:
     options.linkflags: -Wl,--strip-all
     }}}
 
-At line 1, we simply set option 'linkflags' to '-Wl,--strip-all'. This value doesn't depend from any option.
+At line 1, we simply set option `linkflags` to `-Wl,--strip-all`. This value doesn't depend from any option.
 
-At lines 3-5, we reset options 'cc_name', 'target_os' and 'user_interface' to an empty string.
+At lines 3-5, we reset options `cc_name`, `target_os` and `user_interface` to an empty string.
 
 At line 7, we create a conditional object via method `If()`, and set up a condition equal to:
     `cc_name == 'gcc' and target_os == 'windows' and user_interface == 'console'`
 
-Operator [] is interpreted as '==', e.g. cc_name['gcc'] is similar to cc_name == 'gcc'.
+Operator [] is interpreted as `==`, e.g. `cc_name['gcc']` is similar to `cc_name == 'gcc'`.
 
-Then a value '-Wl,--subsystem,console', operation '+=' and the conditional object is added to the option 'linkflags'.
+Then a value `-Wl,--subsystem,console`, operation `+=` and the conditional object is added to the option `linkflags`.
 The condition is not evaluated at this line.
-This condition will evaluated later upon an access to the option 'linkflags'
+This condition will evaluated later upon an access to the option `linkflags`
 
-In our case the value '-Wl,--subsystem,console' will be added to the value of the option 'linkflags'
-only if cc_name == 'gcc', target_os == 'windows' and user_interface == 'console'.
+In our case the value `-Wl,--subsystem,console` will be added to the value of the option `linkflags`
+only if `cc_name == 'gcc'`, `target_os == 'windows'` and `user_interface == 'console'`.
 
-At line 9, cc_name == '', target_os == '' and user_interface == '', i.e the condition is false
-and the value '-Wl,--subsystem,console' is not added to the result value.
-Result will be '-Wl,--strip-all'
+At line 9, `cc_name == ''`, `target_os == ''` and `user_interface == ''`, i.e the condition is false
+and the value `-Wl,--subsystem,console` is not added to the result value.
+Result will be `-Wl,--strip-all`
 
-At lines 11-13, we change options 'cc_name', 'target_os' and 'user_interface' to values 'gcc', 'windows' and 'console' respectively.
+At lines 11-13, we change options `cc_name`, `target_os` and `user_interface` to values `gcc`, `windows` and `console` respectively.
 
-At line 15, the condition is true and value '-Wl,--subsystem,console' will be added to the result.
-Result value will be '-Wl,--strip-all -Wl,--subsystem,console'
+At line 15, the condition is true and value `-Wl,--subsystem,console` will be added to the result.
+Result value will be `-Wl,--strip-all -Wl,--subsystem,console`
 
-At line 17, we set 'target_os' to 'linux' and our condition became false again.
-The result value of option 'linkflags' at line 18 will be '-Wl,--strip-all'.
+At line 17, we set `target_os` to `linux` and our condition became false again.
+The result value of option `linkflags` at line 18 will be `-Wl,--strip-all`.
 
 Conditional values make options are very flexible and powerful.
-We can easily set up any number _live_ dependecies between options and any number of _live_ combinations of values.
+We can easily set up any number _live_ dependencies between options and any number of _live_ combinations of values.
 
-All other functionality is based on the conditional values.
+All building processes are based on the conditional values.
 
-*[http://www.lib.ru/RUFANT/SHEFNER/girl.txt Aqualid]* is universal building material. 
+In [http://www.lib.ru/RUFANT/SHEFNER/girl.txt SciFi reality] (great thanks to [http://en.wikipedia.org/wiki/Vadim_Shefner Vadim Shefner])
+*[http://www.lib.ru/RUFANT/SHEFNER/girl.txt Aqualid]* is the universal building material.
 
+Conditional values are building material of this extension.
