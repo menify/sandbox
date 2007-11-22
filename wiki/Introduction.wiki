@@ -118,7 +118,12 @@ We can easily set up any number _live_ dependencies between options and any numb
 
 All building processes are based on the conditional values.
 
-In [http://www.lib.ru/RUFANT/SHEFNER/girl.txt SciFi reality] (great thanks to [http://en.wikipedia.org/wiki/Vadim_Shefner Vadim Shefner])
+In [http://www.lib.ru/RUFANT/SHEFNER/girl.txt SciFi reality] (great thanks to [http://en.wikipedia.org/wiki/Vadim_Shefner Vadim Shefner]),
 *[http://www.lib.ru/RUFANT/SHEFNER/girl.txt Aqualid]* is the universal building material.
 
 Conditional values are building material of this extension.
+
+
+=== Using ===
+
+
