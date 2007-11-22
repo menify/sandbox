@@ -75,7 +75,9 @@ def     _user_module():
     
     if _user_setup_module is None:
         try:
+            sys.path.append( os.path.join( os.path.dirname( __file__ ), 'setup' ) )
             import aql_setup_site
+            del sys.path[-1]
             
             _Msg( "Using setup file: " + aql_setup_site.__file__ )
             
