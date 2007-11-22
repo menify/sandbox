@@ -125,5 +125,5 @@ Conditional values are building material of this extension.
 
 
 === Using ===
-
+[http://aqualid.googlecode.com/svn/wiki/philosophy.txt Philosophy]
 
