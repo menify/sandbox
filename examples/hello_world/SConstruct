@@ -1,15 +1,5 @@
 
-import os
 import aql
 
-
-#~ bv.AddValues('pre_release')
-#~ bv.AddAliases( 'prerel', 'pre_release' )
-#~ bv.AddAliases( 'some', ['release', 'debug'] )
-
-#~ bv.SetDefault( 'some' )
-
-#~ mpc.Build( 'Sconscript', ENV = {'PATH': os.environ['PATH']} )
 aql.Build()
-#~ mpc.SconsBuild( 'Sconscript' )
 
