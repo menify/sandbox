@@ -123,7 +123,6 @@ In [http://www.lib.ru/RUFANT/SHEFNER/girl.txt SciFi reality] (great thanks to [h
 
 Conditional values are building material of this extension.
 
-
-=== Using ===
+=== [Using] ===
 
 
