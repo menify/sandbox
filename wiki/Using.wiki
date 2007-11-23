@@ -1,1 +1,5 @@
 
+At first you need [http://aqualid.googlecode.com/svn/trunk Aqualid extention code].
+To get it 
+
+
