@@ -108,8 +108,7 @@ def     _add_variants( options ):
     options.build_variants = build_variants
     options.builds = build_variants
     
-    # 'all' build variant is added during the Build process
-    # build_variants.AddAliases( 'all', build_variants.AllowedValues() )
+    build_variants.AddAlias( 'all', build_variants.AllowedValues() )
     
     build_variant = _LinkedOption( default = 'debug',
                                    options = options,

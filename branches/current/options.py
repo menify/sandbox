@@ -2,7 +2,6 @@
 import os
 import sys
 import types
-import string
 import thread
 import threading
 
@@ -31,6 +30,16 @@ def     _is_dict_option( option ):
 
 def     _is_list( value ):
     return (type(value) is types.ListType) or (type(value) is types.TupleType)
+
+def     _to_list( value ):
+    
+    if (type(value) is not types.ListType) and (type(value) is not types.TupleType):
+        if value is None:
+            return ()
+        
+        return ( value, )
+    
+    return value
 
 #//---------------------------------------------------------------------------//
 
@@ -349,10 +358,7 @@ def     _split_value( value, separator ):
 
 def     _add_raw_value( self_values, option, value ):
     
-    cv = option._convert_value( value )
-    
-    if not _is_list( cv ):
-        cv = [ cv ]
+    cv = _to_list( option._convert_value( value ) )
     
     for v in cv:
         self_values.append( ('v', v) )
@@ -382,8 +388,7 @@ def     _convert_value_to_list( values, option ):
         if option.is_list:
             values = _split_value( values, option.separator )
         
-        if not _is_list( values ):
-            values = [ values ]
+        values = _to_list( values )
     
     return values
 
@@ -931,8 +936,7 @@ class   EnumOption (OptionBase):
     
     def     __init__( self, default, allowed_values = None, aliases = None, is_list = 0, separator = ' ', unique = 1, help = None, options = None):
         
-        self.allowed_values = []
-        self.aliases = {}
+        self.values_dict = {}
         
         self.AddValues( allowed_values )
         
@@ -944,165 +948,122 @@ class   EnumOption (OptionBase):
     
     def     __map_values( self, values ):
         
-        if _is_list( values ):
-            
-            mapped_val = []
-            
-            for v in values:
-                v = self.__map_values( v )
-                
-                if _is_list( v ):
-                    mapped_val += v
-                else:
-                    mapped_val.append( v )
-            
-            return mapped_val
+        values_dict = self.values_dict
         
-        #//-------------------------------------------------------//
+        mapped_values = []
         
-        val = str(values).lower()
-        val = self.aliases.get( val, val )
-        
-        if _is_list( val ):
+        for v in _to_list( values ):
             
-            mapped_val = []
+            v = v.lower()
             
-            for v in val:
-                v = self.__map_values( v )
-                if v is None:
-                    return None
-               
-                if _is_list( v ):
-                    mapped_val += v
-                else:
-                    mapped_val.append( v )
+            try:
+                alias = values_dict[ v ]
+            except KeyError:
+                return None
             
-            return mapped_val
+            if alias is None:
+                mapped_values.append( v )
+            else:
+                mapped_values += alias
         
-        if not val in self.allowed_values:
-            return None
-        
-        return val
+        return mapped_values
     
-    #//-------------------------------------------------------//
+    #//=======================================================//
     
     def     _convert_value( self, val ):
         
         value = self.__map_values( val )
         
         if value is None:
-            _Error( "Invalid value '%s'" % (val) )
+            _Error( "Invalid value: '%s'" % (val) )
         
         return value
     
     #//=======================================================//
     
     def     AddValues( self, values ):
-        if not values:
-            return
+        values_dict = self.values_dict
         
-        elif not _is_list( values ):
-            values = [ values ]
-        
-        allowed_values = self.allowed_values
-        
-        for v in values:
-            if self.__map_values( v ) is None:
-                allowed_values.append( v )
+        for v in _to_list( values ):
+            values_dict[ v.lower() ] = None
     
     #//=======================================================//
     
-    def     AddAliases( self, aliases, values = None ):
+    def     AddAlias( self, alias, values ):
+        
+        mapped_values = self.__map_values( values )
+        if mapped_values is None:
+            _Error( "Invalid value(s): %s" % (values) )
+        
+        if (not self.is_list) and (_is_list( mapped_values ) and (len( mapped_values ) > 1)):
+            _Error( "Can't add an alias to list of values: %s of none-list option" % (mapped_values) )
+        
+        self.values_dict[ alias ] = mapped_values
+    
+    #//=======================================================//
+    
+    def     AddAliases( self, aliases ):
         
         if not aliases:
             return
         
-        if _is_dict( aliases ):
-            
-            for k,v  in  aliases.iteritems():
-                self.AddAliases( aliases = k, values = v )
-            return
-        
-        if not values:
-            return
-        
-        mapped_values = self.__map_values( values )
-        
         if __debug__:
-            if mapped_values is None:
-                _Error( "Invalid value(s): %s" % (values) )
+            if not _is_dict( aliases ):
+                _Error( "Aliases must be a dictionary" )
         
-        values = mapped_values
-        
-        #//-------------------------------------------------------//
-        
-        if (not self.is_list) and (_is_list( values ) and (len(values) > 1)):
-            _Error( "Can not set multiple values: %s to none-list option" % (aliases) )
-        
-        #//-------------------------------------------------------//
-        
-        if not _is_list( aliases ):
-            aliases = [ aliases ]
-        
-        for a in aliases:
-            if self.__map_values( a ) is None:
-                self.aliases[ str(a).lower() ] = values
+        for a,v in aliases.iteritems():
+            self.AddAlias( a, v )
     
     #//=======================================================//
     
     def     AllowedValues( self ):
-        return self.allowed_values
+        
+        allowed_values = []
+        
+        for a,v in self.values_dict.iteritems():
+            if v is None:
+                allowed_values.append( a )
+        
+        return allowed_values
     
     #//=======================================================//
     
-    def     Aliases( self ):
-        return self.aliases
-    
-    #//=======================================================//
-    
-    def     __find_aliases( self, value ):
+    def     __aliases( self ):
         
-        mapped_values = []
-        aliases = self.aliases
+        aliases = {}
         
-        for k,v in aliases.iteritems():
-            if v == value:
-                mapped_values.append( k )
+        for a,v in self.values_dict.iteritems():
+            
+            if v is not None:
+                if len(v) == 1:
+                    aliases[ v[0] ] = aliases.get( v[0], [] ) + [ a ]
+            else:
+                aliases.setdefault( a )
         
-        return mapped_values
+        return aliases
     
     #//-------------------------------------------------------//
     
     def     AllowedValuesStr( self ):
         
-        allowed_values = []
-        for v in self.allowed_values:
+        for v,a in self.__aliases().iteritems():
             
-            mv = self.__find_aliases( v )
-            if len( mv ) > 0:
-                v = v + '(or ' + string.join( mv, ' or ') + ')'
+            if a is not None:
+                v = v + '(or ' + 'or'.join( a ) + ')'
             
             allowed_values.append( v )
         
-        return string.join( allowed_values, ', ')
+        return ', '.join( allowed_values )
     
     #//=======================================================//
     
     def     Clone( self, options ):
         
-        clone = EnumOption( default = self.default,
-                            allowed_values = self.allowed_values,
-                            aliases = self.aliases,
-                            is_list = self.is_list,
-                            separator = self.separator,
-                            unique = self.unique,
-                            help = self.help,
-                            options = options )
+        clone = OptionBase.Clone( self, options )
         
-        clone._copy_conditions( self )
+        clone.values_dict = self.values_dict.copy()
         
         return clone
-
 
 
 #//===========================================================================//

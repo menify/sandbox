@@ -103,18 +103,9 @@ def     Build( scriptfile = None, options = None, **kw ):
     
     if options is None:
         options = _BuiltinOptions()
-        
-        bvs = options.build_variants
-        bvs.AddAliases( 'all', bvs.AllowedValues() )
-        
         options.update( _ARGUMENTS )
     
-    else:
-        bvs = options.build_variants
-        bvs.AddAliases( 'all', bvs.AllowedValues() )
-    
-    
-    for bv in bvs.Get():
+    for bv in options.build_variants.Get():
         env_options = options.Clone()
         env_options.bv = bv
         
