@@ -1,0 +1,94 @@
+
+=== Installation ===
+At first, you need a [http://aqualid.googlecode.com/svn/trunk code] of Aqualid.
+Get it using [http://subversion.tigris.org Subversion]:
+    `svn co http://aqualid.googlecode.com/svn/trunk aql`
+
+Or using [http://aqualid.googlecode.com/svn/trunk web interface].
+
+Add path to directory where `aql` is into OS environment variable `PYTHONPATH`:
+For windows (assume that `aql` was copied to `D:\work\src\lib`):
+    `set PYTHONPATH=`*`D:\work\src\lib`*`;%PYTHONPATH%
+
+For Unix (assume that `aql` was copied to `/opt/lib`):
+    `PYTHONPATH=`*`/opt/lib`*`:$PYTHONPATH`
+
+=== Setting up ===
+
+It's not required, but it's recommended to create/modify file `aql_setup_site.py` for your settings.
+File `aql_setup_site.py` can be placed anywhere, but its path should be in sys.path
+Aqualid searches this file in `sys.path` and then, if file was not found, in `aql/setup/`.
+
+Aqualid use this file during creation of a SCons's Environment.
+
+There are three classes of functions in this file:
+
+1. Common setup function.
+   If function `Setup( options, os_env )` exists it's called first.
+    It receives two arguments:
+        * Aqualid options
+        * OS environment dictionary (`ENV` dictionary or {} if `ENV` was not passed by user).
+    
+    You can add any settings into this function which should be common for all environments.
+
+2. User's setup functions
+    
+    Values of option `options.setup` are used to get name of user's functions and call them.
+    if function `Setup_<value>( options, os_env )` exists it's called.
+    This function receives the same arguments as of the common setup function.
+    
+    You can use this feature to setup specific environments.
+    For example, you have three compilers (GCC, Watcom, Visual C/C++), you can switch the compiler using this feature:
+        {{{
+        > scons setup=msvc
+        
+        > scons setup=watcom
+        
+        > scons setup=gcc
+        }}}
+    
+    At first, called function `Setup_msvc( options, os_env )` to setup environment for Visual C/C++ compiler.
+    At second, called function `Setup_watcom( options, os_env )` to setup environment for Open Watcom C/C++ compiler.
+    At third, called function `Setup_gcc( options, os_env )` to setup environment for GNU C/C++ compiler.
+    
+    We don't need to leave a shell to create or update OS environment to activate the needed environment.
+    We can easily and fast test the compilation of our code on several platforms, we need to change only one parameter.
+
+3. Tools setup functions
+    These functions are called when called `exists` function of a `Tool` object.
+    Aqualid calls setup function of the tool and then calls `exists`.
+    I.e. we are trying to setup an environment for the tool and then checking an existence of the tool.
+    
+    Setup function should be named: `SetupTool_<tool name>`
+    It receives three arguments: `options`, `os_env` and `env`.
+    `options` and `os_env` are the same to arguments of the common setup function.
+    The third argument `env` is a SCons's Environment.
+    
+    Returning to the example in #2, we can use tools setup functions for this instead.
+    Then selecting of compiler can be passed somehow (for example through a `cc_name`):
+    
+        {{{
+        > scons cc_name=msvc
+        
+        > scons cc_name=watcom
+        
+        > scons cc_name=gcc
+        }}}
+    
+    Assume that tools are named: `msvc`, `watcom` and `gcc`.
+    
+    At first, called function `SetupTool_msvc( options, os_env, env )` to setup environment for Visual C/C++ compiler.
+    At second, called function `SetupTool_watcom( options, os_env, env )` to setup environment for Open Watcom C/C++ compiler.
+    At third, called function `SetupTool_gcc( options, os_env, env )` to setup environment for GNU C/C++ compiler.
+
+If file `aql_setup_site.py` is not found or it doesn't contain such functions then Aqualid do nothing
+for setting up environments and behavior is identical to default SCons's behavior for setting up environments.
+
+These three classes of setup functions can be used to create very flexible building scripts.
+It's up to developers.
+
+Aqualid extension doesn't restrict architecture of this file.
+If you don't want to use it, don't use it.
+Or use it as you like.
+
+But it's likely that architecture of this file may affect architecture of your building scripts.
