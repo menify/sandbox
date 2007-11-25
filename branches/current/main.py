@@ -66,8 +66,12 @@ def     Env( options, tools=None, **kw ):
     
     os_env = kw.setdefault( 'ENV', {} )
     os_env.setdefault( 'PATH', '' )
-    os_env.setdefault( 'TEMP', os.environ['TEMP'] )
-    os_env.setdefault( 'TMP', os.environ['TMP'] )
+    
+    try:
+        os_env.setdefault( 'TEMP', os.environ['TEMP'] )
+        os_env.setdefault( 'TMP', os.environ['TMP'] )
+    except KeyError:
+        pass
     
     _Setup( options, os_env )
     

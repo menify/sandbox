@@ -18,7 +18,7 @@ def     _add_build_options( options ):
     
     options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options" )
     
-    options.build_dir = _StrOption( 'build/', help = "Build directory suffix", is_list = 1, separator = '', unique = 0 )
+    options.build_dir = _StrOption( 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0 )
 
 #//===========================================================================//
 
@@ -38,8 +38,8 @@ def     _add_platform_options( options ):
                                                 help = "The system's release version, e.g. '2.2.0' or '5.1.2600'" )
     
     options.target_machine = _EnumOption( default = '',
-                                          allowed_values = ('', 'i386', 'x86-64','arm' ),
-                                          aliases = {'i686':'i386','i586':'i386', 'pc':'i386'},
+                                          allowed_values = ('', 'x86-32', 'x86-64','arm' ),
+                                          aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32','i586':'x86-32', 'pc':'x86-32'},
                                           help = "The machine type, e.g. 'i386'" )
     
     options.target_cpu = _StrOption( default = '',
@@ -295,14 +295,12 @@ def     BuiltinOptions():
     options = _Options()
     
     prefix = '_add'
-    prefix_len = len(prefix)
     suffix = '_options'
-    suffix_len = len( suffix )
     
     local_names = globals()
     
     for name, function in local_names.iteritems():
-        if (name[ 0 : prefix_len ] == prefix) and (name[ -suffix_len: ] == suffix ):
+        if name.startswith( prefix ) and name.endswith( suffix ):
             function( options )
     
     _add_variants( options )

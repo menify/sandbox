@@ -8,7 +8,7 @@ _Target = aql.Target
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_aql_tool_flexelint( options, env, os_env ):
+def     SetupTool_aql_tool_flexelint( options, os_env, env ):
     
     FLEXELINTDIR = 'd:/bin/development/code-analyzers/flexlint'
     FLEXLINT_USER_DIR = 'd:/work/settings/flexelint'
@@ -37,7 +37,7 @@ def     SetupTool_aql_tool_flexelint( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_aql_tool_qt( options, env, os_env ):
+def     SetupTool_aql_tool_qt( options, os_env, env ):
     
     options = env['AQL_OPTIONS']
     
@@ -50,7 +50,7 @@ def     SetupTool_aql_tool_qt( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_aql_tool_wxwidgets( options, env, os_env  ):
+def     SetupTool_aql_tool_wxwidgets( options, os_env, env ):
     
     WXWIDGETSDIR = 'd:/work/src/lib3party/qt-4.2.2/wxwidgets/wxWidgets-2.8.3'
     
@@ -111,7 +111,7 @@ def     _setup_vc8( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_aql_tool_msvc( options, env, os_env  ):
+def     SetupTool_aql_tool_msvc( options, os_env, env ):
     
     if options.cc_name != '' and options.cc_name != 'msvc':
         return
@@ -132,7 +132,7 @@ def     SetupTool_aql_tool_msvc( options, env, os_env  ):
 
 #//---------------------------------------------------------------------------//
 
-def     SetupTool_aql_tool_gcc( options, env, os_env  ):
+def     SetupTool_aql_tool_gcc( options, os_env, env ):
     
     if options.cc_name != '' and options.cc_name != 'gcc':
         return
