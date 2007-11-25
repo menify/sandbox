@@ -1,31 +1,57 @@
 
-Platform specific options:
+=== Platform specific options: ===
     
-    * `target_os`
+    Used and changed by tools and user.
+    
+    * *`target_os`*
         The type of target OS.
             Supported values:
-                `windows`   - for Microsoft Windows OS
-                `linux`     - for Linux based OS
-                `cygwin`    - for compilation for Cygwin
-                `darwin`    - for Mac OS X
-                `java`      - for Java VM
+                * `windows`     - for Microsoft Windows OS
+                * `linux`       - for Linux based OS
+                * `cygwin`      - for compilation for Cygwin
+                * `darwin`      - for Mac OS X
+                * `java`        - for Java VM
     
-    * `target_os_release`
+    * *`target_os_release`*
         The release name of the target OS. For example: '2.6.24', 'XP'
     
-    * `target_os_version`:
+    * *`target_os_version`*
         The version of the target OS. For example: '2.6.24', '5.1.2600'
     
     
-    * target_machine
+    * *`target_machine`*
         The type of the target machine.
             Supported values:
-                `x86-32`    - for 32-bits I386 compatible processors
-                `x86-64`    - for 64-bits I386 compatible processors
-                'arm'       - for ARM processors
+                * `x86-32`  - for 32-bits I386 compatible processors
+                * `x86-64`  - for AMD x86-64 and Intel EM64T compatible processors
+                * `arm`     - for ARM processors
     
-    * target_cpu
+    * *`target_cpu`*
         The name of the target CPU. For example: 'arm11', 'amdk6'
     
-    * target_cpu_flags
+    * *`target_cpu_flags`*
         The list of the target CPU flags. For example: 'mmx', 'sse', 'sse2', 'fpu'
+
+=== Build control options: ===
+
+    * *`setup`*
+        List of values for setup. It's used during creation of a SCons's Environment. See [Setup] for details.
+    
+    * *`build_dir`*
+        The building directory prefix. It's used during creation of a SCons's Environment to set a value of the `build_dir`.
+        By default, the template of this value is:
+            `build/<target OS>_<target CPU>_<cc name><cc ver>/<build variant>`
+    
+    * *`build_variants`*
+        The list of the active build variants. 
+            Supported values by default:
+                * `debug`           - for debug builds
+                * `release_speed`   - for release builds with optimization for performance
+                * `release_size`    - for release builds with optimization for size of the generated code
+                * `final`           - for final release builds which should be used by end users, code is optimized for performance
+    
+    * *`build_variant`*
+        The current build variant.
+
+=== Optimization options: ===
+
