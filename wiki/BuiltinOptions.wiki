@@ -44,7 +44,7 @@
     
     * *`build_variants`*
         The list of the active build variants. 
-            Supported values by default:
+            Predefined values:
                 * `debug`           - for debug builds
                 * `release_speed`   - for release builds with optimization for performance
                 * `release_size`    - for release builds with optimization for size of the generated code
