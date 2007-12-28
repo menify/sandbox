@@ -15,10 +15,10 @@ def     _setup_flags( options ):
     
     if_.link_runtime['shared'].runtime_debugging['false'].ccflags += '/MD'
     if_.link_runtime['shared'].runtime_debugging['true'].ccflags += '/MDd'
-    if_.link_runtime['static'].runtime_debugging['false'].threading['single'].ccflags += '/ML'
-    if_.link_runtime['static'].runtime_debugging['false'].threading['multi'].ccflags += '/MT'
-    if_.link_runtime['static'].runtime_debugging['true'].threading['single'].ccflags += '/MLd'
-    if_.link_runtime['static'].runtime_debugging['true'].threading['multi'].ccflags += '/MTd'
+    if_.link_runtime['static'].runtime_debugging['false'].runtime_threading['single'].ccflags += '/ML'
+    if_.link_runtime['static'].runtime_debugging['false'].runtime_threading['multi'].ccflags += '/MT'
+    if_.link_runtime['static'].runtime_debugging['true'].runtime_threading['single'].ccflags += '/MLd'
+    if_.link_runtime['static'].runtime_debugging['true'].runtime_threading['multi'].ccflags += '/MTd'
     
     if_.cc_ver.ge(7).cc_ver.lt(8).ccflags += '/Zc:forScope /Zc:wchar_t'
     
@@ -92,12 +92,12 @@ def     generate( env ):
     options.target_machine = 'i386'
     options.target_cpu = ''
     
-    #~ _setup_flags( options )
+    _setup_flags( options )
     
 
 
 #//---------------------------------------------------------------------------//
 
 def     exists( env ):
-    return _try_tools( env, env['AQL_OPTIONS'] )
+    return _try_tools( env, env['AQL_OPTIONS'], check_exists_only = 1 )
 

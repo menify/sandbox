@@ -28,7 +28,7 @@ def     _is_dict_option( option ):
 
 #//---------------------------------------------------------------------------//
 
-def     _is_list( value ):
+def     _is_sequence( value ):
     return (type(value) is types.ListType) or (type(value) is types.TupleType)
 
 def     _to_list( value ):
@@ -77,7 +77,13 @@ def     EnvOptions( env ):
             if overridden_options is None:
                 overridden_options = options.Clone()
             
-            overridden_options[ k ] = env_value
+            option = overridden_options[ k ]
+            
+            if option.is_list:
+                option.Append( env_value )
+            else:
+                option.Set( env_value )
+            
             env[ env_key ] = None
         
         if overridden_options is not None:
@@ -126,6 +132,10 @@ class Options:
         
         if not _is_option( value ):
             _Error( "Option '%s' is unknown and value '%s' is not an option" % (name,value) )
+            #~ if _is_sequence( value ):   is_list = 1
+            #~ else:                       is_list = 0
+            
+            #~ value = StrOption( default = value, is_list = is_list )   # use the default option type for unknown options
         
         self.__add_to_dict( name, value )
         
@@ -436,7 +446,7 @@ class   _ConditionalValue:
                 
                 cv = convert_value( opt_value )
                 
-                if _is_list( cv ):
+                if _is_sequence( cv ):
                     values += cv
                 else:
                     values.append( cv )
@@ -841,7 +851,7 @@ class   OptionBase:
     #//-------------------------------------------------------//
     
     def     __value_str( self, value ):
-        if _is_list( value ):
+        if _is_sequence( value ):
             sep = self.separator[:]
             return sep.join( value )
         
@@ -995,7 +1005,7 @@ class   EnumOption (OptionBase):
         if mapped_values is None:
             _Error( "Invalid value(s): %s" % (values) )
         
-        if (not self.is_list) and (_is_list( mapped_values ) and (len( mapped_values ) > 1)):
+        if (not self.is_list) and (_is_sequence( mapped_values ) and (len( mapped_values ) > 1)):
             _Error( "Can't add an alias to list of values: %s of none-list option" % (mapped_values) )
         
         self.values_dict[ alias ] = mapped_values
@@ -1198,7 +1208,7 @@ class   PathOption (OptionBase):
     
     def     _convert_value( self, val ):
         
-        path = os.path.normcase( os.path.normpath( val ) )
+        path = os.path.normcase( os.path.abspath( val ) )
         
         return path
     

@@ -1,69 +1,13 @@
 
 import sys
-import os
 import os.path
 import types
 
 import logging
+import logging
 
 _Info = logging.Info
 _Msg = logging.Msg
-
-def     _GetShellScriptEnv( os_env, script ):
-    
-    import sys
-    import popen2
-    import re
-    
-    os_environ = os.environ
-    
-    if (sys.platform == "win32"):
-        shell = os_environ.get("COMSPEC", "cmd.exe")
-        script = 'call ' + script
-    else:
-        shell = '/bin/sh'
-        script = '. ' + script
-    
-    cmdout, cmdin = popen2.popen2( shell )
-    cmdin.write( script + "\n" )
-    cmdin.write( "set\n" )
-    cmdin.close()
-    env = cmdout.readlines()
-    cmdout.close()
-    
-    for arg in env:
-        
-        match = re.search(r'^\w+=', arg )
-        
-        if match:
-            index = arg.find('=')
-            name = arg[:index]
-            value = arg[index + 1:].rstrip('\n \t\r')
-            
-            current = os_environ.get( name )
-            if (current is None) or (value != current):
-                os_env[ name ] = value
-
-#//===========================================================================//
-
-_os_pathsep = os.pathsep
-
-def     _add_path( os_env, name, value ):
-    
-    global _os_pathsep
-    
-    path = os.path.normcase( os_env.get( name, '' ) )
-    value = os.path.normcase( os.path.normpath( value ) )
-    
-    if path.find( _os_pathsep + value + _os_pathsep ) != -1:
-        return
-    
-    if path and (not path.endswith( _os_pathsep )):
-        path += _os_pathsep
-    
-    path += value
-    
-    os_env[ name ] = path
 
 #//===========================================================================//
 
@@ -81,10 +25,7 @@ def     _user_module():
             
             _Msg( "Using setup file: " + aql_setup_site.__file__ )
             
-            # export functions into aql_setup_site module
             _user_setup_module = aql_setup_site.__dict__
-            _user_setup_module['GetShellScriptEnv'] = _GetShellScriptEnv
-            _user_setup_module['AppendPath'] = _add_path
             
         except ImportError:
             
@@ -97,34 +38,49 @@ def     _user_module():
 
 #//===========================================================================//
 
-def     _setup_tool( env, tool ):
+def     _tool_setup( self, env ):
     
     user_module = _user_module()
     
     try:
-        user_module[ 'SetupTool_' + tool ]( env['AQL_OPTIONS'], env['ENV'], env )
+        user_module[ 'SetupTool_' + self.name ]( env['AQL_OPTIONS'], env['ENV'], env )
     
     except (TypeError, KeyError):
         if __debug__:
-            _Info( "No setup for tool: " + str(tool) )
+            _Info( "No setup for tool: " + str(self.name) )
+
+def     _tool_exists( self, env ):
+    if self._aql_is_exist is None:
+        _tool_setup( self, env )
+        self._aql_is_exist = self._aql_exists( env )
+    
+    return self._aql_is_exist
+
+def     _tool_generate( self, env ):
+    if self._aql_is_exist is None:
+        _tool_exists( self, env )
+    
+    self._aql_generate( env )
 
 #//===========================================================================//
 
-def     _Tool( tool, toolpath = [], **kw ):
+def     _init_tool( self, name, toolpath=[], **kw ):
     
-    global _SCons_Tool_Tool
+    _SCons_Tool_Tool_init( self, name, toolpath, **kw )
     
-    tool = _SCons_Tool_Tool( tool, toolpath, **kw )
-    tool.exists = lambda env, name = tool.name, exists = tool.exists: _setup_tool( env, name ) or exists( env )
+    self._aql_is_exist = None
+    self._aql_generate = self.generate
+    self._aql_exists = self.exists
     
-    return tool
+    self.exists = lambda env, self = self: _tool_exists( self, env )
+    self.generate = lambda env, self = self: _tool_generate( self, env )
 
 #//-------------------------------------------------------//
 
 import SCons.Tool
 
-_SCons_Tool_Tool = SCons.Tool.__dict__['Tool']
-SCons.Tool.__dict__['Tool'] = _Tool
+_SCons_Tool_Tool_init = SCons.Tool.Tool.__init__
+SCons.Tool.Tool.__init__ = _init_tool
 
 #//===========================================================================//
 

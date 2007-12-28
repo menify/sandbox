@@ -28,6 +28,7 @@ def     _setup_flags( options ):
     if_.inlining['full'].ccflags += '-finline-functions -Wno-inline'
     
     if_.rtti['true'].ccflags += '-frtti'
+    if_.rtti['false'].ccflags += '-fno-rtti'
     
     if_.exception_handling['true'].ccflags += '-fexceptions'
     if_.exception_handling['false'].ccflags += '-fno-exceptions'
@@ -179,6 +180,9 @@ def     generate( env ):
         
         if target_os == 'hpux':
             env['SHLINKFLAGS'] = SCons.Util.CLVar('$LINKFLAGS -shared -fPIC')
+        
+        env['PROGSUFFIX'] = ''
+        env['SHLIBSUFFIX'] = '.so'
     
     # __RPATH is set to $_RPATH in the platform specification if that
     # platform supports it.

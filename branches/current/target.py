@@ -19,5 +19,8 @@ class   Target:
     cpu = platform.processor()
     
     cpu_flags = []
+    
+    platform = sys.platform
+
 
 

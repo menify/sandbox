@@ -16,39 +16,42 @@ _BoolOption = options.BoolOption
 
 def     _add_build_options( options ):
     
+    options.tools = _StrOption( default = 'aql_deftool_cc', separator = ',', is_list = 1, help = "Environment tools" )
+    
     options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options" )
     
     options.build_dir = _StrOption( 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0 )
 
 #//===========================================================================//
 
-import sys
-import platform
-
 def     _add_platform_options( options ):
     
     options.target_os = _EnumOption( default = '', allowed_values = ( '', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
-                                    help = "The system/OS name, e.g. 'Linux', 'Windows', or 'Java'." )
+                                    help = "The target system/OS name, e.g. 'Linux', 'Windows', or 'Java'." )
+    
+    options.target_platform = _StrOption( default = '',
+                                          ignore_case = 1,
+                                          help = "The system's distribution, e.g. 'win32', 'Linux'" )
     
     options.target_os_release = _StrOption( default = '',
                                             ignore_case = 1,
-                                            help = "The system's release, e.g. '2.2.0' or 'XP'" )
+                                            help = "The target system's release, e.g. '2.2.0' or 'XP'" )
     
     options.target_os_version = _VersionOption( default = '',
-                                                help = "The system's release version, e.g. '2.2.0' or '5.1.2600'" )
+                                                help = "The target system's release version, e.g. '2.2.0' or '5.1.2600'" )
     
     options.target_machine = _EnumOption( default = '',
                                           allowed_values = ('', 'x86-32', 'x86-64','arm' ),
                                           aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32','i586':'x86-32', 'pc':'x86-32'},
-                                          help = "The machine type, e.g. 'i386'" )
+                                          help = "The target machine type, e.g. 'i386'" )
     
     options.target_cpu = _StrOption( default = '',
                                      ignore_case = 1,
-                                     help = "The real processor name, e.g. 'amdk6'." )
+                                     help = "The target real processor name, e.g. 'amdk6'." )
     
     options.target_cpu_flags = _StrOption( default = '',
                                      ignore_case = 1, is_list = 1,
-                                     help = "The CPU flags, e.g. 'mmx', 'sse2'." )
+                                     help = "The target CPU flags, e.g. 'mmx', 'sse2'." )
 
 #//===========================================================================//
 
@@ -266,12 +269,14 @@ def     _add_cc_options( options ):
     options.gcc_suffix = _StrOption( help = "GCC C/C++ compiler suffix" )
     
     options.cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines" )
-    options.cpppaths = _StrOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
+    options.cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
     
-    const_cpppaths = _StrOption( is_list = 1, help = "C/C++ preprocessor path to library headers" )
-    options.const_cpppaths = const_cpppaths
-    options.lib_cpppaths = const_cpppaths
+    const_cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers" )
+    options.const_cpppath = const_cpppath
+    options.lib_cpppath = const_cpppath
     
+    options.libpath = _PathOption( is_list = 1, help = "Paths to libraries" )
+    options.libs = _StrOption( is_list = 1, help = "Libraries" )
 
 
 #//===========================================================================//
