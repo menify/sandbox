@@ -38,6 +38,7 @@ def     _cflags( target, source, env, for_signature ):      return _flags( env, 
 def     _ccflags( target, source, env, for_signature ):     return _flags( env, 'ccflags' )
 def     _cxxflags( target, source, env, for_signature ):    return _flags( env, 'cxxflags' )
 def     _linkflags( target, source, env, for_signature ):   return _flags( env, 'linkflags' )
+def     _arflags( target, source, env, for_signature ):   return _flags( env, 'arflags' )
 
 #//---------------------------------------------------------------------------//
 
@@ -53,6 +54,19 @@ def     _path( env, path_name ):
 
 #//---------------------------------------------------------------------------//
 
+def     _build_cpppath( target, source, env, for_signature ):
+    
+    _Dir = env.Dir
+    
+    path = []
+    
+    for p in _EnvOptions( env ).build_cpppath.Get():
+        d =_Dir( p )
+        path.append( d )
+        path.append( d.srcnode() )
+    
+    return path
+    
 def     _cpppath( target, source, env, for_signature ):         return _path( env, 'cpppath' )
 def     _libpath( target, source, env, for_signature ):         return _path( env, 'libpath' )
 
@@ -74,31 +88,36 @@ def     _cppdefines( target, source, env, for_signature ):      return _EnvOptio
 
 #//---------------------------------------------------------------------------//
 
-def     _link_flags( env ):
+def     _update_env_flags( env ):
     
-    env['AQL_F_CFLAGS'] = _cflags
-    env['AQL_F_CCFLAGS'] = _ccflags
-    env['AQL_F_CXXFLAGS'] = _cxxflags
-    env['AQL_F_LINKFLAGS'] = _linkflags
-    env['AQL_F_CPPPATH'] = _cpppath
-    env['AQL_F_CPPINCFLAGS'] = _const_cpppath
-    env['AQL_F_CPPDEFINES'] = _cppdefines
-    env['AQL_F_LIBPATH'] = _libpath
-    env['AQL_F_LIBS'] = _libs
+    env['_CPPDEFFLAGS'] = '${_concat(CPPDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)}'
     
-    env.Append( CFLAGS = [ "$AQL_F_CFLAGS"],
-                CCFLAGS = ["$AQL_F_CCFLAGS"],
-                CXXFLAGS = [ "$AQL_F_CXXFLAGS" ],
-                _CPPINCFLAGS = " $AQL_F_CPPINCFLAGS",
-                CPPPATH = [ "$AQL_F_CPPPATH" ],
-                CPPDEFINES = ["$AQL_F_CPPDEFINES"],
-                LINKFLAGS = ["$AQL_F_LINKFLAGS"],
-                LIBPATH = ["$AQL_F_LIBPATH"],
-                LIBS = ["$AQL_F_LIBS"] )
+    env['AQL_M_CFLAGS'] = _cflags
+    env['AQL_M_CCFLAGS'] = _ccflags
+    env['AQL_M_CXXFLAGS'] = _cxxflags
+    env['AQL_M_LINKFLAGS'] = _linkflags
+    env['AQL_M_ARFLAGS'] = _arflags
+    env['AQL_M_CPPPATH'] = _cpppath
+    env['AQL_M_BUILD_CPPPATH'] = _build_cpppath
+    env['AQL_M_CPPINCFLAGS'] = _const_cpppath
+    env['AQL_M_CPPDEFINES'] = _cppdefines
+    env['AQL_M_LIBPATH'] = _libpath
+    env['AQL_M_LIBS'] = _libs
+    
+    env.Append( CFLAGS = [ "$AQL_M_CFLAGS"],
+                CCFLAGS = ["$AQL_M_CCFLAGS"],
+                CXXFLAGS = [ "$AQL_M_CXXFLAGS" ],
+                _CPPINCFLAGS = " $AQL_M_CPPINCFLAGS",
+                CPPPATH = [ "$AQL_M_BUILD_CPPPATH", "$AQL_M_CPPPATH" ],
+                CPPDEFINES = ["$AQL_M_CPPDEFINES"],
+                LINKFLAGS = ["$AQL_M_LINKFLAGS"],
+                ARFLAGS = ["$AQL_M_ARFLAGS"],
+                LIBPATH = ["$AQL_M_LIBPATH"],
+                LIBS = ["$AQL_M_LIBS"] )
 
 #//---------------------------------------------------------------------------//
 
-def     Env( options, tools=None, **kw ):
+def     Env( options, tools = None, **kw ):
     
     kw['AQL_OPTIONS'] = options
     
@@ -118,7 +137,7 @@ def     Env( options, tools=None, **kw ):
     
     env = _Environment( platform = None, tools = tools, toolpath = None, options = None, **kw )
     
-    _link_flags( env )
+    _update_env_flags( env )
     
     return env
 

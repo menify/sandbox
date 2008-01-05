@@ -135,7 +135,7 @@ class Options:
             #~ if _is_sequence( value ):   is_list = 1
             #~ else:                       is_list = 0
             
-            #~ value = StrOption( default = value, is_list = is_list )   # use the default option type for unknown options
+            #~ value = StrOption( initial_value = value, is_list = is_list )   # use the default option type for unknown options
         
         self.__add_to_dict( name, value )
         
@@ -226,8 +226,10 @@ class Options:
     def     update( self, args ):
         
         if args:
+            set_option = self.__set_option
+            
             for key, value in args.iteritems():
-                self.__set_option( key, value, update = 1 )
+                set_option( key, value, update = 1 )
     
     #//-------------------------------------------------------//
     
@@ -402,6 +404,7 @@ def     _convert_value_to_list( values, option ):
     
     return values
 
+def     _always_true( options ):    return 1
 
 #//===========================================================================//
 #//===========================================================================//
@@ -444,12 +447,7 @@ class   _ConditionalValue:
             else:
                 opt_value = option.options[ v[1] ].Get()
                 
-                cv = convert_value( opt_value )
-                
-                if _is_sequence( cv ):
-                    values += cv
-                else:
-                    values.append( cv )
+                values.extend( map( convert_value, _to_list( opt_value ) ) )
         
         return values
     
@@ -565,7 +563,7 @@ class       _NoOptions:
 
 class   OptionBase:
     
-    def     _init_base( self, help, default, is_list, separator, unique, options = None ):
+    def     _init_base( self, help, initial_value, is_list, separator, unique, options = None ):
         
         if options is None:
             options = _NoOptions()
@@ -577,12 +575,11 @@ class   OptionBase:
         self.is_list = is_list
         self.separator = separator
         self.unique = unique
-        self.changed = 0
         
         if __debug__:
             self.active_threads = []
         
-        self.SetDefault( default )
+        self.Set( initial_value )
     
     #//-------------------------------------------------------//
     
@@ -599,9 +596,6 @@ class   OptionBase:
         
         if __debug__:
             self.active_threads = []
-        
-        self.default = clone.default
-        self.default_value = clone.default_value
     
     #//-------------------------------------------------------//
     
@@ -637,7 +631,9 @@ class   OptionBase:
     
     #//-------------------------------------------------------//
     
-    def     __conditions_values( self, values ):
+    def     __conditions_values( self ):
+        
+        values = []
         
         unique = self.unique
         options = self.options
@@ -669,11 +665,7 @@ class   OptionBase:
                 _Error("Recursive evaluation of the option")
             self.active_threads.append( thread_id )
         
-        values = self.default_value
-        if self.is_list:
-            values = values[:]
-        
-        values = self.__conditions_values( values )
+        values = self.__conditions_values()
         
         if __debug__:
             self.active_threads.remove( thread_id )
@@ -698,17 +690,27 @@ class   OptionBase:
     #//-------------------------------------------------------//
     
     def     Set( self, value ):
-        self.SetIf( lambda options: 1, value )
+        self.SetIf( _always_true, value )
+    
+    #//-------------------------------------------------------//
+    
+    def     Preset( self, value ):
+        self.PresetIf( _always_true, value )
     
     #//-------------------------------------------------------//
     
     def     Append( self, value ):
-        self.AppendIf( lambda options: 1, value )
+        self.AppendIf( _always_true, value )
+    
+    #//-------------------------------------------------------//
+    
+    def     Prepend( self, value ):
+        self.PrependIf( _always_true, value )
     
     #//-------------------------------------------------------//
     
     def     Remove( self, value ):
-        self.RemoveIf( lambda options: 1, value )
+        self.RemoveIf( _always_true, value )
     
     #//-------------------------------------------------------//
     
@@ -729,8 +731,18 @@ class   OptionBase:
     
     #//-------------------------------------------------------//
     
+    def     PresetIf( self, condition, value ):
+        self._add_condition( condition, value, '=', pre = 1)
+    
+    #//-------------------------------------------------------//
+    
     def     AppendIf( self, condition, value ):
         self._add_condition( condition, value, '+')
+    
+    #//-------------------------------------------------------//
+    
+    def     PrependIf( self, condition, value ):
+        self._add_condition( condition, value, '+', pre = 1)
     
     #//-------------------------------------------------------//
     
@@ -739,7 +751,7 @@ class   OptionBase:
     
     #//-------------------------------------------------------//
     
-    def     _add_condition( self, condition, value, operation ):
+    def     _add_condition( self, condition, value, operation, pre = 0 ):
         
         if __debug__:
             if (not self.is_list) and (operation != '='):
@@ -754,18 +766,13 @@ class   OptionBase:
         
         conditions_list.SetValue( value, operation )
         
-        self.conditions.append( conditions_list )
-        
-        self.changed = 1
+        if pre == 0:
+            self.conditions.append( conditions_list )
+        else:
+            self.conditions.insert( 0, conditions_list )
         
         if __debug__:
             self.Get()   # check for recursion of conditions
-    
-    #//-------------------------------------------------------//
-    
-    def     SetDefault( self, default ):
-        self.default = default
-        self.default_value = self.Convert( default )
     
     #//-------------------------------------------------------//
     
@@ -868,15 +875,6 @@ class   OptionBase:
     def     __str__( self ):
         return self.__value_str( self.Get() )
     
-    #//-------------------------------------------------------//
-    
-    def     ResetChanged( self ):   self.changed = 0
-    def     IsChanged( self ):      return self.changed
-    
-    #//-------------------------------------------------------//
-    
-    def     Default( self ):
-        return self.__value_str( self.default_value )
 
 #//===========================================================================//
 #//===========================================================================//
@@ -905,8 +903,9 @@ class   BoolOption (OptionBase):
              }
     
     #//-------------------------------------------------------//
-    def     __init__( self, default = 0, is_list = 0, separator = ' ', unique = 1, help = None ):
-        self._init_base( help, default, is_list, separator, unique )
+    def     __init__( self, initial_value = 0, is_list = 0, separator = ' ', unique = 1, help = None ):
+        self._init_base( help, initial_value, is_list, separator, unique )
+        self.initial_value = initial_value
     
     #//-------------------------------------------------------//
     
@@ -922,9 +921,9 @@ class   BoolOption (OptionBase):
     
     def     __str__( self ):
         
-        value_str = self.__invert_bool[ str( self.default ).lower() ]
+        value_str = self.__invert_bool[ str( self.initial_value ).lower() ]
         
-        if self == self.default:
+        if self == self.initial_value:
             value_str = self.__invert_bool[ value_str ]
         
         return value_str
@@ -934,23 +933,19 @@ class   BoolOption (OptionBase):
     def     AllowedValuesStr( self ):
         return 'yes/no, true/false, on/off, enabled/disabled, 1/0'
     
-    #//-------------------------------------------------------//
-    
-    def     Default( self ):
-        return self.__invert_bool[ self.__invert_bool[ str( self.default ) ] ]
  
 #//===========================================================================//
 #//===========================================================================//
 
 class   EnumOption (OptionBase):
     
-    def     __init__( self, default, allowed_values = None, aliases = None, is_list = 0, separator = ' ', unique = 1, help = None, options = None):
+    def     __init__( self, initial_value, allowed_values = None, aliases = None, is_list = 0, separator = ' ', unique = 1, help = None, options = None):
         
         self.values_dict = {}
         
         self.AddValues( allowed_values )
         
-        self._init_base( help, default, is_list, separator, unique, options )
+        self._init_base( help, initial_value, is_list, separator, unique, options )
         
         self.AddAliases( aliases )
         
@@ -1081,7 +1076,7 @@ class   EnumOption (OptionBase):
 
 class   IntOption (OptionBase):
     
-    def     __init__( self, default, min = -(sys.maxint - 1), max = sys.maxint, is_list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, initial_value, min = -(sys.maxint - 1), max = sys.maxint, is_list = 0, separator = ' ', unique = 1, help = None ):
         
         self.min_value = int( min )
         self.max_value = int( max )
@@ -1090,7 +1085,7 @@ class   IntOption (OptionBase):
             if self.min_value > self.max_value:
                 _Error( "Minimal value: %d is greater than maximal value: %d " % (min, max) )
         
-        self._init_base( help, default, is_list, separator, unique )
+        self._init_base( help, initial_value, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     
@@ -1117,13 +1112,13 @@ class   IntOption (OptionBase):
 
 class   StrOption (OptionBase):
     
-    def     __init__( self, default = None, is_list = 0, separator = ' ', unique = 1, ignore_case = 0, help = None ):
+    def     __init__( self, initial_value = None, is_list = 0, separator = ' ', unique = 1, ignore_case = 0, help = None ):
         
-        if default is None:
-            default = ''
+        if initial_value is None:
+            initial_value = ''
         
         self.ignore_case = ignore_case
-        self._init_base( help, default, is_list, separator, unique )
+        self._init_base( help, initial_value, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     
@@ -1145,11 +1140,11 @@ class   StrOption (OptionBase):
 
 class   LinkedOption (OptionBase):
     
-    def     __init__( self, default, options, linked_opt_name, is_list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, initial_value, options, linked_opt_name, is_list = 0, separator = ' ', unique = 1, help = None ):
         
         self.linked_opt_name = linked_opt_name
         
-        self._init_base( help, default, is_list, separator, unique, options )
+        self._init_base( help, initial_value, is_list, separator, unique, options )
     
     #//-------------------------------------------------------//
     
@@ -1171,12 +1166,12 @@ class   LinkedOption (OptionBase):
 
 class   VersionOption (OptionBase):
     
-    def     __init__( self, default = None, is_list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, initial_value = None, is_list = 0, separator = ' ', unique = 1, help = None ):
         
-        if default is None:
-            default = ''
+        if initial_value is None:
+            initial_value = ''
         
-        self._init_base( help, default, is_list, separator, unique )
+        self._init_base( help, initial_value, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     
@@ -1194,15 +1189,15 @@ class   VersionOption (OptionBase):
 
 class   PathOption (OptionBase):
     
-    def     __init__( self, default = None, is_list = 0, separator = None, unique = 1, help = None ):
+    def     __init__( self, initial_value = None, is_list = 0, separator = None, unique = 1, help = None ):
         
-        if default is None:
-            default = ''
+        if initial_value is None:
+            initial_value = ''
         
         if (separator is None):
             separator = os.pathsep
         
-        self._init_base( help, default, is_list, separator, unique )
+        self._init_base( help, initial_value, is_list, separator, unique )
     
     #//-------------------------------------------------------//
     
@@ -1290,7 +1285,7 @@ class   _ConditionalOption:
     
     #//-------------------------------------------------------//
     
-    def     __add_condition( self, value, operation, condition = None ):
+    def     __add_condition( self, value, operation, condition = None, pre = 0 ):
         
         conditions_list = self.conditions_list
         
@@ -1298,14 +1293,18 @@ class   _ConditionalOption:
             conditions_list = conditions_list.Clone()
             conditions_list.Append( condition )
         
-        self.option._add_condition( conditions_list, value, operation )
+        self.option._add_condition( conditions_list, value, operation, pre )
     
     #//-------------------------------------------------------//
     
     def     Set( self, value ):                     self.__add_condition( value, '=' )
+    def     Preset( self, value ):                  self.__add_condition( value, '=', pre = 1 )
     def     SetIf( self, condition, value ):        self.__add_condition( value, '=', condition )
+    def     PresetIf( self, condition, value ):     self.__add_condition( value, '=', condition, pre = 1 )
     def     Append( self, value ):                  self.__add_condition( value, '+' )
+    def     Prepend( self, value ):                 self.__add_condition( value, '+', pre = 1 )
     def     AppendIf( self, condition, value ):     self.__add_condition( value, '+', condition )
+    def     PrependIf( self, condition, value ):    self.__add_condition( value, '+', condition, pre = 1 )
     def     Remove( self, value ):                  self.__add_condition( value, '-' )
     def     RemoveIf( self, condition, value ):     self.__add_condition( value, '-', condition )
     

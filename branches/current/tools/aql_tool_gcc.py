@@ -19,19 +19,19 @@ def     _setup_flags( options ):
     if_.target_os['windows'].runtime_threading['multi'].ccflags += '-mthreads'
     if_.target_os.ne('windows').runtime_threading['multi'].ccflags += '-pthreads'
     
-    if_.optimization['speed'].ccflags += '-O3 -ffast-math'
-    if_.optimization['size'].ccflags += '-Os -ffast-math'
-    if_.optimization['off'].ccflags += '-O0'
+    if_.optimization['speed'].occflags += '-O3 -ffast-math'
+    if_.optimization['size'].occflags += '-Os -ffast-math'
+    if_.optimization['off'].occflags += '-O0'
     
-    if_.inlining['off'].ccflags += '-fno-inline'
-    if_.inlining['on'].ccflags += '-finline -Wno-inline'
-    if_.inlining['full'].ccflags += '-finline-functions -Wno-inline'
+    if_.inlining['off'].occflags += '-fno-inline'
+    if_.inlining['on'].occflags += '-finline -Wno-inline'
+    if_.inlining['full'].occflags += '-finline-functions -Wno-inline'
     
-    if_.rtti['true'].ccflags += '-frtti'
-    if_.rtti['false'].ccflags += '-fno-rtti'
+    if_.rtti['true'].cxxflags += '-frtti'
+    if_.rtti['false'].cxxflags += '-fno-rtti'
     
-    if_.exception_handling['true'].ccflags += '-fexceptions'
-    if_.exception_handling['false'].ccflags += '-fno-exceptions'
+    if_.exception_handling['true'].cxxflags += '-fexceptions'
+    if_.exception_handling['false'].cxxflags += '-fno-exceptions'
     
     if_.keep_asm['true'].ccflags += '-masm=intel -fverbose-asm -save-temps'
     
@@ -134,14 +134,11 @@ def     _get_gcc_specs( options, gcc ):
         target_os_release = ''
         target_os_version = ''
     
-    if not options.target_os.IsChanged():
-        options.target_os = target_os
-        options.target_os_release = target_os_release
-        options.target_os_version = target_os_version
-    
-    if not options.target_machine.IsChanged():
-        options.target_machine = target_machine
-        options.target_cpu = target_cpu
+    options.target_os = target_os
+    options.target_os_release = target_os_release
+    options.target_os_version = target_os_version
+    options.target_machine = target_machine
+    options.target_cpu = target_cpu
 
 #//---------------------------------------------------------------------------//
 

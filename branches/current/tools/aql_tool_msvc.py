@@ -22,19 +22,19 @@ def     _setup_flags( options ):
     
     if_.cc_ver.ge(7).cc_ver.lt(8).ccflags += '/Zc:forScope /Zc:wchar_t'
     
-    if_.optimization['speed'].cc_ver.ge(8).ccflags += '/O2'
-    if_.optimization['speed'].cc_ver.lt(8).ccflags += '/Ogity /O2 /Gr /GF /Gy'
-    if_.optimization['speed'].linkflags += '/OPT:REF /OPT:ICF'
+    if_.optimization['speed'].cc_ver.ge(8).occflags += '/O2'
+    if_.optimization['speed'].cc_ver.lt(8).occflags += '/Ogity /O2 /Gr /GF /Gy'
+    if_.optimization['speed'].olinkflags += '/OPT:REF /OPT:ICF'
     
-    if_.optimization['size'].cc_ver.ge(8).ccflags += '/O1'
-    if_.optimization['size'].cc_ver.lt(8).ccflags += '/Ogisy /O1 /Gr /GF /Gy'
-    if_.optimization['size'].linkflags += '/OPT:REF /OPT:ICF'
+    if_.optimization['size'].cc_ver.ge(8).occflags += '/O1'
+    if_.optimization['size'].cc_ver.lt(8).occflags += '/Ogisy /O1 /Gr /GF /Gy'
+    if_.optimization['size'].olinkflags += '/OPT:REF /OPT:ICF'
     
-    if_.optimization['off'].ccflags += '/Od'
+    if_.optimization['off'].occflags += '/Od'
     
-    if_.inlining['off'].ccflags += '/Ob0'
-    if_.inlining['on'].ccflags += '/Ob1'
-    if_.inlining['full'].ccflags += '/Ob2'
+    if_.inlining['off'].occflags += '/Ob0'
+    if_.inlining['on'].occflags += '/Ob1'
+    if_.inlining['full'].occflags += '/Ob2'
     
     if_.rtti['true'].cxxflags += '/GR'
     if_.rtti['false'].cxxflags += '/GR-'

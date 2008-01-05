@@ -16,7 +16,7 @@ _BoolOption = options.BoolOption
 
 def     _add_build_options( options ):
     
-    options.tools = _StrOption( default = 'aql_deftool_cc', separator = ',', is_list = 1, help = "Environment tools" )
+    options.tools = _StrOption( 'aql_deftool_cc', separator = ',', is_list = 1, help = "Environment tools" )
     
     options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options" )
     
@@ -26,30 +26,30 @@ def     _add_build_options( options ):
 
 def     _add_platform_options( options ):
     
-    options.target_os = _EnumOption( default = '', allowed_values = ( '', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
+    options.target_os = _EnumOption( '', allowed_values = ( '', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
                                     help = "The target system/OS name, e.g. 'Linux', 'Windows', or 'Java'." )
     
-    options.target_platform = _StrOption( default = '',
+    options.target_platform = _StrOption( '',
                                           ignore_case = 1,
                                           help = "The system's distribution, e.g. 'win32', 'Linux'" )
     
-    options.target_os_release = _StrOption( default = '',
+    options.target_os_release = _StrOption( '',
                                             ignore_case = 1,
                                             help = "The target system's release, e.g. '2.2.0' or 'XP'" )
     
-    options.target_os_version = _VersionOption( default = '',
+    options.target_os_version = _VersionOption( '',
                                                 help = "The target system's release version, e.g. '2.2.0' or '5.1.2600'" )
     
-    options.target_machine = _EnumOption( default = '',
+    options.target_machine = _EnumOption( '',
                                           allowed_values = ('', 'x86-32', 'x86-64','arm' ),
                                           aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32','i586':'x86-32', 'pc':'x86-32'},
                                           help = "The target machine type, e.g. 'i386'" )
     
-    options.target_cpu = _StrOption( default = '',
+    options.target_cpu = _StrOption( '',
                                      ignore_case = 1,
                                      help = "The target real processor name, e.g. 'amdk6'." )
     
-    options.target_cpu_flags = _StrOption( default = '',
+    options.target_cpu_flags = _StrOption( '',
                                      ignore_case = 1, is_list = 1,
                                      help = "The target CPU flags, e.g. 'mmx', 'sse2'." )
 
@@ -113,7 +113,7 @@ def     _add_variants( options ):
     
     build_variants.AddAlias( 'all', build_variants.AllowedValues() )
     
-    build_variant = _LinkedOption( default = 'debug',
+    build_variant = _LinkedOption( 'debug',
                                    options = options,
                                    linked_opt_name = 'build_variants',
                                    help = "The current build variant." )
@@ -177,6 +177,7 @@ def     _add_debug_options( options ):
     
     debug_symbols = _BoolOption( 'off', help = 'Include debug symbols' )
     options.debug_symbols = debug_symbols
+    options.debug_info = debug_symbols
     options.debug = debug_symbols
     
     #//-------------------------------------------------------//
@@ -261,6 +262,19 @@ def     _add_cc_options( options ):
     options.ccflags = _StrOption( is_list = 1, help = "Common C/C++ compiler options" )
     options.cxxflags = _StrOption( is_list = 1, help = "C++ compiler options" )
     options.linkflags = _StrOption( is_list = 1, help = "Linker options" )
+    options.arflags = _StrOption( is_list = 1, help = "Archiver options" )
+    
+    options.ocflags = _StrOption( is_list = 1, help = "C compiler optimization options" )
+    options.occflags = _StrOption( is_list = 1, help = "Common C/C++ compiler optimization options" )
+    options.ocxxflags = _StrOption( is_list = 1, help = "C++ compiler optimization options" )
+    options.olinkflags = _StrOption( is_list = 1, help = "Linker optimization options" )
+    options.oarflags = _StrOption( is_list = 1, help = "Archiver optimization options" )
+    
+    options.cflags = options.ocflags
+    options.ccflags = options.occflags
+    options.cxxflags = options.ocxxflags
+    options.linkflags = options.olinkflags
+    options.arflags = options.oarflags
     
     options.cc_name = _StrOption( help = "C/C++ compiler name" )
     options.cc_ver = _VersionOption( help = "C/C++ compiler version" )
@@ -270,6 +284,8 @@ def     _add_cc_options( options ):
     
     options.cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines" )
     options.cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
+    
+    options.build_cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
     
     const_cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers" )
     options.const_cpppath = const_cpppath
