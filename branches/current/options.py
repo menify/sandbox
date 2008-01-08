@@ -79,10 +79,7 @@ def     EnvOptions( env ):
             
             option = overridden_options[ k ]
             
-            if option.is_list:
-                option.Append( env_value )
-            else:
-                option.Set( env_value )
+            option.Update( env_value )
             
             env[ env_key ] = None
         
@@ -155,8 +152,8 @@ class Options:
             if option is value:
                 return
             
-            if update and option.is_list:
-                option.Append( value )
+            if update:
+                option.Update( value )
             else:
                 option.Set( value )
     
@@ -293,6 +290,7 @@ class Options:
     def     LinkToEnv( self, env ):
         
         linker = IntOption( 0 )
+        
         linker_name = self.__linker_name()
         
         condition = lambda options, name = linker_name : options[ name ] != 0
@@ -563,7 +561,7 @@ class       _NoOptions:
 
 class   OptionBase:
     
-    def     _init_base( self, help, initial_value, is_list, separator, unique, options = None ):
+    def     _init_base( self, help, initial_value, is_list, separator, unique, update_set, options = None ):
         
         if options is None:
             options = _NoOptions()
@@ -575,6 +573,11 @@ class   OptionBase:
         self.is_list = is_list
         self.separator = separator
         self.unique = unique
+        
+        if update_set or (not is_list):
+            self.Update = self.Set
+        else:
+            self.Update = self.Append
         
         if __debug__:
             self.active_threads = []
@@ -593,6 +596,11 @@ class   OptionBase:
         self.is_list = clone.is_list
         self.separator = clone.separator
         self.unique = clone.unique
+        
+        if clone.Update == clone.Set:
+            self.Update = self.Set
+        else:
+            self.Update = self.Append
         
         if __debug__:
             self.active_threads = []
@@ -903,8 +911,8 @@ class   BoolOption (OptionBase):
              }
     
     #//-------------------------------------------------------//
-    def     __init__( self, initial_value = 0, is_list = 0, separator = ' ', unique = 1, help = None ):
-        self._init_base( help, initial_value, is_list, separator, unique )
+    def     __init__( self, initial_value = 0, is_list = 0, separator = ' ', unique = 1, update_set = 0, help = None ):
+        self._init_base( help, initial_value, is_list, separator, unique, update_set )
         self.initial_value = initial_value
     
     #//-------------------------------------------------------//
@@ -939,13 +947,13 @@ class   BoolOption (OptionBase):
 
 class   EnumOption (OptionBase):
     
-    def     __init__( self, initial_value, allowed_values = None, aliases = None, is_list = 0, separator = ' ', unique = 1, help = None, options = None):
+    def     __init__( self, initial_value, allowed_values = None, aliases = None, is_list = 0, separator = ' ', unique = 1, help = None, update_set = 0, options = None):
         
         self.values_dict = {}
         
         self.AddValues( allowed_values )
         
-        self._init_base( help, initial_value, is_list, separator, unique, options )
+        self._init_base( help, initial_value, is_list, separator, unique, update_set, options )
         
         self.AddAliases( aliases )
         
@@ -1076,7 +1084,7 @@ class   EnumOption (OptionBase):
 
 class   IntOption (OptionBase):
     
-    def     __init__( self, initial_value, min = -(sys.maxint - 1), max = sys.maxint, is_list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, initial_value, min = -(sys.maxint - 1), max = sys.maxint, is_list = 0, separator = ' ', unique = 1, update_set = 0, help = None ):
         
         self.min_value = int( min )
         self.max_value = int( max )
@@ -1085,7 +1093,7 @@ class   IntOption (OptionBase):
             if self.min_value > self.max_value:
                 _Error( "Minimal value: %d is greater than maximal value: %d " % (min, max) )
         
-        self._init_base( help, initial_value, is_list, separator, unique )
+        self._init_base( help, initial_value, is_list, separator, unique, update_set )
     
     #//-------------------------------------------------------//
     
@@ -1112,13 +1120,13 @@ class   IntOption (OptionBase):
 
 class   StrOption (OptionBase):
     
-    def     __init__( self, initial_value = None, is_list = 0, separator = ' ', unique = 1, ignore_case = 0, help = None ):
+    def     __init__( self, initial_value = None, is_list = 0, separator = ' ', unique = 1, ignore_case = 0, update_set = 0, help = None ):
         
         if initial_value is None:
             initial_value = ''
         
         self.ignore_case = ignore_case
-        self._init_base( help, initial_value, is_list, separator, unique )
+        self._init_base( help, initial_value, is_list, separator, unique, update_set )
     
     #//-------------------------------------------------------//
     
@@ -1140,11 +1148,11 @@ class   StrOption (OptionBase):
 
 class   LinkedOption (OptionBase):
     
-    def     __init__( self, initial_value, options, linked_opt_name, is_list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, initial_value, options, linked_opt_name, is_list = 0, separator = ' ', unique = 1, update_set = 0, help = None ):
         
         self.linked_opt_name = linked_opt_name
         
-        self._init_base( help, initial_value, is_list, separator, unique, options )
+        self._init_base( help, initial_value, is_list, separator, unique, update_set, options )
     
     #//-------------------------------------------------------//
     
@@ -1166,12 +1174,12 @@ class   LinkedOption (OptionBase):
 
 class   VersionOption (OptionBase):
     
-    def     __init__( self, initial_value = None, is_list = 0, separator = ' ', unique = 1, help = None ):
+    def     __init__( self, initial_value = None, is_list = 0, separator = ' ', unique = 1, update_set = 0, help = None ):
         
         if initial_value is None:
             initial_value = ''
         
-        self._init_base( help, initial_value, is_list, separator, unique )
+        self._init_base( help, initial_value, is_list, separator, unique, update_set )
     
     #//-------------------------------------------------------//
     
@@ -1189,7 +1197,7 @@ class   VersionOption (OptionBase):
 
 class   PathOption (OptionBase):
     
-    def     __init__( self, initial_value = None, is_list = 0, separator = None, unique = 1, help = None ):
+    def     __init__( self, initial_value = None, is_list = 0, separator = None, unique = 1, update_set = 0, help = None ):
         
         if initial_value is None:
             initial_value = ''
@@ -1197,7 +1205,7 @@ class   PathOption (OptionBase):
         if (separator is None):
             separator = os.pathsep
         
-        self._init_base( help, initial_value, is_list, separator, unique )
+        self._init_base( help, initial_value, is_list, separator, unique, update_set )
     
     #//-------------------------------------------------------//
     

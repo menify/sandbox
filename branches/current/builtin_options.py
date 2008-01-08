@@ -106,7 +106,9 @@ def     _add_variants( options ):
     build_variants = _EnumOption( 'debug', ('debug', 'release_speed', 'release_size', 'final'),
                                             {'release': 'release_speed'},
                                             separator = ',',
-                                            help = "Active build variants", is_list = 1 )
+                                            is_list = 1 ,
+                                            update_set = 1,
+                                            help = "Active build variants" )
     
     options.build_variants = build_variants
     options.builds = build_variants
