@@ -8,14 +8,13 @@ import SCons.Script
 
 import aql
 
-_AppendPath = aql.AppendPath
+_PrependPath = aql.PrependPath
+
 
 def     _menu_parser_emitter( target, source, env ):
     return ([ '${TARGET.dir}/.menu/${TARGET.filebase}.cpp', '${TARGET.dir}/.menu/${TARGET.filebase}.h' ], source)
 
 def     _add_menu_parser_builder( env, ljsdk_path ):
-    
-    env['LJ_MENU_PARSER_PROG'] = os.path.join( ljsdk_path, 'bin', 'optionsmenu_parser$PROGSUFFIX' )
     
     env['LJ_MENU_PARSER_COM'] = [ SCons.Util.CLVar('$LJ_MENU_PARSER_PROG $SOURCE'),
                                   SCons.Script.Delete('${TARGETS[0]}' ),
@@ -36,54 +35,90 @@ def     _add_menu_parser_builder( env, ljsdk_path ):
     static_obj.add_src_builder('LJMenuParser')
     shared_obj.add_src_builder('LJMenuParser')
 
+#//---------------------------------------------------------------------------//
 
-def     generate(env):
-    
-    SCons.Tool.Tool( 'qt' )( env )
+def     _where_is_program( env, prog ):
+    return env.WhereIs( prog ) or SCons.Util.WhereIs( prog )
+
+def     _find_ljsdk( env ):
     
     options = env['AQL_OPTIONS']
     
-    ljsdk_path = str(options.ljsdk_path)
-    ljapi_path = ljsdk_path + '/api/' + str(options.ljapi)
+    if (options.cc_name != 'gcc') or (options.target_os != 'linux') or (options.target_platform != 'LinuxJava'):
+        return None
     
-    if_ = options.If().target_platform['LinuxJava'].target_machine['arm']
+    menuparser_path = _where_is_program( env, 'optionsmenu_parser' )
+    if menuparser_path is None:
+        return None
     
-    #~ if_.const_cpppath += ljsdk_path + '/target/usr/include'
-    #~ if_.const_cpppath += ljsdk_path + '/target/usr/include/libxml2'
-    #~ if_.const_cpppath += ljapi_path + '/include'
-    #~ if_.const_cpppath += ljapi_path + '/dir/kernel_include'
+    menuparser_dirpath = os.path.dirname( menuparser_path )
     
-    os_env = env['ENV']
-    _AppendPath( env['ENV'], 'CPATH', ljsdk_path + '/target/usr/include' )
-    _AppendPath( env['ENV'], 'CPATH', ljsdk_path + '/target/usr/include/libxml2' )
-    _AppendPath( env['ENV'], 'CPATH', ljapi_path + '/include' )
-    _AppendPath( env['ENV'], 'CPATH', ljapi_path + '/dir/kernel_include' )
+    ljsdk_path = os.path.normpath( os.path.join( menuparser_dirpath, '..' ) )
     
-    #~ env.AppendUnique( RPATH = [ ljapi_path + '/lib'] )
-    #~ env.AppendUnique( LIBPATH = [ ljapi_path + '/lib'] )
-    #~ env.AppendUnique( RPATH = [ ljsdk_path + '/target/lib' ] )
-    #~ env.AppendUnique( LIBPATH = [ ljsdk_path + '/target/lib' ] )
-    #~ env.AppendUnique( RPATH = [ ljsdk_path + '/target/usr/lib' ] )
-    #~ env.AppendUnique( LIBPATH = [ ljsdk_path + '/target/usr/lib' ] )
+    if menuparser_dirpath != os.path.join( ljsdk_path, 'bin' ):
+        return None
     
-    if_.linkflags += '-Wl,-rpath-link,' + ljapi_path + '/lib'
-    if_.libpath += ljapi_path + '/lib'
+    _PrependPath( env['ENV'], 'PATH', menuparser_dirpath )
+    env['LJ_MENU_PARSER_PROG'] = menuparser_path
     
-    if_.linkflags += '-Wl,-rpath-link,' + ljsdk_path + '/target/lib'
-    if_.libpath += ljsdk_path + '/target/lib'
+    return ljsdk_path
+
+#//---------------------------------------------------------------------------//
+
+def     _setup_gcc( options ):
     
-    if_.linkflags += '-Wl,-rpath-link,' + ljsdk_path + '/target/usr/lib'
-    if_.libpath += ljsdk_path + '/target/usr/lib'
+    gcc_path = str(options.gcc_path)
+    cc_ver = str(options.cc_ver)
+    gcc_target = str(options.gcc_target)
     
-    if_.libs += [ 'dl', 'ezxsort', 'drmfwudaclient', 'janus', 'm',
+    cpppath_lib = options.cpppath_lib
+    cpppath_lib += gcc_path + '/target/usr/include'
+    cpppath_lib += gcc_path + '/target/usr/include/c++/' + cc_ver
+    cpppath_lib += gcc_path + '/target/usr/include/c++/' + cc_ver + '/' + gcc_target
+    cpppath_lib += gcc_path + '/target/usr/include/libxml2'
+    
+    libpath = options.libpath
+    
+    libpath += gcc_path + '/target/lib'
+    libpath += gcc_path + '/target/usr/lib'
+
+
+#//---------------------------------------------------------------------------//
+
+def     generate(env):
+    
+    ljsdk_path = _find_ljsdk( env )
+    if ljsdk_path is None:
+        return
+    
+    options = env['AQL_OPTIONS']
+    ljapi_path = os.path.join( ljsdk_path, 'api', str(options.ljapi) )
+    
+    env['QTDIR'] = ljsdk_path
+    env['QT_LIB'] = 'qte-mt'
+    SCons.Tool.Tool( 'qt' )( env )
+    
+    cpppath_lib = options.cpppath_lib
+    cc_ver = str(options.cc_ver)
+    gcc_target = str(options.gcc_target)
+    
+    options.cpppath_lib += ljapi_path + '/include'
+    
+    if options.target_machine == 'arm':
+        options.libpath += ljapi_path + '/lib'
+    
+    elif options.target_machine == 'x86':
+        options.libpath += ljapi_path + '/lib_x86'
+    
+    options.libs += [ 'dl', 'ezxsort', 'drmfwudaclient', 'janus', 'm',
                   'dmnative', 'ezxjpegutils', 'ezxexif', 'ezxam',
                   'masauf', 'aplog', 'ezxsound', 'ezxappbase', 'pthread' ]
     
-    
-    
     _add_menu_parser_builder( env, ljsdk_path )
+    
+    _setup_gcc( options )
 
 #//---------------------------------------------------------------------------//
 
 def exists(env):
-    return SCons.Tool.Tool( 'qt' ).exists( env )
+    return _find_ljsdk( env ) is not None

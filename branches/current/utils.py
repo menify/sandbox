@@ -7,6 +7,12 @@ import re
 import types
 
 import SCons.Tool
+import SCons.Util
+
+def     _is_sequence( value ):
+    t = type(value)
+    return (t is types.ListType) or (t is types.TupleType)
+
 
 #//===========================================================================//
 
@@ -48,26 +54,29 @@ def     GetShellScriptEnv( os_env, script ):
 
 #//===========================================================================//
 
-_os_pathsep = os.pathsep
+_AppendPath = SCons.Util.AppendPath
+_PrependPath = SCons.Util.PrependPath
 
-def     AppendPath( os_env, names, value ):
+def     AppendPath( os_env, names, value, sep = os.pathsep ):
     
-    t = type(names)
-    if (t is not types.ListType) and (t is not types.TupleType):
+    if not _is_sequence(names):
         names = ( names, )
     
+    value = os.path.normcase( os.path.normpath( value ) )
+    
     for name in names:
-        global _os_pathsep
-        
-        path = os.path.normcase( os_env.get( name, '' ) )
-        value = os.path.normcase( os.path.normpath( value ) )
-        
-        if path.find( _os_pathsep + value + _os_pathsep ) != -1:
-            return
-        
-        if path and (not path.endswith( _os_pathsep )):
-            path += _os_pathsep
-        
-        path += value
-        
-        os_env[ name ] = path
+        os_env[ name ] = _AppendPath( os_env.setdefault( name, '' ), value, sep )
+
+#//---------------------------------------------------------------------------//
+
+def     PrependPath( os_env, names, value, sep = os.pathsep  ):
+    
+    if not _is_sequence(names):
+        names = ( names, )
+    
+    value = os.path.normcase( os.path.normpath( value ) )
+    
+    for name in names:
+        os_env[ name ] = _PrependPath( os_env[ name ], value, sep )
+
+

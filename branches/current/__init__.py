@@ -9,4 +9,4 @@ from main import Env, BuildVariant, Build
 
 from target import Target
 
-from utils import AddToolPath, GetShellScriptEnv, AppendPath
+from utils import AddToolPath, GetShellScriptEnv, AppendPath, PrependPath

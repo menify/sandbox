@@ -3,6 +3,13 @@ import os
 import os.path
 import SCons.Tool
 
+import aql
+
+_EnvOptions = aql.EnvOptions
+_AppendPath = aql.AppendPath
+_PrependPath = aql.PrependPath
+
+
 def     _setup_flags( options ):
     
     if_ = options.If().cc_name['gcc']
@@ -46,6 +53,24 @@ def     _setup_flags( options ):
 
 #//---------------------------------------------------------------------------//
 
+def     _rpathlink( target, source, env, for_signature ):
+    flags = ''
+    for p in _EnvOptions( env ).libpath.Get():
+        flags += ' -Wl,-rpath-link,' + str(p)
+    
+    return flags
+
+def     _setup_env_flags( env ):
+    env['_AQL_GCC_RPATHLINK'] = _rpathlink
+    env.Append( LINKFLAGS = ["$_AQL_GCC_RPATHLINK"] )
+
+#//---------------------------------------------------------------------------//
+
+def     _where_is_program( env, prog ):
+    return env.WhereIs( prog ) or SCons.Util.WhereIs( prog )
+
+#//---------------------------------------------------------------------------//
+
 def     _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, tool ):
     
     env_WhereIs = env.WhereIs
@@ -68,7 +93,8 @@ def     _find_gcc( env, options ):
     gcc = gcc_prefix + 'gcc' + gcc_suffix
     gxx = gcc_prefix + 'g++' + gcc_suffix
     
-    gcc_path = env.WhereIs( gcc )
+    gcc_path = _where_is_program( env, gcc )
+    
     if gcc_path is None:
         return None
     
@@ -97,20 +123,29 @@ def     _find_gcc( env, options ):
     gcc_env['AR'] = ar_path
     gcc_env['AS'] = as_path
     
-    return (gcc_env, path)
+    options.gcc_path = path
+    
+    return gcc_env
 
 #//---------------------------------------------------------------------------//
 
-def     _get_gcc_specs( options, gcc ):
+def     _get_gcc_specs( env, options, gcc ):
+    
+    os_environ = os.environ.copy()
+    os.environ.update( env['ENV'] )
     
     options.cc_name = 'gcc'
     options.cc_ver = os.popen( gcc + ' -dumpversion', 'r').readline().strip()
     target = os.popen( gcc + ' -dumpmachine', 'r').readline().strip()
     
+    os.environ.update( os_environ )
+    
+    options.gcc_target = target
+    
     if target == 'mingw32':
         target_machine = 'i386'
-        target_cpu = ''
         target_os = 'windows'
+        target_cpu = target_machine
         target_os_release = ''
         target_os_version = ''
     
@@ -129,10 +164,13 @@ def     _get_gcc_specs( options, gcc ):
         else:
             target_machine = ''
             target_os = ''
-            
-        target_cpu = ''
+        
+        target_cpu = target_machine
         target_os_release = ''
         target_os_version = ''
+    
+    if target_os.startswith('linux'):       target_os = 'linux'
+    if target_machine.startswith('arm'):    target_machine = 'arm'
     
     options.target_os = target_os
     options.target_os_release = target_os_release
@@ -142,16 +180,35 @@ def     _get_gcc_specs( options, gcc ):
 
 #//---------------------------------------------------------------------------//
 
+def     _update_os_env( env, options ):
+    
+    gcc_path = str(options.gcc_path)
+    gcc_target_platform = str(options.gcc_target)
+    gcc_ver = str(options.cc_ver)
+    gcc_suffix = str(options.gcc_suffix)
+    
+    _join = os.path.join
+    
+    _PrependPath( env['ENV'], 'PATH', gcc_path )
+    
+    cpppath_lib = options.cpppath_lib
+    cpppath_lib += gcc_path + '/include'
+    cpppath_lib += gcc_path + 'include/c++/' + gcc_ver
+    cpppath_lib += gcc_path + 'include/c++/' + gcc_ver + '/' + gcc_target_platform
+    cpppath_lib += gcc_path + 'lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include'
+    
+    options.libpath += gcc_path +'/lib'
+
+#//---------------------------------------------------------------------------//
+
 def     generate( env ):
     
     options = env['AQL_OPTIONS']
     
-    gcc_env, path = _find_gcc( env, options )
+    gcc_env = _find_gcc( env, options )
+    _get_gcc_specs( env, options, gcc_env['CC'] )
+    _update_os_env( env, options )
     
-    _get_gcc_specs( options, gcc_env['CC'] )
-    
-    env.PrependENVPath('PATH', path )
-        
     _Tool = SCons.Tool.Tool
     for tool in ['cc', 'c++', 'link', 'ar', 'as']:
         _Tool( tool )( env )
@@ -189,7 +246,8 @@ def     generate( env ):
     env['_RPATH'] = '${_concat(RPATHPREFIX, RPATH, RPATHSUFFIX, __env__)}'
     
     _setup_flags( options )
-    
+    _setup_env_flags( env )
+
 #//---------------------------------------------------------------------------//
 
 def exists( env ):

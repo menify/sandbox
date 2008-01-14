@@ -61,6 +61,9 @@ def     _try_tools( env, options, check_exists_only = 0 ):
     if (options.cc_name != '') and (options.cc_name != 'msvc'):
         return None
     
+    if (options.target_os != '') and (options.target_os != 'windows'):
+        return None
+    
     if options.cc_ver != '':
         env['MSVS_VERSION'] = str(options.cc_ver)
     

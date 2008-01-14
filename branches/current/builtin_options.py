@@ -42,7 +42,8 @@ def     _add_platform_options( options ):
     
     options.target_machine = _EnumOption( '',
                                           allowed_values = ('', 'x86-32', 'x86-64','arm' ),
-                                          aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32','i586':'x86-32', 'pc':'x86-32'},
+                                          aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32',
+                                                     'i586':'x86-32', 'pc':'x86-32', 'x86':'x86-32'},
                                           help = "The target machine type, e.g. 'i386'" )
     
     options.target_cpu = _StrOption( '',
@@ -281,6 +282,8 @@ def     _add_cc_options( options ):
     options.cc_name = _StrOption( help = "C/C++ compiler name" )
     options.cc_ver = _VersionOption( help = "C/C++ compiler version" )
     
+    options.gcc_path = _StrOption()
+    options.gcc_target = _StrOption()
     options.gcc_prefix = _StrOption( help = "GCC C/C++ compiler prefix" )
     options.gcc_suffix = _StrOption( help = "GCC C/C++ compiler suffix" )
     
@@ -289,9 +292,9 @@ def     _add_cc_options( options ):
     
     options.build_cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
     
-    const_cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers" )
-    options.const_cpppath = const_cpppath
-    options.lib_cpppath = const_cpppath
+    cpppath_lib = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers" )
+    options.cpppath_const = cpppath_lib
+    options.cpppath_lib = cpppath_lib
     
     options.libpath = _PathOption( is_list = 1, help = "Paths to libraries" )
     options.libs = _StrOption( is_list = 1, help = "Libraries" )

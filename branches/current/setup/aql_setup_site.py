@@ -6,8 +6,8 @@ import aql
 
 _Target = aql.Target
 
-_AppendPath = aql.AppendPath
 _GetShellScriptEnv = aql.GetShellScriptEnv
+_PrependPath = aql.PrependPath
 
 #//---------------------------------------------------------------------------//
 
@@ -37,14 +37,6 @@ def     SetupTool_aql_tool_flexelint( options, os_env, env ):
     options.lint_flags += '-i' + FLEXLINT_USER_DIR + '/lnt'
     options.lint_flags += 'common.lnt'
     options.lint_flags += 'msg_format.lnt'
-
-#//---------------------------------------------------------------------------//
-
-def     SetupTool_qt( options, os_env, env ):
-    
-    if (options.target_platform == 'LinuxJava') and  (options.target_machine == 'arm'):
-        env['QTDIR'] = 'd:/bin/development/SDK/lj/qt-2.3.6'
-        env['QT_LIB'] = 'qte-mt'
 
 #//---------------------------------------------------------------------------//
 
@@ -136,67 +128,58 @@ def     SetupTool_aql_tool_gcc( options, os_env, env ):
     elif options.target_os == 'windows':
         _setup_mingw( options, os_env )
     
-    elif (options.target_platform == 'LinuxJava') and  (options.target_machine == 'arm'):
-        _setup_gcc_lj_arm( options, os_env )
+    elif options.target_os == 'linux':
+        if (options.target_platform == 'LinuxJava'):
+            _setup_gcc_lj( options, os_env )
     
 
 #//---------------------------------------------------------------------------//
 
 def     _setup_mingw( options, os_env ):
     
-    gcc_target_platform = 'mingw32'
-    
     if options.cc_ver == '4.1':
-        gcc_ver = '4.1.1'
-        cc_path='d:/bin/development/compilers/gcc/mingw'
-        gcc_suffix = ''
+        cc_path = 'd:/bin/development/compilers/gcc/mingw'
     
     if options.cc_ver == '4.2' or options.cc_ver == '':
-        gcc_ver = '4.2.1'
-        cc_path='d:/bin/development/compilers/gcc/mingw_4.2.1_dw2'
+        cc_path = 'd:/bin/development/compilers/gcc/mingw_4.2.1_dw2'
         options.gcc_prefix = 'mingw32-'
-        gcc_suffix = '-dw2'
-        options.gcc_suffix = gcc_suffix
+        options.gcc_suffix = '-dw2'
     
-    _AppendPath( os_env, 'PATH', cc_path + '/bin' )
-    
-    _AppendPath( os_env, 'CPATH', cc_path + '/include' )
-    _AppendPath( os_env, 'CPATH', cc_path + '/include/c++/' + gcc_ver )
-    _AppendPath( os_env, 'CPATH', cc_path + '/include/c++/' + gcc_ver + '/' + gcc_target_platform )
-    _AppendPath( os_env, 'CPATH', cc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include' )
-    _AppendPath( os_env, 'LIBRARY_PATH', cc_path + '/lib' )
+    _PrependPath( os_env, 'PATH', cc_path + '/bin')
 
 #//---------------------------------------------------------------------------//
 
-def     _setup_gcc_lj_arm( options, os_env ):
+if _Target.os == 'cygwin':
+    _drive = '/cygdrive/d'
+else:
+    _drive = 'd:'
+
+def     _setup_gcc_lj( options, os_env ):
     
-    gcc_ver = '3.4.4'
-    cc_path='d:/bin/development/compilers/gcc/lj'
-    gcc_target_platform = 'arm-none-linux-gnueabi'
-    options.gcc_prefix = gcc_target_platform + '-'
-    gcc_suffix = ''
-    options.gcc_suffix = gcc_suffix
+    _PrependPath( os_env, 'PATH', _drive + '/bin/development/compilers/gcc/mvl/MVL-RELEASE-121822007/mvl-environment/bin' )
     
-    _AppendPath( os_env, 'PATH', cc_path + '/bin' )
+    if options.target_machine == 'arm':
+        cc_path = _drive + '/bin/development/compilers/gcc/mvl/MVL-RELEASE-121822007/mvl-environment/moto/common/devkit/arm/v6_vfp_le'
+        options.gcc_prefix = 'arm_v6_vfp_le-'
+        
+        #~ cc_path = drive + '/bin/development/compilers/gcc/lj'
+        #~ options.gcc_prefix = 'arm-none-linux-gnueabi-'
+        #~ options.ccflags += '-mthumb-interwork -mcpu=arm1136jf-s -mtune=arm1136jf-s -mfpu=vfp'
     
-    _AppendPath( os_env, 'CPATH', cc_path + '/include' )
-    _AppendPath( os_env, 'CPATH', cc_path + '/include/c++/' + gcc_ver )
-    _AppendPath( os_env, 'CPATH', cc_path + '/include/c++/' + gcc_ver + '/' + gcc_target_platform )
-    _AppendPath( os_env, 'CPATH', cc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include' )
-    _AppendPath( os_env, 'LIBRARY_PATH', cc_path + '/lib' )
+    elif options.target_machine == 'x86':
+        cc_path = _drive + '/bin/development/compilers/gcc/mvl/MVL-RELEASE-121822007/mvl-environment/moto/common/devkit/x86/i686-mot-linux-gnu'
+        options.gcc_prefix = 'i686-mot-linux-gnu-'
+    
+    else:
+        return
     
     options.exception_handling = 'false'
     options.rtti = 'false'
     options.link_runtime = 'shared'
-
+    
+    _PrependPath( os_env, 'PATH', cc_path + '/bin' )
 
 #//---------------------------------------------------------------------------//
 
 def     SetupTool_aql_tool_ljsdk( options, os_env, env ):
-    options.ljsdk_path = aql.PathOption( 'd:/bin/development/SDK/lj' )
-
-
-#//---------------------------------------------------------------------------//
-
-def     Setup( options, os_env ):
-    pass
+    options.ljsdk_path = aql.PathOption( _drive + '/bin/development/SDK/lj/arm' )

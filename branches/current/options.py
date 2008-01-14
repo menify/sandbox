@@ -29,11 +29,12 @@ def     _is_dict_option( option ):
 #//---------------------------------------------------------------------------//
 
 def     _is_sequence( value ):
-    return (type(value) is types.ListType) or (type(value) is types.TupleType)
+    t = type(value)
+    return (t is types.ListType) or (t is types.TupleType)
 
 def     _to_list( value ):
     
-    if (type(value) is not types.ListType) and (type(value) is not types.TupleType):
+    if not _is_sequence(value):
         if value is None:
             return ()
         
