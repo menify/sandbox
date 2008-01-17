@@ -383,7 +383,7 @@ def     _add_option( self_values, option, value ):
     self_values.append( ('n', name) )
     
     if __debug__:
-        option._convert_value( value.Get() )      # check the current value
+        option.Convert( value.Get() )      # check the current value
 
 #//---------------------------------------------------------------------------//
 
@@ -1211,9 +1211,7 @@ class   PathOption (OptionBase):
     #//-------------------------------------------------------//
     
     def     _convert_value( self, val ):
-        
         path = os.path.normcase( os.path.abspath( val ) )
-        
         return path
     
     #//-------------------------------------------------------//

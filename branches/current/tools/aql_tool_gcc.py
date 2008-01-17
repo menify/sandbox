@@ -50,6 +50,9 @@ def     _setup_flags( options ):
     if_.warning_level[4].cc_ver.ge(4).ccflags += '-Wfatal-errors'
     
     if_.warnings_as_errors['on'].ccflags += '-Werror'
+    
+    if_.profiling['true'].ccflags += '-pg'
+    if_.profiling['true'].linkflags += '-pg'
 
 #//---------------------------------------------------------------------------//
 
@@ -123,7 +126,7 @@ def     _find_gcc( env, options ):
     gcc_env['AR'] = ar_path
     gcc_env['AS'] = as_path
     
-    options.gcc_path = path
+    options.gcc_path = os.path.dirname( path )
     
     return gcc_env
 
@@ -183,21 +186,19 @@ def     _get_gcc_specs( env, options, gcc ):
 def     _update_os_env( env, options ):
     
     gcc_path = str(options.gcc_path)
-    gcc_target_platform = str(options.gcc_target)
-    gcc_ver = str(options.cc_ver)
-    gcc_suffix = str(options.gcc_suffix)
-    
-    _join = os.path.join
+    #~ gcc_target_platform = str(options.gcc_target)
+    #~ gcc_ver = str(options.cc_ver)
+    #~ gcc_suffix = str(options.gcc_suffix)
     
     _PrependPath( env['ENV'], 'PATH', gcc_path )
     
-    cpppath_lib = options.cpppath_lib
-    cpppath_lib += gcc_path + '/include'
-    cpppath_lib += gcc_path + 'include/c++/' + gcc_ver
-    cpppath_lib += gcc_path + 'include/c++/' + gcc_ver + '/' + gcc_target_platform
-    cpppath_lib += gcc_path + 'lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include'
+    #~ cpppath_lib = options.cpppath_lib
+    #~ cpppath_lib += gcc_path + '/include'
+    #~ cpppath_lib += gcc_path + '/include/c++/' + gcc_ver
+    #~ cpppath_lib += gcc_path + '/include/c++/' + gcc_ver + '/' + gcc_target_platform
+    #~ cpppath_lib += gcc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include'
     
-    options.libpath += gcc_path +'/lib'
+    #~ options.libpath += gcc_path +'/lib'
 
 #//---------------------------------------------------------------------------//
 

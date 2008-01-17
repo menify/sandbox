@@ -290,7 +290,8 @@ def     _add_cc_options( options ):
     options.cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines" )
     options.cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
     
-    options.build_cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
+    options.cpppath_build = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to generated headers" )
+    options.cpppath = options.cpppath_build
     
     cpppath_lib = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers" )
     options.cpppath_const = cpppath_lib

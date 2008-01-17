@@ -156,18 +156,16 @@ else:
 
 def     _setup_gcc_lj( options, os_env ):
     
-    _PrependPath( os_env, 'PATH', _drive + '/bin/development/compilers/gcc/mvl/MVL-RELEASE-121822007/mvl-environment/bin' )
+    mvl_path = _drive + '/bin/development/compilers/gcc/mvl/MVL-RELEASE-121822007/mvl-environment/'
+    
+    _PrependPath( os_env, 'PATH', mvl_path + '/bin' )
     
     if options.target_machine == 'arm':
-        cc_path = _drive + '/bin/development/compilers/gcc/mvl/MVL-RELEASE-121822007/mvl-environment/moto/common/devkit/arm/v6_vfp_le'
+        cc_path = mvl_path + '/moto/common/devkit/arm/v6_vfp_le'
         options.gcc_prefix = 'arm_v6_vfp_le-'
-        
-        #~ cc_path = drive + '/bin/development/compilers/gcc/lj'
-        #~ options.gcc_prefix = 'arm-none-linux-gnueabi-'
-        #~ options.ccflags += '-mthumb-interwork -mcpu=arm1136jf-s -mtune=arm1136jf-s -mfpu=vfp'
     
     elif options.target_machine == 'x86':
-        cc_path = _drive + '/bin/development/compilers/gcc/mvl/MVL-RELEASE-121822007/mvl-environment/moto/common/devkit/x86/i686-mot-linux-gnu'
+        cc_path = mvl_path + '/moto/common/devkit/x86/i686-mot-linux-gnu'
         options.gcc_prefix = 'i686-mot-linux-gnu-'
     
     else:
@@ -182,4 +180,4 @@ def     _setup_gcc_lj( options, os_env ):
 #//---------------------------------------------------------------------------//
 
 def     SetupTool_aql_tool_ljsdk( options, os_env, env ):
-    options.ljsdk_path = aql.PathOption( _drive + '/bin/development/SDK/lj/arm' )
+    _PrependPath( os_env, 'PATH', _drive + '/bin/development/SDK/lj/bin' )

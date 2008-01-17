@@ -12,9 +12,12 @@ _PrependPath = aql.PrependPath
 
 
 def     _menu_parser_emitter( target, source, env ):
-    return ([ '${TARGET.dir}/.menu/${TARGET.filebase}.cpp', '${TARGET.dir}/.menu/${TARGET.filebase}.h' ], source)
+    options = env['AQL_OPTIONS']
+    options.cpppath_build += os.path.dirname( str(target[0]) )
+    
+    return ([ '${TARGET.base}.cxx', '${TARGET.base}.h' ], source)
 
-def     _add_menu_parser_builder( env, ljsdk_path ):
+def     _add_menu_parser_builder( env ):
     
     env['LJ_MENU_PARSER_COM'] = [ SCons.Util.CLVar('$LJ_MENU_PARSER_PROG $SOURCE'),
                                   SCons.Script.Delete('${TARGETS[0]}' ),
@@ -23,7 +26,7 @@ def     _add_menu_parser_builder( env, ljsdk_path ):
                                   SCons.Script.Move('${TARGETS[1]}', '${SOURCE.base}.h') ]
     
     ljmp_bld = SCons.Builder.Builder(   action = SCons.Action.Action('$LJ_MENU_PARSER_COM'),
-                                        suffix = '.cpp',
+                                        suffix = '.cxx',
                                         src_suffix = '.ini',
                                         ensure_suffix = 1,
                                         single_source = 1,
@@ -96,7 +99,11 @@ def     generate(env):
     
     env['QTDIR'] = ljsdk_path
     env['QT_LIB'] = 'qte-mt'
-    SCons.Tool.Tool( 'qt' )( env )
+    
+    cpppath = env['CPPPATH']
+    
+    SCons.Tool.Tool( 'aql_tool_qt' )( env )
+    env['CPPPATH'] = cpppath
     
     cpppath_lib = options.cpppath_lib
     cc_ver = str(options.cc_ver)
@@ -114,7 +121,7 @@ def     generate(env):
                   'dmnative', 'ezxjpegutils', 'ezxexif', 'ezxam',
                   'masauf', 'aplog', 'ezxsound', 'ezxappbase', 'pthread' ]
     
-    _add_menu_parser_builder( env, ljsdk_path )
+    _add_menu_parser_builder( env )
     
     _setup_gcc( options )
 

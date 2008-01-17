@@ -29,6 +29,24 @@ utils.AddToolPath( os.path.normpath( os.path.dirname( __file__ ) + '/tools' ) )
 
 #//===========================================================================//
 
+import glob
+
+def     _glob( self, pathname ):
+    
+    build_dir = os.getcwd()
+    src_dir = str(self.Dir('.').srcnode())
+    os.chdir( src_dir )
+    
+    files = glob.glob( pathname )
+    os.chdir( build_dir )
+    
+    return files
+
+_Environment.Glob = _glob
+
+
+#//===========================================================================//
+
 def     _flags( env, name ):
     return str( _EnvOptions( env )[ name ] )
 
@@ -43,29 +61,13 @@ def     _arflags( target, source, env, for_signature ):   return _flags( env, 'a
 #//---------------------------------------------------------------------------//
 
 def     _path( env, path_name ):
-    _Dir = env.Dir
-    
-    path = []
-    
-    for p in _EnvOptions( env )[ path_name ].Get():
-        path.append( _Dir( p ).srcnode() )
-    
-    return path
+    srcnode = lambda p, _Dir=env.Dir : _Dir( p ).srcnode()
+    return map( srcnode, _EnvOptions( env )[ path_name ].Get() )
 
 #//---------------------------------------------------------------------------//
 
-def     _build_cpppath( target, source, env, for_signature ):
-    
-    _Dir = env.Dir
-    
-    path = []
-    
-    for p in _EnvOptions( env ).build_cpppath.Get():
-        d =_Dir( p )
-        path.append( d )
-        path.append( d.srcnode() )
-    
-    return path
+def     _cpppath_build( target, source, env, for_signature ):
+    return map( env.Dir, _EnvOptions( env ).cpppath_build.Get() )
     
 def     _cpppath( target, source, env, for_signature ):         return _path( env, 'cpppath' )
 def     _libpath( target, source, env, for_signature ):         return _path( env, 'libpath' )
@@ -98,7 +100,7 @@ def     _update_env_flags( env ):
     env['_AQL_M_LINKFLAGS'] = _linkflags
     env['_AQL_M_ARFLAGS'] = _arflags
     env['_AQL_M_CPPPATH'] = _cpppath
-    env['_AQL_M_BUILD_CPPPATH'] = _build_cpppath
+    env['_AQL_M_BUILD_CPPPATH'] = _cpppath_build
     env['_AQL_M_CPPINCFLAGS'] = _cpppath_lib
     env['_AQL_M_CPPDEFINES'] = _cppdefines
     env['_AQL_M_LIBPATH'] = _libpath
