@@ -1,0 +1,103 @@
+
+//===========================================================================//
+//      QUALIFICATION
+//---------------------------------------------------------------------------//
+
+Professional experience: 7 years
+Good knowledge and understanding of programming languages: C/C++, Python, Assembler (x86, arm).
+Able to develop a good object oriented design, effective (for performance and consuming resources)
+and cross-platform programs.
+Good understanding of low-level memory management.
+Have an experience of programming of computer 2d/3d graphics.
+
+
+//===========================================================================//
+//      DEVELOPMENT TOOLS EXPERIENCE
+//---------------------------------------------------------------------------//
+
+Programming languages:     C/C++, Python, Assembler (x86, arm)
+
+Compilers:      GNU C/C++, Microsoft Visual C/C++ 6.0 - 2005, Watcom C/C++, Borland C/C++, Digital Mars C/C++
+
+Libraries:      STL, Troltech QT/embedded QT, wxWidgets, Win32 API, POSIX
+
+Debuggers:      GNU debugger (GDB), Python Debugger, Watcom debugger, Microsoft Visual Studio debugger
+
+Make tools:     make (wmake, nmake, GNU make), Perforce Jam, SCons
+
+Host OS:        MS Windows 9x\NT\2000\XP, Linux, FreeBSD
+
+Target OS:      embedded Linux, P2K (Motorola's proprietary platform), MS Windows
+
+Static analysis tools:      Flexelint/PC-Lint, RSM (Resource Standard Metrics), Klocwork
+
+Version control systems:    Clearcase, Subversion
+
+Other: GNU tools
+
+
+//===========================================================================//
+//      EXPERIENCE
+//---------------------------------------------------------------------------//
+
+As Motorola contractor (Oct, 2000 - present):
+    
+    - Adding support of POCSAG protocol into FlexStack framework FlexStack for Motorola's pagers.
+    
+    - Developing of DNS protocol client for Motorola's mobile phones on Legacy platform.
+    
+    - Developing of some parts of Email client application for Motorola's mobile phones on P2K platform.
+    
+    - Developing of debug logging module for Email client application.
+    
+    - Investigation and deployment of static analysis tools for C/C++ languages.
+    
+    - Support of Multimedia applications for Motorola's mobile phones on P2K platform.
+    
+    - Developing of new features for Multimedia applications on P2K platform.
+    
+    - Developing of runtime analysis tool - SPY, for debugging dynamic memory issues,
+      like memory corruptions, memory leaks, stack overflow for Motorola's mobile phones on P2K platform.
+      It's widely used in Motorola for GSM/3G phones on P2K platform.
+    
+    - Developing of architecture and code of debug logging module for Multimedia applications on P2K platform.
+    
+    - Developing of new experimental features for MediaFinder on LinuxJava platform.
+
+
+As F-Origin contractor (Jan, 2007 - Jun, 2007):
+    
+    - Developing a 3D application to demonstrate an effect of virtual mirror controlled by movements of a hand,
+      data is received from the acceleration sensors embedded into the phone.
+      For mobile phones on Linux/QT embedded platform.
+    
+    - Developing a class to work with fixed point numbers optimized to iWMMXt (Intel Wireless MMX technology).
+    
+    - Developing a test application to research and tuning HaptiTouch technology (touch screen
+      technology is based on a data from pressure sensors). For Windows, using wxWidgets library.
+    
+    - Developing a phone book demo application controlled by movements of a hand,
+      data is received from the acceleration sensors embedded into the phone.
+      For mobile phones on Linux/QT embedded platform.
+
+
+Personal projects:
+    
+    - Developing a cross-platform library for runtime analysis of dynamic memory issues, like
+      consumptions, memory leaks, memory corruptions & etc.
+    
+    - Developing a cross-platform debugging library
+    
+    - Developing an extension to SCons tool on Python language.
+      To easily support several compilers and build variants at the same time (http://aqualid.googlecode.com).
+
+
+//===========================================================================//
+//      EDUCATION
+//---------------------------------------------------------------------------//
+
+1995-2000   Far Eastern State Technical University, Faculty of Informatics and Computers Technologies.
+            Graduate work: "Developing of cross-platform applications"
+            Graduated to engineer.
+
+
