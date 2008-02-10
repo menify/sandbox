@@ -55,14 +55,16 @@ def     _is_string( value ):
 #//---------------------------------------------------------------------------//
 
 def     _env_key( key ):
-    return 'AQL_O_' + key.upper()
+    return 'AQL_' + key.upper()
 
 #//---------------------------------------------------------------------------//
 
-def     EnvOptions( env ):
+def     EnvLinkedOptions( env ):
     
-    options = env['AQL_OPTIONS']
-    overridden_options = None
+    options = env['_AQL_OPTIONS']
+    options.SetEnv( env )
+    
+    linked_options = None
     
     options.Lock()      # lock the changing of the environment
     
@@ -75,23 +77,34 @@ def     EnvOptions( env ):
             if env_value is None:
                 continue
             
-            if overridden_options is None:
-                overridden_options = options.Clone()
+            if linked_options is None:
+                linked_options = options.Clone()
+                linked_options.SetEnv( env )
             
-            option = overridden_options[ k ]
+            option = linked_options[ k ]
             
             option.Update( env_value )
             
             env[ env_key ] = None
         
-        if overridden_options is not None:
-            env['AQL_OPTIONS'] = overridden_options
-            return overridden_options
+        if linked_options is not None:
+            env['_AQL_OPTIONS'] = linked_options
+            return linked_options
     
     finally:
         options.Unlock()
     
     return options
+
+#//---------------------------------------------------------------------------//
+
+def     EnvOptions( env ):
+    
+    options = env['_AQL_OPTIONS']
+    options.SetEnv( env )
+    
+    return options
+
 
 #//===========================================================================//
 #//===========================================================================//
@@ -100,10 +113,11 @@ class Options:
     
     def     __init__( self ):
         
-        self.__dict__['__names_dict']         = {}
-        self.__dict__['__ids_dict']           = {}
-        self.__dict__['__helper_seq_num']     = 0
-        self.__dict__['__lock']               = threading.Lock()
+        self.__dict__['__names_dict']       = {}
+        self.__dict__['__ids_dict']         = {}
+        self.__dict__['__helper_seq_num']   = 0
+        self.__dict__['__lock']             = threading.Lock()
+        self.__dict__['__env']              = None
     
     #//-------------------------------------------------------//
     
@@ -322,6 +336,14 @@ class Options:
         self.UnlinkToEnv()
         
         return env
+    
+    #//-------------------------------------------------------//
+    
+    def     Env( self ):
+        return self.__dict__['__env']
+    
+    def     SetEnv( self, env ):
+        self.__dict__['__env'] = env
     
     #//-------------------------------------------------------//
     
@@ -548,7 +570,7 @@ class   _ConditionsList:
 #//===========================================================================//
 #//===========================================================================//
 
-class       _NoOptions:
+class       _NoneOptions:
     
     def     __error( self ):    _Error("The option is not linked with any instance of options.")
     def     __setattr__(self, name, value):     self.__error()
@@ -556,6 +578,7 @@ class       _NoOptions:
     def     __getattr__( self, name ):          self.__error()
     def     __getitem__(self, name ):           self.__error()
 
+_none_options = _NoneOptions()
 
 #//===========================================================================//
 #//===========================================================================//
@@ -565,7 +588,7 @@ class   OptionBase:
     def     _init_base( self, help, initial_value, is_list, separator, unique, update_set, options = None ):
         
         if options is None:
-            options = _NoOptions()
+            options = _none_options
         
         self.options = options
         self.help = help
@@ -1042,7 +1065,7 @@ class   EnumOption (OptionBase):
     
     #//=======================================================//
     
-    def     __aliases( self ):
+    def     Aliases( self ):
         
         aliases = {}
         
@@ -1060,7 +1083,7 @@ class   EnumOption (OptionBase):
     
     def     AllowedValuesStr( self ):
         
-        for v,a in self.__aliases().iteritems():
+        for v,a in self.Aliases().iteritems():
             
             if a is not None:
                 v = v + '(or ' + 'or'.join( a ) + ')'
@@ -1198,7 +1221,7 @@ class   VersionOption (OptionBase):
 
 class   PathOption (OptionBase):
     
-    def     __init__( self, initial_value = None, is_list = 0, separator = None, unique = 1, update_set = 0, help = None ):
+    def     __init__( self, initial_value = None, is_list = 0, separator = None, unique = 1, update_set = 0, help = None, is_node = 0 ):
         
         if initial_value is None:
             initial_value = ''
@@ -1206,13 +1229,25 @@ class   PathOption (OptionBase):
         if (separator is None):
             separator = os.pathsep
         
+        self.is_node = is_node
+        
         self._init_base( help, initial_value, is_list, separator, unique, update_set )
     
     #//-------------------------------------------------------//
     
     def     _convert_value( self, val ):
-        path = os.path.normcase( os.path.abspath( val ) )
-        return path
+        
+        if ( hasattr(val, 'env' ) and hasattr(val, 'labspath' ) and hasattr(val, 'path_elements' ) ):
+            # it is likely that this is a Node object, just return it as it is
+            return val
+        
+        if self.is_node:
+            env = self.options.Env()
+            
+            if env is not None:
+                return env.Dir( val ).srcnode()
+        
+        return os.path.normcase( os.path.abspath( val ) )
     
     #//-------------------------------------------------------//
     

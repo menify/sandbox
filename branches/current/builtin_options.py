@@ -288,16 +288,13 @@ def     _add_cc_options( options ):
     options.gcc_suffix = _StrOption( help = "GCC C/C++ compiler suffix" )
     
     options.cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines" )
-    options.cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers" )
+    options.cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers", is_node = 1 )
     
-    options.cpppath_build = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to generated headers" )
-    options.cpppath = options.cpppath_build
-    
-    cpppath_lib = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers" )
+    cpppath_lib = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers", is_node = 1 )
     options.cpppath_const = cpppath_lib
     options.cpppath_lib = cpppath_lib
     
-    options.libpath = _PathOption( is_list = 1, help = "Paths to libraries" )
+    options.libpath = _PathOption( is_list = 1, help = "Paths to libraries", is_node = 1 )
     options.libs = _StrOption( is_list = 1, help = "Libraries" )
 
 

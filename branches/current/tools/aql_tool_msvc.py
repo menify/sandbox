@@ -1,5 +1,8 @@
-
 import SCons.Tool
+
+import aql
+
+_EnvOptions = aql.EnvOptions
 
 #//---------------------------------------------------------------------------//
 
@@ -83,7 +86,7 @@ def     _try_tools( env, options, check_exists_only = 0 ):
 
 def     generate( env ):
     
-    options = env['AQL_OPTIONS']
+    options = _EnvOptions(env)
     
     _try_tools( env, options )
     
@@ -102,5 +105,5 @@ def     generate( env ):
 #//---------------------------------------------------------------------------//
 
 def     exists( env ):
-    return _try_tools( env, env['AQL_OPTIONS'], check_exists_only = 1 )
+    return _try_tools( env, _EnvOptions(env), check_exists_only = 1 )
 

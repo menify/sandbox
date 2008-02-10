@@ -5,9 +5,9 @@ import SCons.Tool
 
 import aql
 
-_EnvOptions = aql.EnvOptions
 _AppendPath = aql.AppendPath
 _PrependPath = aql.PrependPath
+_EnvOptions = aql.EnvOptions
 
 
 def     _setup_flags( options ):
@@ -40,7 +40,10 @@ def     _setup_flags( options ):
     if_.exception_handling['true'].cxxflags += '-fexceptions'
     if_.exception_handling['false'].cxxflags += '-fno-exceptions'
     
-    if_.keep_asm['true'].ccflags += '-masm=intel -fverbose-asm -save-temps'
+    if_.keep_asm['false'].ccflags += '-pipe'
+    if_.keep_asm['true'].ccflags += '-fverbose-asm -save-temps'
+    if_.keep_asm['true'].target_machine['x86'].ccflags -= '-masm=intel'
+    
     
     if_.warning_level[0].ccflags += '-w'
     if_.warning_level[2].ccflags += '-Wall'
@@ -58,7 +61,7 @@ def     _setup_flags( options ):
 
 def     _rpathlink( target, source, env, for_signature ):
     flags = ''
-    for p in _EnvOptions( env ).libpath.Get():
+    for p in aql.EnvLinkedOptions(env).libpath.Get():
         flags += ' -Wl,-rpath-link,' + str(p)
     
     return flags
@@ -204,7 +207,7 @@ def     _update_os_env( env, options ):
 
 def     generate( env ):
     
-    options = env['AQL_OPTIONS']
+    options = _EnvOptions(env)
     
     gcc_env = _find_gcc( env, options )
     _get_gcc_specs( env, options, gcc_env['CC'] )
@@ -252,7 +255,7 @@ def     generate( env ):
 #//---------------------------------------------------------------------------//
 
 def exists( env ):
-    return _find_gcc( env, env['AQL_OPTIONS'] ) is not None
+    return _find_gcc( env, _EnvOptions(env) ) is not None
 
 
 #//===========================================================================//

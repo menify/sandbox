@@ -3,6 +3,7 @@ import os.path
 
 import SCons.Script
 import SCons.Tool
+import SCons.Util
 
 import logging
 import options
@@ -18,10 +19,14 @@ _BuiltinOptions = builtin_options.BuiltinOptions
 
 _Setup = setup.Setup
 
+_EnvLinkedOptions = options.EnvLinkedOptions
 _EnvOptions = options.EnvOptions
 
 _ARGUMENTS = SCons.Script.ARGUMENTS
+_COMMAND_LINE_TARGETS = SCons.Script.COMMAND_LINE_TARGETS
 _Environment = SCons.Script.Environment
+
+_AddMethod = SCons.Util.AddMethod
 
 #//-------------------------------------------------------//
 
@@ -35,6 +40,7 @@ def     _glob( self, pathname ):
     
     build_dir = os.getcwd()
     src_dir = str(self.Dir('.').srcnode())
+    
     os.chdir( src_dir )
     
     files = glob.glob( pathname )
@@ -43,50 +49,34 @@ def     _glob( self, pathname ):
     return files
 
 _Environment.Glob = _glob
-
+#~ _Environment.AQL_LinkedOptions = _EnvLinkedOptions
+#~ _Environment.AQL_Options = _EnvOptions
 
 #//===========================================================================//
 
-def     _flags( env, name ):
-    return str( _EnvOptions( env )[ name ] )
+def     _cflags( target, source, env, for_signature ):      return str( _EnvLinkedOptions(env).cflags )
+def     _ccflags( target, source, env, for_signature ):     return str( _EnvLinkedOptions(env).ccflags )
+def     _cxxflags( target, source, env, for_signature ):    return str( _EnvLinkedOptions(env).cxxflags )
+def     _linkflags( target, source, env, for_signature ):   return str( _EnvLinkedOptions(env).linkflags )
+def     _arflags( target, source, env, for_signature ):     return str( _EnvLinkedOptions(env).arflags )
 
-#//---------------------------------------------------------------------------//
-
-def     _cflags( target, source, env, for_signature ):      return _flags( env, 'cflags' )
-def     _ccflags( target, source, env, for_signature ):     return _flags( env, 'ccflags' )
-def     _cxxflags( target, source, env, for_signature ):    return _flags( env, 'cxxflags' )
-def     _linkflags( target, source, env, for_signature ):   return _flags( env, 'linkflags' )
-def     _arflags( target, source, env, for_signature ):   return _flags( env, 'arflags' )
-
-#//---------------------------------------------------------------------------//
-
-def     _path( env, path_name ):
-    srcnode = lambda p, _Dir=env.Dir : _Dir( p ).srcnode()
-    return map( srcnode, _EnvOptions( env )[ path_name ].Get() )
-
-#//---------------------------------------------------------------------------//
-
-def     _cpppath_build( target, source, env, for_signature ):
-    return map( env.Dir, _EnvOptions( env ).cpppath_build.Get() )
-    
-def     _cpppath( target, source, env, for_signature ):         return _path( env, 'cpppath' )
-def     _libpath( target, source, env, for_signature ):         return _path( env, 'libpath' )
+def     _cpppath( target, source, env, for_signature ):     return _EnvLinkedOptions(env).cpppath.Get()
+def     _libpath( target, source, env, for_signature ):     return _EnvLinkedOptions(env).libpath.Get()
+def     _libs( target, source, env, for_signature ):        return _EnvLinkedOptions(env).libs.Get()
+def     _cppdefines( target, source, env, for_signature ):  return _EnvLinkedOptions(env).cppdefines.Get()
 
 def     _cpppath_lib( target, source, env, for_signature ):
     
-    cpppath_lib = _EnvOptions( env ).cpppath_lib.Get()
+    cpppath_lib = _EnvLinkedOptions(env).cpppath_lib.Get()
     
     prefix = env['INCPREFIX']
     suffix = env['INCSUFFIX'] + ' '
     
     flags = ''
     for p in cpppath_lib:
-        flags += prefix + p + suffix
+        flags += prefix + str(p) + suffix
     
     return flags
-
-def     _libs( target, source, env, for_signature ):            return _EnvOptions( env ).libs.Get()
-def     _cppdefines( target, source, env, for_signature ):      return _EnvOptions( env ).cppdefines.Get()
 
 #//---------------------------------------------------------------------------//
 
@@ -100,7 +90,6 @@ def     _update_env_flags( env ):
     env['_AQL_M_LINKFLAGS'] = _linkflags
     env['_AQL_M_ARFLAGS'] = _arflags
     env['_AQL_M_CPPPATH'] = _cpppath
-    env['_AQL_M_BUILD_CPPPATH'] = _cpppath_build
     env['_AQL_M_CPPINCFLAGS'] = _cpppath_lib
     env['_AQL_M_CPPDEFINES'] = _cppdefines
     env['_AQL_M_LIBPATH'] = _libpath
@@ -110,7 +99,7 @@ def     _update_env_flags( env ):
                 CCFLAGS = ["$_AQL_M_CCFLAGS"],
                 CXXFLAGS = [ "$_AQL_M_CXXFLAGS" ],
                 _CPPINCFLAGS = " $_AQL_M_CPPINCFLAGS",
-                CPPPATH = [ "$_AQL_M_BUILD_CPPPATH", "$_AQL_M_CPPPATH" ],
+                CPPPATH = [ "$_AQL_M_CPPPATH" ],
                 CPPDEFINES = ["$_AQL_M_CPPDEFINES"],
                 LINKFLAGS = ["$_AQL_M_LINKFLAGS"],
                 ARFLAGS = ["$_AQL_M_ARFLAGS"],
@@ -121,7 +110,7 @@ def     _update_env_flags( env ):
 
 def     Env( options, tools = None, **kw ):
     
-    kw['AQL_OPTIONS'] = options
+    kw['_AQL_OPTIONS'] = options
     
     if tools is None:
         tools = options.tools.Get()
@@ -164,6 +153,15 @@ def     BuildVariant( options, scriptfile = None, **kw ):
     kw['exports'] = [ {'env' : env} ]
     
     env.SConscript( scriptfile, **kw )
+    
+    bv = str(options.bv)
+    aliases = [ bv ]
+    bv_aliases = options.build_variants.Aliases()[ bv ]
+    
+    if bv_aliases:
+        aliases += bv_aliases
+    
+    env.Alias( aliases, kw['build_dir'] )
 
 #//---------------------------------------------------------------------------//
 
@@ -172,6 +170,18 @@ def     Build( options = None, scriptfile = None, **kw ):
     if options is None:
         options = _BuiltinOptions()
         options.update( _ARGUMENTS )
+    
+    build_variants = options.build_variants
+    builds = []
+    for v in _COMMAND_LINE_TARGETS:
+        try:
+            builds += build_variants.Convert( v )
+         
+        except logging.ErrorException:
+            pass
+    
+    if builds:
+        build_variants.Set( builds )
     
     for bv in options.build_variants.Get():
         env_options = options.Clone()

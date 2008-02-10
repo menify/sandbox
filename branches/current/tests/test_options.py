@@ -16,7 +16,7 @@ _VersionOption = options.VersionOption
 _BoolOption = options.BoolOption
 _BuiltinOptions = builtin_options.BuiltinOptions
 
-_EnvOptions = options.EnvOptions
+_EnvLinkedOptions = options.EnvLinkedOptions
 
 options = _Options()
 
@@ -173,8 +173,8 @@ assert opt.build_variant == 'debug'
 env = env1.copy()
 env.update( env2 )
 
-env['AQL_OPTIONS'] = opt
-env_opt = _EnvOptions( env )
+env['_AQL_OPTIONS'] = opt
+env_opt = _EnvLinkedOptions( env )
 
 assert '-O9' in env_opt.ccflags
 assert '-g'  in env_opt.ccflags
@@ -209,8 +209,8 @@ opt.UnlinkToEnv()
 assert opt.runtime_linking == 'shared'
 assert opt.lint_passes == 3
 
-env2['AQL_OPTIONS'] = opt
-env_opt = _EnvOptions( env2 )
+env2['_AQL_OPTIONS'] = opt
+env_opt = _EnvLinkedOptions( env2 )
 
 assert env_opt.runtime_linking == 'static'
 assert env_opt.lint_passes == 4

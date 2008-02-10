@@ -4,10 +4,12 @@ import os.path
 import types
 
 import logging
-import logging
+import options
 
 _Info = logging.Info
 _Msg = logging.Msg
+
+_EnvOptions = options.EnvOptions
 
 #//===========================================================================//
 
@@ -43,7 +45,7 @@ def     _tool_setup( self, env ):
     user_module = _user_module()
     
     try:
-        user_module[ 'SetupTool_' + self.name ]( env['AQL_OPTIONS'], env['ENV'], env )
+        user_module[ 'SetupTool_' + self.name ]( _EnvOptions( env ), env['ENV'], env )
     
     except (TypeError, KeyError):
         if __debug__:

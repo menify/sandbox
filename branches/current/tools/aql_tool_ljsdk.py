@@ -9,11 +9,12 @@ import SCons.Script
 import aql
 
 _PrependPath = aql.PrependPath
+_EnvOptions = aql.EnvOptions
 
 
 def     _menu_parser_emitter( target, source, env ):
-    options = env['AQL_OPTIONS']
-    options.cpppath_build += os.path.dirname( str(target[0]) )
+    options = _EnvOptions(env)
+    options.cpppath += env.Dir( os.path.dirname( str(target[0]) ) )
     
     return ([ '${TARGET.base}.cxx', '${TARGET.base}.h' ], source)
 
@@ -25,8 +26,12 @@ def     _add_menu_parser_builder( env ):
                                   SCons.Script.Move('${TARGETS[0]}', '${SOURCE.base}.cpp'),
                                   SCons.Script.Move('${TARGETS[1]}', '${SOURCE.base}.h') ]
     
+    env['LJMPCXXPREFIX'] = ''
+    env['LJMPCXXSUFFIX'] = ''
+    
     ljmp_bld = SCons.Builder.Builder(   action = SCons.Action.Action('$LJ_MENU_PARSER_COM'),
-                                        suffix = '.cxx',
+                                        prefix = '$LJMPCXXPREFIX',
+                                        suffix = '$LJMPCXXSUFFIX',
                                         src_suffix = '.ini',
                                         ensure_suffix = 1,
                                         single_source = 1,
@@ -43,9 +48,7 @@ def     _add_menu_parser_builder( env ):
 def     _where_is_program( env, prog ):
     return env.WhereIs( prog ) or SCons.Util.WhereIs( prog )
 
-def     _find_ljsdk( env ):
-    
-    options = env['AQL_OPTIONS']
+def     _find_ljsdk( options, env ):
     
     if (options.cc_name != 'gcc') or (options.target_os != 'linux') or (options.target_platform != 'LinuxJava'):
         return None
@@ -90,11 +93,12 @@ def     _setup_gcc( options ):
 
 def     generate(env):
     
-    ljsdk_path = _find_ljsdk( env )
+    options = _EnvOptions(env)
+    
+    ljsdk_path = _find_ljsdk( options, env )
     if ljsdk_path is None:
         return
     
-    options = env['AQL_OPTIONS']
     ljapi_path = os.path.join( ljsdk_path, 'api', str(options.ljapi) )
     
     env['QTDIR'] = ljsdk_path
@@ -117,9 +121,8 @@ def     generate(env):
     elif options.target_machine == 'x86':
         options.libpath += ljapi_path + '/lib_x86'
     
-    options.libs += [ 'dl', 'ezxsort', 'drmfwudaclient', 'janus', 'm',
-                  'dmnative', 'ezxjpegutils', 'ezxexif', 'ezxam',
-                  'masauf', 'aplog', 'ezxsound', 'ezxappbase', 'pthread' ]
+    options.libs += [ 'dl', 'ezxsort', 'm', 'dmnative',
+                      'aplog', 'ezxsound', 'ezxappbase', 'ezxappsdk', 'pthread' ]
     
     _add_menu_parser_builder( env )
     
@@ -128,4 +131,4 @@ def     generate(env):
 #//---------------------------------------------------------------------------//
 
 def exists(env):
-    return _find_ljsdk( env ) is not None
+    return _find_ljsdk( _EnvOptions(env), env ) is not None
