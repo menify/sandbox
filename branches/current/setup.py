@@ -20,21 +20,29 @@ def     _user_module():
     global _user_setup_module
     
     if _user_setup_module is None:
+        
+        sys.path.append( os.path.join( os.path.dirname( __file__ ), 'setup' ) )
+        
+        import imp
+        
         try:
-            sys.path.append( os.path.join( os.path.dirname( __file__ ), 'setup' ) )
-            import aql_setup_site
-            del sys.path[-1]
+            fp, pathname, description = imp.find_module( 'aql_setup_site' )
             
-            _Msg( "Using setup file: " + aql_setup_site.__file__ )
-            
-            _user_setup_module = aql_setup_site.__dict__
-            
-        except ImportError:
+            try:
+                user_mod = imp.load_module( 'aql_setup_site', fp, pathname, description )
+                _user_setup_module = user_mod.__dict__
+                
+                _Msg( "Using setup file: " + user_mod.__file__ )
+                
+            finally:
+                del sys.path[-1]
+                if fp: fp.close()
+        
+        except ImportError, e:
+            _user_setup_module = {}
             
             if __debug__:
                 _Info( "Module 'aql_setup_site' has been not found...Skipped." )
-            
-            _user_setup_module = {}
     
     return _user_setup_module
 

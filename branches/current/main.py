@@ -54,17 +54,6 @@ _Environment.Glob = _glob
 
 #//===========================================================================//
 
-def     _cflags( target, source, env, for_signature ):      return str( _EnvLinkedOptions(env).cflags )
-def     _ccflags( target, source, env, for_signature ):     return str( _EnvLinkedOptions(env).ccflags )
-def     _cxxflags( target, source, env, for_signature ):    return str( _EnvLinkedOptions(env).cxxflags )
-def     _linkflags( target, source, env, for_signature ):   return str( _EnvLinkedOptions(env).linkflags )
-def     _arflags( target, source, env, for_signature ):     return str( _EnvLinkedOptions(env).arflags )
-
-def     _cpppath( target, source, env, for_signature ):     return _EnvLinkedOptions(env).cpppath.Get()
-def     _libpath( target, source, env, for_signature ):     return _EnvLinkedOptions(env).libpath.Get()
-def     _libs( target, source, env, for_signature ):        return _EnvLinkedOptions(env).libs.Get()
-def     _cppdefines( target, source, env, for_signature ):  return _EnvLinkedOptions(env).cppdefines.Get()
-
 def     _cpppath_lib( target, source, env, for_signature ):
     
     cpppath_lib = _EnvLinkedOptions(env).cpppath_lib.Get()
@@ -84,16 +73,18 @@ def     _update_env_flags( env ):
     
     env['_CPPDEFFLAGS'] = '${_concat(CPPDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)}'
     
-    env['_AQL_M_CFLAGS'] = _cflags
-    env['_AQL_M_CCFLAGS'] = _ccflags
-    env['_AQL_M_CXXFLAGS'] = _cxxflags
-    env['_AQL_M_LINKFLAGS'] = _linkflags
-    env['_AQL_M_ARFLAGS'] = _arflags
-    env['_AQL_M_CPPPATH'] = _cpppath
-    env['_AQL_M_CPPINCFLAGS'] = _cpppath_lib
-    env['_AQL_M_CPPDEFINES'] = _cppdefines
-    env['_AQL_M_LIBPATH'] = _libpath
-    env['_AQL_M_LIBS'] = _libs
+    env['_AQL_M_CFLAGS']        = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).cflags )
+    env['_AQL_M_CCFLAGS']       = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).ccflags )
+    env['_AQL_M_CXXFLAGS']      = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).cxxflags )
+    env['_AQL_M_LINKFLAGS']     = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).linkflags )
+    env['_AQL_M_ARFLAGS']       = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).arflags )
+    
+    env['_AQL_M_CPPPATH']       = lambda target, source, env, for_signature: _EnvLinkedOptions(env).cpppath.Get()
+    env['_AQL_M_CPPDEFINES']    = lambda target, source, env, for_signature: _EnvLinkedOptions(env).cppdefines.Get()
+    env['_AQL_M_LIBPATH']       = lambda target, source, env, for_signature: _EnvLinkedOptions(env).libpath.Get()
+    env['_AQL_M_LIBS']          = lambda target, source, env, for_signature: _EnvLinkedOptions(env).libs.Get()
+    
+    env['_AQL_M_CPPINCFLAGS']   = _cpppath_lib
     
     env.Append( CFLAGS = [ "$_AQL_M_CFLAGS"],
                 CCFLAGS = ["$_AQL_M_CCFLAGS"],

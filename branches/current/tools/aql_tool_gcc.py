@@ -221,6 +221,23 @@ def     generate( env ):
     
     env.Replace( **gcc_env )
     
+    # Some setting from the platform also have to be overridden
+    env['OBJPREFIX']      = ''
+    env['OBJSUFFIX']      = '.o'
+    env['SHOBJPREFIX']    = '$OBJPREFIX'
+    env['SHOBJSUFFIX']    = '$OBJSUFFIX'
+    env['PROGPREFIX']     = ''
+    env['PROGSUFFIX']     = ''
+    env['LIBPREFIX']      = 'lib'
+    env['LIBSUFFIX']      = '.a'
+    env['SHLIBPREFIX']    = '$LIBPREFIX'
+    env['SHLIBSUFFIX']    = '.so'
+    env['LIBPREFIXES']    = [ '$LIBPREFIX' ]
+    env['LIBSUFFIXES']    = [ '$LIBSUFFIX', '$SHLIBSUFFIX' ]
+    
+    
+    # target platform specific settings
+    
     target_os = str(options.target_os)
     
     if target_os == 'windows':
@@ -238,9 +255,6 @@ def     generate( env ):
         
         if target_os == 'hpux':
             env['SHLINKFLAGS'] = SCons.Util.CLVar('$LINKFLAGS -shared -fPIC')
-        
-        env['PROGSUFFIX'] = ''
-        env['SHLIBSUFFIX'] = '.so'
     
     # __RPATH is set to $_RPATH in the platform specification if that
     # platform supports it.
@@ -308,11 +322,6 @@ def     _setup_env_windows( env ):
     env['RCINCSUFFIX'] = ''
     env['RCCOM'] = '$RC $_CPPDEFFLAGS $RCINCFLAGS ${RCINCPREFIX} ${SOURCE.dir} $RCFLAGS -i $SOURCE -o $TARGET'
     env['BUILDERS']['RES'] = _res_builder
-    
-    # Some setting from the platform also have to be overridden:
-    env['OBJSUFFIX'] = '.o'
-    env['LIBPREFIX'] = 'lib'
-    env['LIBSUFFIX'] = '.a'
 
 #//-------------------------------------------------------//
 

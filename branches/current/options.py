@@ -606,7 +606,10 @@ class   OptionBase:
         if __debug__:
             self.active_threads = []
         
-        self.Set( initial_value )
+        if is_list:
+            self.Append( initial_value )
+        else:
+            self.Set( initial_value )
     
     #//-------------------------------------------------------//
     
@@ -890,9 +893,10 @@ class   OptionBase:
     #//-------------------------------------------------------//
     
     def     __value_str( self, value ):
+        
         if _is_sequence( value ):
             sep = self.separator[:]
-            return sep.join( value )
+            return sep.join( map(str,value) )
         
         return str( value )
     
