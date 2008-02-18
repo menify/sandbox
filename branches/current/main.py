@@ -19,7 +19,6 @@ _BuiltinOptions = builtin_options.BuiltinOptions
 
 _Setup = setup.Setup
 
-_EnvLinkedOptions = options.EnvLinkedOptions
 _EnvOptions = options.EnvOptions
 
 _ARGUMENTS = SCons.Script.ARGUMENTS
@@ -49,14 +48,13 @@ def     _glob( self, pathname ):
     return files
 
 _Environment.Glob = _glob
-#~ _Environment.AQL_LinkedOptions = _EnvLinkedOptions
 #~ _Environment.AQL_Options = _EnvOptions
 
 #//===========================================================================//
 
 def     _cpppath_lib( target, source, env, for_signature ):
     
-    cpppath_lib = _EnvLinkedOptions(env).cpppath_lib.Get()
+    cpppath_lib = _EnvOptions(env).cpppath_lib.Get()
     
     prefix = env['INCPREFIX']
     suffix = env['INCSUFFIX'] + ' '
@@ -73,16 +71,16 @@ def     _update_env_flags( env ):
     
     env['_CPPDEFFLAGS'] = '${_concat(CPPDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)}'
     
-    env['_AQL_M_CFLAGS']        = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).cflags )
-    env['_AQL_M_CCFLAGS']       = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).ccflags )
-    env['_AQL_M_CXXFLAGS']      = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).cxxflags )
-    env['_AQL_M_LINKFLAGS']     = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).linkflags )
-    env['_AQL_M_ARFLAGS']       = lambda target, source, env, for_signature: str( _EnvLinkedOptions(env).arflags )
+    env['_AQL_M_CFLAGS']        = lambda target, source, env, for_signature: _EnvOptions(env).cflags.Str()
+    env['_AQL_M_CCFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).ccflags.Str()
+    env['_AQL_M_CXXFLAGS']      = lambda target, source, env, for_signature: _EnvOptions(env).cxxflags.Str()
+    env['_AQL_M_LINKFLAGS']     = lambda target, source, env, for_signature: _EnvOptions(env).linkflags.Str()
+    env['_AQL_M_ARFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).arflags.Str()
     
-    env['_AQL_M_CPPPATH']       = lambda target, source, env, for_signature: _EnvLinkedOptions(env).cpppath.Get()
-    env['_AQL_M_CPPDEFINES']    = lambda target, source, env, for_signature: _EnvLinkedOptions(env).cppdefines.Get()
-    env['_AQL_M_LIBPATH']       = lambda target, source, env, for_signature: _EnvLinkedOptions(env).libpath.Get()
-    env['_AQL_M_LIBS']          = lambda target, source, env, for_signature: _EnvLinkedOptions(env).libs.Get()
+    env['_AQL_M_CPPPATH']       = lambda target, source, env, for_signature: _EnvOptions(env).cpppath.Get()
+    env['_AQL_M_CPPDEFINES']    = lambda target, source, env, for_signature: _EnvOptions(env).cppdefines.Get()
+    env['_AQL_M_LIBPATH']       = lambda target, source, env, for_signature: _EnvOptions(env).libpath.Get()
+    env['_AQL_M_LIBS']          = lambda target, source, env, for_signature: _EnvOptions(env).libs.Get()
     
     env['_AQL_M_CPPINCFLAGS']   = _cpppath_lib
     
@@ -101,7 +99,7 @@ def     _update_env_flags( env ):
 
 def     Env( options, tools = None, **kw ):
     
-    kw['_AQL_OPTIONS'] = options
+    kw['AQL_OPTIONS'] = options
     
     if tools is None:
         tools = options.tools.Get()

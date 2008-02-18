@@ -61,7 +61,7 @@ def     _setup_flags( options ):
 
 def     _rpathlink( target, source, env, for_signature ):
     flags = ''
-    for p in aql.EnvLinkedOptions(env).libpath.Get():
+    for p in aql.EnvOptions(env).libpath.Get():
         flags += ' -Wl,-rpath-link,' + str(p)
     
     return flags

@@ -3,7 +3,6 @@ import os
 import sys
 import types
 import thread
-import threading
 
 import logging
 import version
@@ -54,53 +53,9 @@ def     _is_string( value ):
 
 #//---------------------------------------------------------------------------//
 
-def     _env_key( key ):
-    return 'AQL_' + key.upper()
-
-#//---------------------------------------------------------------------------//
-
-def     EnvLinkedOptions( env ):
-    
-    options = env['_AQL_OPTIONS']
-    options.SetEnv( env )
-    
-    linked_options = None
-    
-    options.Lock()      # lock the changing of the environment
-    
-    try:
-        for k in options.iterkeys():
-            
-            env_key = _env_key( k )
-            env_value = env.get( env_key )
-            
-            if env_value is None:
-                continue
-            
-            if linked_options is None:
-                linked_options = options.Clone()
-                linked_options.SetEnv( env )
-            
-            option = linked_options[ k ]
-            
-            option.Update( env_value )
-            
-            env[ env_key ] = None
-        
-        if linked_options is not None:
-            env['_AQL_OPTIONS'] = linked_options
-            return linked_options
-    
-    finally:
-        options.Unlock()
-    
-    return options
-
-#//---------------------------------------------------------------------------//
-
 def     EnvOptions( env ):
     
-    options = env['_AQL_OPTIONS']
+    options = env['AQL_OPTIONS']
     options.SetEnv( env )
     
     return options
@@ -115,8 +70,6 @@ class Options:
         
         self.__dict__['__names_dict']       = {}
         self.__dict__['__ids_dict']         = {}
-        self.__dict__['__helper_seq_num']   = 0
-        self.__dict__['__lock']             = threading.Lock()
         self.__dict__['__env']              = None
     
     #//-------------------------------------------------------//
@@ -155,12 +108,12 @@ class Options:
     
     #//-------------------------------------------------------//
     
-    def     __set_option( self, name, value, update = 0 ):
+    def     __set_option( self, name, value, update = 0, quiet = 0 ):
         
         option = self.__find_option( name )
         
         if option is None:
-            if not update:
+            if (not update) or (not quiet):
                 self.__add_option( name, value )
         else:
             
@@ -235,13 +188,13 @@ class Options:
     
     #//-------------------------------------------------------//
     
-    def     update( self, args ):
+    def     update( self, args, quiet = 1 ):
         
         if args:
             set_option = self.__set_option
             
             for key, value in args.iteritems():
-                set_option( key, value, update = 1 )
+                set_option( key, value, update = 1, quiet = quiet )
     
     #//-------------------------------------------------------//
     
@@ -257,6 +210,14 @@ class Options:
         
         names = self.__dict__['__ids_dict'].get( id(opt), [ None ] )
         return names[1:]
+    
+    #//-------------------------------------------------------//
+    
+    def     __call__( self, **kw ):
+        options = self.Clone()
+        options.update( kw, quiet = 0 )
+        
+        return options
     
     #//-------------------------------------------------------//
     
@@ -294,61 +255,11 @@ class Options:
     
     #//-------------------------------------------------------//
     
-    def     __linker_name( self ):
-        
-        self.__dict__['__helper_seq_num'] += 1
-        
-        return '__linker_' + str(id( self )) + '_' + str( self.__dict__['__helper_seq_num'] )
-    
-    #//-------------------------------------------------------//
-    
-    def     LinkToEnv( self, env ):
-        
-        linker = IntOption( 0 )
-        
-        linker_name = self.__linker_name()
-        
-        condition = lambda options, name = linker_name : options[ name ] != 0
-        
-        for ident, id_list   in   self.__dict__['__ids_dict'].iteritems():
-            opt = id_list[0]
-            opt.AppendPreCondition( condition )
-        
-        self[ linker_name ] = linker
-        env[ _env_key( linker_name ) ] = 1
-        
-    #//-------------------------------------------------------//
-    
-    def     UnlinkToEnv( self ):
-        for ident, id_list  in  self.__dict__['__ids_dict'].iteritems():
-            opt = id_list[0]
-            opt.UndoPreCondition()
-    
-    #//-------------------------------------------------------//
-    
-    def     LinkToKW( self, **kw ):
-        
-        env = {}
-        self.LinkToEnv( env )
-        
-        self.update( kw )
-        
-        self.UnlinkToEnv()
-        
-        return env
-    
-    #//-------------------------------------------------------//
-    
     def     Env( self ):
         return self.__dict__['__env']
     
     def     SetEnv( self, env ):
         self.__dict__['__env'] = env
-    
-    #//-------------------------------------------------------//
-    
-    def     Lock( self ):       self.__dict__['__lock'].acquire()
-    def     Unlock( self ):     self.__dict__['__lock'].release()
 
 #//===========================================================================//
 #//===========================================================================//
@@ -908,8 +819,8 @@ class   OptionBase:
     
     #//-------------------------------------------------------//
     
-    def     __str__( self ):
-        return self.__value_str( self.Get() )
+    def     __str__( self ):    return self.__value_str( self.Get() )
+    def     Str( self ):        return self.__value_str( self.Get() )
     
 
 #//===========================================================================//
