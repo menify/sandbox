@@ -71,6 +71,7 @@ class Options:
         self.__dict__['__names_dict']       = {}
         self.__dict__['__ids_dict']         = {}
         self.__dict__['__env']              = None
+        self.__dict__['__cache']            = {}
     
     #//-------------------------------------------------------//
     
@@ -260,6 +261,14 @@ class Options:
     
     def     SetEnv( self, env ):
         self.__dict__['__env'] = env
+    
+    #//-------------------------------------------------------//
+    
+    def     Cache( self ):
+        return self.__dict__['__cache']
+    
+    def     ClearCache( self ):
+        self.__dict__['__cache'] = {}
 
 #//===========================================================================//
 #//===========================================================================//
@@ -488,6 +497,8 @@ class       _NoneOptions:
     def     __setitem__( self, name, value ):   self.__error()
     def     __getattr__( self, name ):          self.__error()
     def     __getitem__(self, name ):           self.__error()
+    def     Cache( self ):                      return {}
+    def     ClearCache( self ):                 pass
 
 _none_options = _NoneOptions()
 
@@ -561,6 +572,17 @@ class   OptionBase:
     
     #//-------------------------------------------------------//
     
+    def     __clear_cache( self ):
+        self.options.ClearCache()
+    
+    def     __cache_value( self, value ):
+        self.options.Cache()[ id(self) ] = value
+    
+    def     __cached_value( self ):
+        return self.options.Cache().get( id(self) )
+    
+    #//-------------------------------------------------------//
+    
     def     Names( self ):
         
         names = self.options.OptionNames( self )
@@ -605,6 +627,10 @@ class   OptionBase:
     
     def    Get( self ):
         
+        values = self.__cached_value()
+        if values is not None:
+            return values
+        
         if __debug__:
             thread_id = thread.get_ident()
             if self.active_threads.count( thread_id ):
@@ -615,6 +641,8 @@ class   OptionBase:
         
         if __debug__:
             self.active_threads.remove( thread_id )
+        
+        self.__cache_value( values )
         
         return values
     
@@ -716,6 +744,8 @@ class   OptionBase:
             self.conditions.append( conditions_list )
         else:
             self.conditions.insert( 0, conditions_list )
+        
+        self.__clear_cache()
         
         if __debug__:
             self.Get()   # check for recursion of conditions

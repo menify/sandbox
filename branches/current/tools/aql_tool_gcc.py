@@ -213,13 +213,6 @@ def     generate( env ):
     _get_gcc_specs( env, options, gcc_env['CC'] )
     _update_os_env( env, options )
     
-    _Tool = SCons.Tool.Tool
-    for tool in ['cc', 'c++', 'link', 'ar', 'as']:
-        _Tool( tool )( env )
-    
-    #//-------------------------------------------------------//
-    
-    env.Replace( **gcc_env )
     
     # Some setting from the platform also have to be overridden
     env['OBJPREFIX']      = ''
@@ -235,6 +228,13 @@ def     generate( env ):
     env['LIBPREFIXES']    = [ '$LIBPREFIX' ]
     env['LIBSUFFIXES']    = [ '$LIBSUFFIX', '$SHLIBSUFFIX' ]
     
+    _Tool = SCons.Tool.Tool
+    for tool in ['cc', 'c++', 'link', 'ar', 'as']:
+        _Tool( tool )( env )
+    
+    #//-------------------------------------------------------//
+    
+    env.Replace( **gcc_env )
     
     # target platform specific settings
     
@@ -265,6 +265,14 @@ def     generate( env ):
     
     _setup_flags( options )
     _setup_env_flags( env )
+    
+    env['ARCOM']        = "${TEMPFILE('" + env['ARCOM']     + "')}"
+    env['LINKCOM']      = "${TEMPFILE('" + env['LINKCOM']   + "')}"
+    env['SHLINKCOM']    = "${TEMPFILE('" + env['SHLINKCOM'] + "')}"
+    env['CXXCOM']       = "${TEMPFILE('" + env['CXXCOM']    + "')}"
+    env['SHCXXCOM']     = "${TEMPFILE('" + env['SHCXXCOM']  + "')}"
+    env['CCCOM']        = "${TEMPFILE('" + env['CCCOM']     + "')}"
+    env['SHCCCOM']      = "${TEMPFILE('" + env['SHCCCOM']   + "')}"
 
 #//---------------------------------------------------------------------------//
 

@@ -11,6 +11,9 @@ import builtin_options
 import setup
 import utils
 
+import target
+_Target = target.Target
+
 #//===========================================================================//
 
 _Info = logging.Info
@@ -94,6 +97,11 @@ def     _update_env_flags( env ):
                 ARFLAGS = ["$_AQL_M_ARFLAGS"],
                 LIBPATH = ["$_AQL_M_LIBPATH"],
                 LIBS = ["$_AQL_M_LIBS"] )
+    
+    if _Target.os == 'windows' and _Target.os_version >= "5.1":
+        env['MAXLINELENGTH'] = 8191
+    else:
+        env['MAXLINELENGTH'] = 2047
 
 #//---------------------------------------------------------------------------//
 
