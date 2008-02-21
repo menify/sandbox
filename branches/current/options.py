@@ -2,7 +2,6 @@
 import os
 import sys
 import types
-import thread
 
 import logging
 import version
@@ -515,7 +514,6 @@ class   OptionBase:
         self.options = options
         self.help = help
         self.conditions = []
-        self.preconditions_list = _ConditionsList()
         self.is_list = is_list
         self.separator = separator
         self.unique = unique
@@ -526,7 +524,7 @@ class   OptionBase:
             self.Update = self.Append
         
         if __debug__:
-            self.active_threads = []
+            self.check_cyclic_evaluation = 0
         
         if is_list:
             self.Append( initial_value )
@@ -552,13 +550,12 @@ class   OptionBase:
             self.Update = self.Append
         
         if __debug__:
-            self.active_threads = []
+            self.check_cyclic_evaluation = 0
     
     #//-------------------------------------------------------//
     
     def     _copy_conditions( self, clone ):
         self.conditions = clone.conditions[:]
-        self.preconditions_list = _ConditionsList()
     
     #//-------------------------------------------------------//
     
@@ -632,34 +629,16 @@ class   OptionBase:
             return values
         
         if __debug__:
-            thread_id = thread.get_ident()
-            if self.active_threads.count( thread_id ):
-                _Error("Recursive evaluation of the option")
-            self.active_threads.append( thread_id )
+            if self.check_cyclic_evaluation > 0:
+                if self.check_cyclic_evaluation > 1:
+                    _Error("Recursive evaluation of the option")
+                self.check_cyclic_evaluation = 2
         
         values = self.__conditions_values()
-        
-        if __debug__:
-            self.active_threads.remove( thread_id )
         
         self.__cache_value( values )
         
         return values
-    
-    #//-------------------------------------------------------//
-    
-    def     AppendPreCondition( self, condition ):
-        self.preconditions_list.Append( condition )
-    
-    #//-------------------------------------------------------//
-    
-    def     UndoPreCondition( self ):
-        del self.preconditions_list[ -1 ]
-    
-    #//-------------------------------------------------------//
-    
-    def     Undo( self ):
-        del self.conditions[ -1 ]
     
     #//-------------------------------------------------------//
     
@@ -734,13 +713,14 @@ class   OptionBase:
         value = _ConditionalValue( value, self )
         
         conditions_list = _ConditionsList()
-        
-        conditions_list.Append( self.preconditions_list )
         conditions_list.Append( condition )
         
         conditions_list.SetValue( value, operation )
         
         if pre == 0:
+            if (operation == '=') and (condition is _always_true):
+                self.conditions = []                                    # clear the conditions list if it's an unconditional set
+            
             self.conditions.append( conditions_list )
         else:
             self.conditions.insert( 0, conditions_list )
@@ -748,7 +728,9 @@ class   OptionBase:
         self.__clear_cache()
         
         if __debug__:
-            self.Get()   # check for recursion of conditions
+            self.check_cyclic_evaluation = 1
+            self.Get()                                                  # check for recursion of conditions
+            self.check_cyclic_evaluation = 0
     
     #//-------------------------------------------------------//
     
