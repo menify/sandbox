@@ -16,43 +16,45 @@ _BoolOption = options.BoolOption
 
 def     _add_build_options( options ):
     
-    options.tools = _StrOption( 'aql_deftool_cc', separator = ',', is_list = 1, help = "Environment tools" )
+    options.tools = _StrOption( initial_value = 'aql_deftool_cc', separator = ',', is_list = 1, help = "Environment tools", group = "Build")
     
-    options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options" )
+    options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options", group = "Build" )
     
-    options.build_dir = _StrOption( 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0 )
+    options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0, group = "Build" )
 
 #//===========================================================================//
 
 def     _add_platform_options( options ):
     
-    options.target_os = _EnumOption( '', allowed_values = ( '', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
-                                    help = "The target system/OS name, e.g. 'Linux', 'Windows', or 'Java'." )
+    options.target_os = _EnumOption( initial_value = '', allowed_values = ( '', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
+                                     help = "The target system/OS name, e.g. 'Linux', 'Windows', or 'Java'.", group = "Platform" )
     
-    options.target_platform = _StrOption( '',
+    options.target_platform = _StrOption( initial_value = '',
                                           ignore_case = 1,
-                                          help = "The system's distribution, e.g. 'win32', 'Linux'" )
+                                          help = "The system's distribution, e.g. 'win32', 'Linux'",
+                                          group = "Platform")
     
-    options.target_os_release = _StrOption( '',
-                                            ignore_case = 1,
-                                            help = "The target system's release, e.g. '2.2.0' or 'XP'" )
+    options.target_os_release = _StrOption( ignore_case = 1,
+                                            help = "The target system's release, e.g. '2.2.0' or 'XP'",
+                                            group = "Platform")
     
-    options.target_os_version = _VersionOption( '',
-                                                help = "The target system's release version, e.g. '2.2.0' or '5.1.2600'" )
+    options.target_os_version = _VersionOption( help = "The target system's release version, e.g. '2.2.0' or '5.1.2600'",
+                                                group = "Platform")
     
-    options.target_machine = _EnumOption( '',
+    options.target_machine = _EnumOption( initial_value = '',
                                           allowed_values = ('', 'x86-32', 'x86-64','arm' ),
                                           aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32',
                                                      'i586':'x86-32', 'pc':'x86-32', 'x86':'x86-32'},
-                                          help = "The target machine type, e.g. 'i386'" )
+                                          help = "The target machine type, e.g. 'i386'", 
+                                          group = "Platform" )
     
-    options.target_cpu = _StrOption( '',
-                                     ignore_case = 1,
-                                     help = "The target real processor name, e.g. 'amdk6'." )
+    options.target_cpu = _StrOption( ignore_case = 1,
+                                     help = "The target real processor name, e.g. 'amdk6'.",
+                                     group = "Platform" )
     
-    options.target_cpu_flags = _StrOption( '',
-                                     ignore_case = 1, is_list = 1,
-                                     help = "The target CPU flags, e.g. 'mmx', 'sse2'." )
+    options.target_cpu_flags = _StrOption(  ignore_case = 1, is_list = 1,
+                                            help = "The target CPU flags, e.g. 'mmx', 'sse2'.",
+                                            group = "Platform" )
 
 #//===========================================================================//
 
@@ -104,22 +106,25 @@ def     _set_build_dir( options ):
 
 def     _add_variants( options ):
     
-    build_variants = _EnumOption( 'debug', ('debug', 'release_speed', 'release_size', 'final'),
-                                            {'release': 'release_speed'},
-                                            separator = ',',
-                                            is_list = 1 ,
-                                            update_set = 1,
-                                            help = "Active build variants" )
+    build_variants = _EnumOption( initial_value = 'debug',
+                                  allowed_values = ('debug', 'release_speed', 'release_size', 'final'),
+                                  aliases = {'release': 'release_speed'},
+                                  separator = ',',
+                                  is_list = 1 ,
+                                  update_set = 1,
+                                  help = "Active build variants",
+                                  group = "Build" )
     
     options.build_variants = build_variants
     options.builds = build_variants
     
     build_variants.AddAlias( 'all', build_variants.AllowedValues() )
     
-    build_variant = _LinkedOption( 'debug',
+    build_variant = _LinkedOption( initial_value = 'debug',
                                    options = options,
                                    linked_opt_name = 'build_variants',
-                                   help = "The current build variant." )
+                                   help = "The current build variant.",
+                                   group = "Build" )
     
     options.build_variant = build_variant
     options.bv = build_variant
@@ -153,9 +158,10 @@ def     _add_variants( options ):
 
 def     _add_optimization_options( options ):
     
-    optimization = _EnumOption(  'off', ('off', 'size', 'speed'),
-                                        {'0': 'off', '1': 'size', '2': 'speed'},
-                                        help = 'Compiler optimization level' )
+    optimization = _EnumOption(  initial_value = 'off', allowed_values = ('off', 'size', 'speed'),
+                                        aliases = {'0': 'off', '1': 'size', '2': 'speed'},
+                                        help = 'Compiler optimization level',
+                                        group = "Optimization" )
     options.optimization = optimization
     options.opt = optimization
     options.optim = optimization
@@ -163,13 +169,14 @@ def     _add_optimization_options( options ):
     
     #//-------------------------------------------------------//
     
-    inlining = _EnumOption( 'off', ('off', 'on', 'full'), help = 'Inline function expansion' )
+    inlining = _EnumOption( initial_value = 'off', allowed_values = ('off', 'on', 'full'),
+                            help = 'Inline function expansion', group = "Optimization" )
     options.inlining = inlining
     options.inline = inlining
     
     #//-------------------------------------------------------//
     
-    whole_optimization = _BoolOption( 'off', help = 'Whole program optimization' )
+    whole_optimization = _BoolOption( initial_value = 'off', help = 'Whole program optimization', group = "Optimization" )
     options.whole_optimization = whole_optimization
     options.whole_opt = whole_optimization
 
@@ -178,14 +185,14 @@ def     _add_optimization_options( options ):
 
 def     _add_debug_options( options ):
     
-    debug_symbols = _BoolOption( 'off', help = 'Include debug symbols' )
+    debug_symbols = _BoolOption( initial_value = 'off', help = 'Include debug symbols', group = "Debug" )
     options.debug_symbols = debug_symbols
     options.debug_info = debug_symbols
     options.debug = debug_symbols
     
     #//-------------------------------------------------------//
     
-    profiling = _BoolOption( 'disabled', help = 'Enable compiler profiling' )
+    profiling = _BoolOption( initial_value = 'disabled', help = 'Enable compiler profiling', group = "Debug" )
     options.profiling = profiling
     options.prof = profiling
 
@@ -194,7 +201,7 @@ def     _add_debug_options( options ):
 
 def     _add_warning_options( options ):
     
-    warning_level = _IntOption( 4, min=0, max=4, help = 'Compiler warning level' )
+    warning_level = _IntOption( initial_value = 4, min=0, max=4, help = 'Compiler warning level', group = "Warning")
     options.warning_level = warning_level
     options.warning = warning_level
     options.warn = warning_level
@@ -202,7 +209,7 @@ def     _add_warning_options( options ):
     
     #//-------------------------------------------------------//
     
-    warnings_as_errors = _BoolOption( 'off', help = 'Treat warnings as errors' )
+    warnings_as_errors = _BoolOption( initial_value = 'off', help = 'Treat warnings as errors', group = "Warning" )
     options.warnings_as_errors = warnings_as_errors
     options.warn_err = warnings_as_errors
     options.warn_as_err = warnings_as_errors
@@ -212,24 +219,24 @@ def     _add_warning_options( options ):
 
 def     _add_code_generation_options( options ):
     
-    user_interface = _EnumOption( 'console', ['console', 'gui'],
-                                      help = 'Application user interface' )
+    user_interface = _EnumOption( initial_value = 'console', allowed_values = ['console', 'gui'],
+                                  help = 'Application user interface', group = "Code generation" )
     options.user_interface = user_interface
     options.ui = user_interface
     
     #//-------------------------------------------------------//
     
-    options.rtti = _BoolOption( 'off', help = 'Enable C++ realtime type information' )
+    options.rtti = _BoolOption( initial_value = 'off', help = 'Enable C++ realtime type information', group = "Code generation" )
     
     #//-------------------------------------------------------//
     
-    exception_handling = _BoolOption( 'on', help = 'Enable C++ exceptions handling' )
+    exception_handling = _BoolOption( initial_value = 'on', help = 'Enable C++ exceptions handling', group = "Code generation" )
     options.exception_handling = exception_handling
     options.exceptions = exception_handling
     
     #//-------------------------------------------------------//
     
-    keep_asm = _BoolOption( 'off', help = 'Keep generated assemblers files' )
+    keep_asm = _BoolOption( initial_value = 'off', help = 'Keep generated assemblers files', group = "Code generation" )
     options.keep_asm = keep_asm
     options.asm = keep_asm
 
@@ -237,8 +244,9 @@ def     _add_code_generation_options( options ):
 
 def     _add_runtime_options( options ):
     
-    runtime_linking = _EnumOption( 'static', ['static', 'shared'], {'dynamic': 'shared'},
-                                    help = 'Linkage type of runtime library' )
+    runtime_linking = _EnumOption( initial_value = 'static', allowed_values = ['static', 'shared'],
+                                   aliases = {'dynamic': 'shared'},
+                                    help = 'Linkage type of runtime library', group = "Runtime" )
     options.runtime_linking = runtime_linking
     options.runtime_link = runtime_linking
     options.link_runtime = runtime_linking
@@ -246,14 +254,15 @@ def     _add_runtime_options( options ):
     
     #//-------------------------------------------------------//
     
-    runtime_debugging = _BoolOption( 'no', help = 'Use debug version of runtime library' )
+    runtime_debugging = _BoolOption( initial_value = 'no', help = 'Use debug version of runtime library', group = "Runtime" )
     options.runtime_debugging = runtime_debugging
     options.runtime_debug = runtime_debugging
     options.rt_debug = runtime_debugging
     
     #//-------------------------------------------------------//
     
-    runtime_threading = _EnumOption( 'single', ['single', 'multi' ], help = 'Threading mode of runtime library' )
+    runtime_threading = _EnumOption( initial_value = 'single', allowed_values = ['single', 'multi' ],
+                                     help = 'Threading mode of runtime library', group = "Runtime" )
     options.runtime_threading = runtime_threading
     options.rt_threading = runtime_threading
 
@@ -261,17 +270,17 @@ def     _add_runtime_options( options ):
 
 def     _add_cc_options( options ):
     
-    options.cflags = _StrOption( is_list = 1, help = "C compiler options" )
-    options.ccflags = _StrOption( is_list = 1, help = "Common C/C++ compiler options" )
-    options.cxxflags = _StrOption( is_list = 1, help = "C++ compiler options" )
-    options.linkflags = _StrOption( is_list = 1, help = "Linker options" )
-    options.arflags = _StrOption( is_list = 1, help = "Archiver options" )
+    options.cflags = _StrOption( is_list = 1, help = "C compiler options", group = "C/C++ compiler" )
+    options.ccflags = _StrOption( is_list = 1, help = "Common C/C++ compiler options", group = "C/C++ compiler" )
+    options.cxxflags = _StrOption( is_list = 1, help = "C++ compiler options", group = "C/C++ compiler" )
+    options.linkflags = _StrOption( is_list = 1, help = "Linker options", group = "C/C++ compiler" )
+    options.arflags = _StrOption( is_list = 1, help = "Archiver options", group = "C/C++ compiler" )
     
-    options.ocflags = _StrOption( is_list = 1, help = "C compiler optimization options" )
-    options.occflags = _StrOption( is_list = 1, help = "Common C/C++ compiler optimization options" )
-    options.ocxxflags = _StrOption( is_list = 1, help = "C++ compiler optimization options" )
-    options.olinkflags = _StrOption( is_list = 1, help = "Linker optimization options" )
-    options.oarflags = _StrOption( is_list = 1, help = "Archiver optimization options" )
+    options.ocflags = _StrOption( is_list = 1, help = "C compiler optimization options", group = "C/C++ compiler" )
+    options.occflags = _StrOption( is_list = 1, help = "Common C/C++ compiler optimization options", group = "C/C++ compiler" )
+    options.ocxxflags = _StrOption( is_list = 1, help = "C++ compiler optimization options", group = "C/C++ compiler" )
+    options.olinkflags = _StrOption( is_list = 1, help = "Linker optimization options", group = "C/C++ compiler" )
+    options.oarflags = _StrOption( is_list = 1, help = "Archiver optimization options", group = "C/C++ compiler" )
     
     options.cflags = options.ocflags
     options.ccflags = options.occflags
@@ -279,38 +288,38 @@ def     _add_cc_options( options ):
     options.linkflags = options.olinkflags
     options.arflags = options.oarflags
     
-    options.cc_name = _StrOption( help = "C/C++ compiler name" )
-    options.cc_ver = _VersionOption( help = "C/C++ compiler version" )
+    options.cc_name = _StrOption( help = "C/C++ compiler name", group = "C/C++ compiler" )
+    options.cc_ver = _VersionOption( help = "C/C++ compiler version", group = "C/C++ compiler" )
     
     options.gcc_path = _StrOption()
     options.gcc_target = _StrOption()
-    options.gcc_prefix = _StrOption( help = "GCC C/C++ compiler prefix" )
-    options.gcc_suffix = _StrOption( help = "GCC C/C++ compiler suffix" )
+    options.gcc_prefix = _StrOption( help = "GCC C/C++ compiler prefix", group = "C/C++ compiler" )
+    options.gcc_suffix = _StrOption( help = "GCC C/C++ compiler suffix", group = "C/C++ compiler" )
     
-    options.cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines" )
-    options.cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers", is_node = 1 )
+    options.cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines", group = "C/C++ compiler" )
+    options.cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers", is_node = 1, group = "C/C++ compiler" )
     
-    cpppath_lib = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers", is_node = 1 )
+    cpppath_lib = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers", is_node = 1, group = "C/C++ compiler" )
     options.cpppath_const = cpppath_lib
     options.cpppath_lib = cpppath_lib
     
-    options.libpath = _PathOption( is_list = 1, help = "Paths to libraries", is_node = 1 )
-    options.libs = _StrOption( is_list = 1, help = "Libraries" )
+    options.libpath = _PathOption( is_list = 1, help = "Paths to libraries", is_node = 1, group = "C/C++ compiler" )
+    options.libs = _StrOption( is_list = 1, help = "Libraries", group = "C/C++ compiler" )
 
 
 #//===========================================================================//
 
 def     _add_lint_options( options ):
     
-    options.lint = _EnumOption( 'off', ['off', 'single', 'on', 'all'],
-                                {'global': 'all', '0': 'off', '1':'single', '2':'on', '3':'all'},
-                                help = 'Lint method' )
+    options.lint = _EnumOption( initial_value = 'off', allowed_values = ['off', 'single', 'on', 'all'],
+                                aliases = {'global': 'all', '0': 'off', '1':'single', '2':'on', '3':'all'},
+                                help = 'Lint method', group = "Lint" )
     
     #//-------------------------------------------------------//
     
-    options.lint_passes = _IntOption( 3, min=1, help = 'The number of passes Flexelint makes over the source code' )
+    options.lint_passes = _IntOption( initial_value = 3, min=1, help = 'The number of passes Flexelint makes over the source code', group = "Lint" )
     
-    options.lint_flags = _StrOption( is_list = 1, help = "Flexelint options" )
+    options.lint_flags = _StrOption( is_list = 1, help = "Flexelint options", group = "Lint" )
 
 #//===========================================================================//
 

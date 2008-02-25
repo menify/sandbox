@@ -331,14 +331,14 @@ def     _add_option( self_values, option, value ):
 def     _convert_value_to_list( values, option ):
     
     if values is None:
-        if not option.is_list:
+        if not option.shared_data['is_list']:
             _Error( "Can't convert 'None' value" )
         
         values = []
     
     else:
-        if option.is_list:
-            values = _split_value( values, option.separator )
+        if option.shared_data['is_list']:
+            values = _split_value( values, option.shared_data['separator'] )
         
         values = _to_list( values )
     
@@ -396,7 +396,7 @@ class   _ConditionalValue:
     def     Get( self, option ):
         values = self.GetList( option )
         
-        if option.is_list:
+        if option.shared_data['is_list']:
             return values
         
         if len(values) != 1:
@@ -506,19 +506,26 @@ _none_options = _NoneOptions()
 
 class   OptionBase:
     
-    def     _init_base( self, help, initial_value, is_list, separator, unique, update_set, options = None ):
+    def     _init_base( self, **kw ):
         
-        if options is None:
-            options = _none_options
+        self.__dict__.setdefault( 'shared_data', {} )
         
-        self.options = options
-        self.help = help
+        self.shared_data['help'] = kw.get( 'help' )
+        self.shared_data['group'] = kw.get( 'group', "User" )
+        
+        initial_value = kw.get( 'initial_value' )
+        
+        is_list = kw.get( 'is_list', 0 )
+        self.shared_data['is_list'] = is_list
+        
+        self.shared_data['separator'] = kw.get( 'separator', ' ' )
+        self.shared_data['unique'] = kw.get( 'unique', 1 )
+        
+        self.options = kw.get( 'options', _none_options )
+        
         self.conditions = []
-        self.is_list = is_list
-        self.separator = separator
-        self.unique = unique
         
-        if update_set or (not is_list):
+        if (not is_list) or kw.get( 'update_set' ):
             self.Update = self.Set
         else:
             self.Update = self.Append
@@ -533,29 +540,24 @@ class   OptionBase:
     
     #//-------------------------------------------------------//
     
-    def     _clone_base( self, clone, options ):
+    def     Clone( self, options ):
+        clone = OptionBase()
         
-        self.options = options
-        self.help = clone.help
+        clone.__dict__ = self.__dict__.copy();
+        clone.__class__ = self.__class__;
         
-        self._copy_conditions( clone )
+        clone.options = options
+        clone.conditions = self.conditions[:]
         
-        self.is_list = clone.is_list
-        self.separator = clone.separator
-        self.unique = clone.unique
-        
-        if clone.Update == clone.Set:
-            self.Update = self.Set
+        if self.Update == self.Set:
+            clone.Update = clone.Set
         else:
-            self.Update = self.Append
+            clone.Update = clone.Append
         
         if __debug__:
-            self.check_cyclic_evaluation = 0
-    
-    #//-------------------------------------------------------//
-    
-    def     _copy_conditions( self, clone ):
-        self.conditions = clone.conditions[:]
+            clone.check_cyclic_evaluation = 0
+        
+        return clone
     
     #//-------------------------------------------------------//
     
@@ -600,7 +602,7 @@ class   OptionBase:
         
         values = []
         
-        unique = self.unique
+        unique = self.shared_data['unique']
         options = self.options
         
         for c in self.conditions:
@@ -707,7 +709,7 @@ class   OptionBase:
     def     _add_condition( self, condition, value, operation, pre = 0 ):
         
         if __debug__:
-            if (not self.is_list) and (operation != '='):
+            if (not self.shared_data['is_list']) and (operation != '='):
                 _Error( "Append/remove operations are not allowed for none-list options." )
         
         value = _ConditionalValue( value, self )
@@ -758,7 +760,7 @@ class   OptionBase:
     def     _has( self, other ):
         
         if __debug__:
-            if not self.is_list:
+            if not self.shared_data['is_list']:
                 _Error("Must be a list option")
         
         values = self.Get()
@@ -777,7 +779,7 @@ class   OptionBase:
     def     _has_any( self, other ):
         
         if __debug__:
-            if not self.is_list:
+            if not self.shared_data['is_list']:
                 _Error("Must be a list option")
         
         values = self.Get()
@@ -796,29 +798,17 @@ class   OptionBase:
     def     _one_of( self, values ):
         
         if __debug__:
-            if self.is_list:
+            if self.shared_data['is_list']:
                 _Error("Must be a non-list option")
         
         return self.Get() in values.GetList( self )
     
     #//-------------------------------------------------------//
     
-    def     Clone( self, options ):
-        clone = OptionBase()
-        
-        clone.__dict__ = self.__dict__.copy();
-        clone.__class__ = self.__class__;
-        
-        clone._clone_base( self, options )
-        
-        return clone
-    
-    #//-------------------------------------------------------//
-    
     def     __value_str( self, value ):
         
         if _is_sequence( value ):
-            sep = self.separator[:]
+            sep = self.shared_data['separator'][:]
             return sep.join( map(str,value) )
         
         return str( value )
@@ -862,9 +852,12 @@ class   BoolOption (OptionBase):
              }
     
     #//-------------------------------------------------------//
-    def     __init__( self, initial_value = 0, is_list = 0, separator = ' ', unique = 1, update_set = 0, help = None ):
-        self._init_base( help, initial_value, is_list, separator, unique, update_set )
-        self.initial_value = initial_value
+    def     __init__( self, **kw ):
+        
+        self.shared_data = {}
+        self.shared_data['initial_value'] = kw.setdefault( 'initial_value', 0 )
+        
+        self._init_base( **kw )
     
     #//-------------------------------------------------------//
     
@@ -880,9 +873,11 @@ class   BoolOption (OptionBase):
     
     def     __str__( self ):
         
-        value_str = self.__invert_bool[ str( self.initial_value ).lower() ]
+        initial_value = self.shared_data['initial_value']
         
-        if self == self.initial_value:
+        value_str = self.__invert_bool[ str( initial_value ).lower() ]
+        
+        if self == initial_value:
             value_str = self.__invert_bool[ value_str ]
         
         return value_str
@@ -898,21 +893,24 @@ class   BoolOption (OptionBase):
 
 class   EnumOption (OptionBase):
     
-    def     __init__( self, initial_value, allowed_values = None, aliases = None, is_list = 0, separator = ' ', unique = 1, help = None, update_set = 0, options = None):
+    def     __init__( self, initial_value, allowed_values, **kw ):
         
-        self.values_dict = {}
+        self.shared_data = {}
+        self.shared_data['values_dict'] = {}
         
         self.AddValues( allowed_values )
         
-        self._init_base( help, initial_value, is_list, separator, unique, update_set, options )
+        kw['initial_value'] = initial_value
         
-        self.AddAliases( aliases )
+        self._init_base( **kw )
+        
+        self.AddAliases( kw.get( 'aliases', {} ) )
         
     #//-------------------------------------------------------//
     
     def     __map_values( self, values ):
         
-        values_dict = self.values_dict
+        values_dict = self.shared_data['values_dict']
         
         mapped_values = []
         
@@ -946,7 +944,7 @@ class   EnumOption (OptionBase):
     #//=======================================================//
     
     def     AddValues( self, values ):
-        values_dict = self.values_dict
+        values_dict = self.shared_data['values_dict']
         
         for v in _to_list( values ):
             values_dict[ v.lower() ] = None
@@ -959,10 +957,10 @@ class   EnumOption (OptionBase):
         if mapped_values is None:
             _Error( "Invalid value(s): %s" % (values) )
         
-        if (not self.is_list) and (_is_sequence( mapped_values ) and (len( mapped_values ) > 1)):
+        if (not self.shared_data['is_list']) and (_is_sequence( mapped_values ) and (len( mapped_values ) > 1)):
             _Error( "Can't add an alias to list of values: %s of none-list option" % (mapped_values) )
         
-        self.values_dict[ alias ] = mapped_values
+        self.shared_data['values_dict'][ alias ] = mapped_values
     
     #//=======================================================//
     
@@ -984,7 +982,7 @@ class   EnumOption (OptionBase):
         
         allowed_values = []
         
-        for a,v in self.values_dict.iteritems():
+        for a,v in self.shared_data['values_dict'].iteritems():
             if v is None:
                 allowed_values.append( a )
         
@@ -996,11 +994,15 @@ class   EnumOption (OptionBase):
         
         aliases = {}
         
-        for a,v in self.values_dict.iteritems():
+        for a,v in self.shared_data['values_dict'].iteritems():
             
             if v is not None:
                 if len(v) == 1:
-                    aliases[ v[0] ] = aliases.get( v[0], [] ) + [ a ]
+                    tmp = aliases.get( v[0] )
+                    if tmp:
+                        aliases[ v[0] ] = tmp + [ a ]
+                    else:
+                        aliases[ v[0] ] = [ a ]
             else:
                 aliases.setdefault( a )
         
@@ -1010,48 +1012,44 @@ class   EnumOption (OptionBase):
     
     def     AllowedValuesStr( self ):
         
+        allowed_values = []
+        
         for v,a in self.Aliases().iteritems():
             
             if a is not None:
-                v = v + '(or ' + 'or'.join( a ) + ')'
+                v = v + ' (or ' + ', '.join( a ) + ')'
             
             allowed_values.append( v )
         
         return ', '.join( allowed_values )
-    
-    #//=======================================================//
-    
-    def     Clone( self, options ):
-        
-        clone = OptionBase.Clone( self, options )
-        
-        clone.values_dict = self.values_dict.copy()
-        
-        return clone
-
 
 #//===========================================================================//
 #//===========================================================================//
 
 class   IntOption (OptionBase):
     
-    def     __init__( self, initial_value, min = -(sys.maxint - 1), max = sys.maxint, is_list = 0, separator = ' ', unique = 1, update_set = 0, help = None ):
+    def     __init__( self, initial_value, **kw ):
         
-        self.min_value = int( min )
-        self.max_value = int( max )
+        min = int( kw.get( 'min', -(sys.maxint - 1) ) )
+        max = int( kw.get( 'max', sys.maxint ) )
         
         if __debug__:
-            if self.min_value > self.max_value:
+            if min > max:
                 _Error( "Minimal value: %d is greater than maximal value: %d " % (min, max) )
         
-        self._init_base( help, initial_value, is_list, separator, unique, update_set )
+        self.shared_data = {}
+        self.shared_data['min_value'] = min
+        self.shared_data['max_value'] = max
+        kw['initial_value'] = initial_value
+        
+        self._init_base( **kw )
     
     #//-------------------------------------------------------//
     
     def     _convert_value( self, val ):
         
         int_val = int(val)
-        if (int_val < self.min_value) or (int_val > self.max_value):
+        if (int_val < self.shared_data['min_value']) or (int_val > self.shared_data['max_value']):
             _Error( "Invalid value: %s" % (val) )
         
         return int_val
@@ -1064,27 +1062,28 @@ class   IntOption (OptionBase):
     #//-------------------------------------------------------//
     
     def     AllowedValuesStr( self ):
-        return 'from %d to %d' % (self.min_value, self.max_value)
+        return 'from %d to %d' % (self.shared_data['min_value'], self.shared_data['max_value'])
 
 #//===========================================================================//
 #//===========================================================================//
 
 class   StrOption (OptionBase):
     
-    def     __init__( self, initial_value = None, is_list = 0, separator = ' ', unique = 1, ignore_case = 0, update_set = 0, help = None ):
+    def     __init__( self, **kw ):
         
-        if initial_value is None:
-            initial_value = ''
+        kw.setdefault( 'initial_value', '' )
         
-        self.ignore_case = ignore_case
-        self._init_base( help, initial_value, is_list, separator, unique, update_set )
+        self.shared_data = {}
+        self.shared_data['ignore_case'] = kw.get( 'ignore_case', 0 )
+        
+        self._init_base( **kw )
     
     #//-------------------------------------------------------//
     
     def     _convert_value( self, value ):
         
         value = str(value)
-        if self.ignore_case:
+        if self.shared_data['ignore_case']:
             value = value.lower()
         
         return value
@@ -1092,31 +1091,35 @@ class   StrOption (OptionBase):
     #//-------------------------------------------------------//
     
     def     AllowedValuesStr( self ):
-        return 'any strings'
+        return 'a string'
 
 #//===========================================================================//
 #//===========================================================================//
 
 class   LinkedOption (OptionBase):
     
-    def     __init__( self, initial_value, options, linked_opt_name, is_list = 0, separator = ' ', unique = 1, update_set = 0, help = None ):
+    def     __init__( self, initial_value, options, linked_opt_name, **kw ):
         
-        self.linked_opt_name = linked_opt_name
+        kw['initial_value'] = initial_value
+        kw['options'] = options
         
-        self._init_base( help, initial_value, is_list, separator, unique, update_set, options )
+        self.shared_data = {}
+        self.shared_data['linked_opt_name'] = linked_opt_name
+        
+        self._init_base( **kw )
     
     #//-------------------------------------------------------//
     
     def     _convert_value( self, value ):
         
-        linked_option = self.options[ self.linked_opt_name ]
+        linked_option = self.options[ self.shared_data['linked_opt_name'] ]
         
         return linked_option._convert_value( value )
     
     #//-------------------------------------------------------//
     
     def     AllowedValuesStr( self ):
-        linked_option = self.options[ self.linked_opt_name ]
+        linked_option = self.options[ self.shared_data['linked_opt_name'] ]
         return linked_option.AllowedValuesStr()
         
 
@@ -1125,17 +1128,14 @@ class   LinkedOption (OptionBase):
 
 class   VersionOption (OptionBase):
     
-    def     __init__( self, initial_value = None, is_list = 0, separator = ' ', unique = 1, update_set = 0, help = None ):
+    def     __init__( self, **kw ):
         
-        if initial_value is None:
-            initial_value = ''
-        
-        self._init_base( help, initial_value, is_list, separator, unique, update_set )
+        kw.setdefault( 'initial_value', '' )
+        self._init_base( **kw )
     
     #//-------------------------------------------------------//
     
     def     _convert_value( self, val ):
-        
         return _Version( val )
     
     #//-------------------------------------------------------//
@@ -1148,17 +1148,15 @@ class   VersionOption (OptionBase):
 
 class   PathOption (OptionBase):
     
-    def     __init__( self, initial_value = None, is_list = 0, separator = None, unique = 1, update_set = 0, help = None, is_node = 0 ):
+    def     __init__( self, **kw ):
         
-        if initial_value is None:
-            initial_value = ''
+        kw.setdefault( 'initial_value', '' )
+        kw.setdefault( 'separator', os.pathsep )
         
-        if (separator is None):
-            separator = os.pathsep
+        self.shared_data = {}
+        self.shared_data['is_node'] = kw.get('is_node', 0 )
         
-        self.is_node = is_node
-        
-        self._init_base( help, initial_value, is_list, separator, unique, update_set )
+        self._init_base( **kw )
     
     #//-------------------------------------------------------//
     
@@ -1168,7 +1166,7 @@ class   PathOption (OptionBase):
             # it is likely that this is a Node object, just return it as it is
             return val
         
-        if self.is_node:
+        if self.shared_data['is_node']:
             env = self.options.Env()
             
             if env is not None:
@@ -1179,7 +1177,7 @@ class   PathOption (OptionBase):
     #//-------------------------------------------------------//
     
     def     AllowedValuesStr( self ):
-        return 'Paths'
+        return 'a file path'
 
 #//===========================================================================//
 #//===========================================================================//
@@ -1293,7 +1291,7 @@ class   _ConditionalOption:
     
     def     __getitem__( self, value ):
         
-        if self.option.is_list:
+        if self.option.shared_data['is_list']:
             return self.has( value )
         
         return self.eq( value )

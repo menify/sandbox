@@ -10,6 +10,7 @@ import options
 import builtin_options
 import setup
 import utils
+import options_help_generator
 
 import target
 _Target = target.Target
@@ -29,6 +30,8 @@ _COMMAND_LINE_TARGETS = SCons.Script.COMMAND_LINE_TARGETS
 _Environment = SCons.Script.Environment
 
 _AddMethod = SCons.Util.AddMethod
+
+_GenerateOptionsHelp = options_help_generator.GenerateOptionsHelp
 
 #//-------------------------------------------------------//
 
@@ -180,9 +183,8 @@ def     Build( options = None, scriptfile = None, **kw ):
     if builds:
         build_variants.Set( builds )
     
+    SCons.Script.HelpFunction( _GenerateOptionsHelp( options ) )
+    
     for bv in options.build_variants.Get():
-        env_options = options.Clone()
-        env_options.bv = bv
-        
-        BuildVariant( options = env_options, scriptfile = scriptfile, **kw )
+        BuildVariant( options = options( build_variant = bv ), scriptfile = scriptfile, **kw )
 
