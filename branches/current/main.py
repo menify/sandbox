@@ -37,6 +37,26 @@ _GenerateOptionsHelp = options_help_generator.GenerateOptionsHelp
 
 utils.AddToolPath( os.path.normpath( os.path.dirname( __file__ ) + '/tools' ) )
 
+#//-------------------------------------------------------//
+
+SCons.Script.AddOption('--h', default = False,
+                        dest='detailed_help',
+                        action="store_true",
+                        help='Print a detailed help message.')
+
+_detailed_help = SCons.Script.GetOption('detailed_help')
+
+if _detailed_help:      SCons.Script.SetOption('help', True )
+
+def     _generate_help( options ):
+    if SCons.Script.GetOption('help'):
+        SCons.Script.HelpFunction( _GenerateOptionsHelp( options, _detailed_help ) )
+    
+        if not _detailed_help:
+            SCons.Script.HelpFunction( "Use --h option for detailed help." )
+
+
+
 #//===========================================================================//
 
 import glob
@@ -183,7 +203,7 @@ def     Build( options = None, scriptfile = None, **kw ):
     if builds:
         build_variants.Set( builds )
     
-    SCons.Script.HelpFunction( _GenerateOptionsHelp( options ) )
+    _generate_help( options )
     
     for bv in options.build_variants.Get():
         BuildVariant( options = options( build_variant = bv ), scriptfile = scriptfile, **kw )

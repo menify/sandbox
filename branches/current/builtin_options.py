@@ -16,17 +16,17 @@ _BoolOption = options.BoolOption
 
 def     _add_build_options( options ):
     
-    options.tools = _StrOption( initial_value = 'aql_deftool_cc', separator = ',', is_list = 1, help = "Environment tools", group = "Build")
+    options.tools = _StrOption( initial_value = 'aql_deftool_cc', separator = ',', is_list = 1, help = "Environment tools", group = "Build setup" )
     
-    options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options", group = "Build" )
+    options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options", group = "Build setup" )
     
-    options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0, group = "Build" )
+    options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0, group = "Build setup" )
 
 #//===========================================================================//
 
 def     _add_platform_options( options ):
     
-    options.target_os = _EnumOption( initial_value = '', allowed_values = ( '', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
+    options.target_os = _EnumOption( initial_value = 'unknown', allowed_values = ( 'unknown', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
                                      help = "The target system/OS name, e.g. 'Linux', 'Windows', or 'Java'.", group = "Platform" )
     
     options.target_platform = _StrOption( initial_value = '',
@@ -41,8 +41,8 @@ def     _add_platform_options( options ):
     options.target_os_version = _VersionOption( help = "The target system's release version, e.g. '2.2.0' or '5.1.2600'",
                                                 group = "Platform")
     
-    options.target_machine = _EnumOption( initial_value = '',
-                                          allowed_values = ('', 'x86-32', 'x86-64','arm' ),
+    options.target_machine = _EnumOption( initial_value = 'unknown',
+                                          allowed_values = ('unknown', 'x86-32', 'x86-64','arm' ),
                                           aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32',
                                                      'i586':'x86-32', 'pc':'x86-32', 'x86':'x86-32'},
                                           help = "The target machine type, e.g. 'i386'", 
@@ -67,7 +67,7 @@ def     _set_build_dir( options ):
     #//-------------------------------------------------------//
     # Add OS
     
-    target_os_nzero = bd_if.target_os.ne('')
+    target_os_nzero = bd_if.target_os.ne('unknown')
     target_os_nzero.build_dir += options.target_os
     
     target_os_release_nzero = target_os_nzero.target_os_release.ne('')
@@ -81,7 +81,7 @@ def     _set_build_dir( options ):
     #//-------------------------------------------------------//
     # Add CPU
     
-    target_machine_nzero = bd_if.target_machine.ne('')
+    target_machine_nzero = bd_if.target_machine.ne('unknown')
     target_machine_nzero.build_dir += options.target_machine
     
     target_cpu_nzero = target_machine_nzero.target_cpu.ne('')
@@ -113,7 +113,7 @@ def     _add_variants( options ):
                                   is_list = 1 ,
                                   update_set = 1,
                                   help = "Active build variants",
-                                  group = "Build" )
+                                  group = "Build setup" )
     
     options.build_variants = build_variants
     options.builds = build_variants
@@ -124,7 +124,7 @@ def     _add_variants( options ):
                                    options = options,
                                    linked_opt_name = 'build_variants',
                                    help = "The current build variant.",
-                                   group = "Build" )
+                                   group = "Build setup" )
     
     options.build_variant = build_variant
     options.bv = build_variant

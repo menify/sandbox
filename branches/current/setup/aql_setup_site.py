@@ -119,7 +119,7 @@ def     SetupTool_aql_tool_gcc( options, os_env, env ):
     if options.cc_name != '' and options.cc_name != 'gcc':
         return
     
-    if options.target_os == '':
+    if options.target_os == 'unknown':
         options.target_os = _Target.os
     
     if options.target_os == 'cygwin':

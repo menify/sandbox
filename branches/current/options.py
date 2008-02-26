@@ -21,11 +21,6 @@ def     _is_options( option ):
 
 #//---------------------------------------------------------------------------//
 
-def     _is_dict_option( option ):
-    return isinstance( option, Options ) or type(option) is types.DictType
-
-#//---------------------------------------------------------------------------//
-
 def     _is_sequence( value ):
     t = type(value)
     return (t is types.ListType) or (t is types.TupleType)
@@ -190,12 +185,19 @@ class Options:
     
     def     update( self, args, quiet = 1 ):
         
-        if args:
+        if _is_string( args ):
+            filename = args
+            if os.path.isfile( filename ):
+                args = {}
+                execfile( filename, {}, args )
+        
+        if _is_dict( args ):
             set_option = self.__set_option
             
             for key, value in args.iteritems():
                 set_option( key, value, update = 1, quiet = quiet )
-    
+        
+
     #//-------------------------------------------------------//
     
     def     __iadd__(self, other ):
@@ -887,7 +889,15 @@ class   BoolOption (OptionBase):
     def     AllowedValuesStr( self ):
         return 'yes/no, true/false, on/off, enabled/disabled, 1/0'
     
- 
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesHelp( self ):
+        if self.shared_data['is_list']:
+            return 'List of boolean values: ' + self.AllowedValuesStr()
+        
+        return 'A boolean value: ' + self.AllowedValuesStr()
+    
+
 #//===========================================================================//
 #//===========================================================================//
 
@@ -1014,14 +1024,31 @@ class   EnumOption (OptionBase):
         
         allowed_values = []
         
-        for v,a in self.Aliases().iteritems():
+        aliases = self.Aliases()
+        values = aliases.keys()
+        values.sort()
+        
+        for v in values:
+            
+            a = aliases[v]
             
             if a is not None:
+                a.sort()
                 v = v + ' (or ' + ', '.join( a ) + ')'
             
             allowed_values.append( v )
         
         return ', '.join( allowed_values )
+    
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesHelp( self ):
+        if self.shared_data['is_list']:
+            return 'List of values: ' + self.AllowedValuesStr()
+        
+        return 'A value: ' + self.AllowedValuesStr()
+    
+
 
 #//===========================================================================//
 #//===========================================================================//
@@ -1062,7 +1089,16 @@ class   IntOption (OptionBase):
     #//-------------------------------------------------------//
     
     def     AllowedValuesStr( self ):
-        return 'from %d to %d' % (self.shared_data['min_value'], self.shared_data['max_value'])
+        return '%d ... %d' % (self.shared_data['min_value'], self.shared_data['max_value'])
+    
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesHelp( self ):
+        if self.shared_data['is_list']:
+            return 'List of integers from: ' + self.AllowedValuesStr()
+        
+        return 'An integer from: ' + self.AllowedValuesStr()
+
 
 #//===========================================================================//
 #//===========================================================================//
@@ -1091,7 +1127,16 @@ class   StrOption (OptionBase):
     #//-------------------------------------------------------//
     
     def     AllowedValuesStr( self ):
-        return 'a string'
+        return 'string'
+
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesHelp( self ):
+        if self.shared_data['is_list']:
+            return 'List of strings'
+        
+        return 'A string'
+
 
 #//===========================================================================//
 #//===========================================================================//
@@ -1121,7 +1166,15 @@ class   LinkedOption (OptionBase):
     def     AllowedValuesStr( self ):
         linked_option = self.options[ self.shared_data['linked_opt_name'] ]
         return linked_option.AllowedValuesStr()
+    
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesHelp( self ):
+        if self.shared_data['is_list']:
+            return 'List of values: ' + self.AllowedValuesStr()
         
+        return 'A value: ' + self.AllowedValuesStr()
+
 
 #//===========================================================================//
 #//===========================================================================//
@@ -1142,6 +1195,14 @@ class   VersionOption (OptionBase):
     
     def     AllowedValuesStr( self ):
         return 'Version in format N[a].N[a].N[a]... (where N - dec numbers, a - alphas)'
+    
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesHelp( self ):
+        if self.shared_data['is_list']:
+            return 'List: ' + self.AllowedValuesStr()
+        
+        return self.AllowedValuesStr()
 
 #//===========================================================================//
 #//===========================================================================//
@@ -1177,7 +1238,15 @@ class   PathOption (OptionBase):
     #//-------------------------------------------------------//
     
     def     AllowedValuesStr( self ):
-        return 'a file path'
+        return 'A file system path'
+    
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesHelp( self ):
+        if self.shared_data['is_list']:
+            return 'List of file system paths'
+        
+        return 'A file system path'
 
 #//===========================================================================//
 #//===========================================================================//
