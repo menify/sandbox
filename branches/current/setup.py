@@ -15,18 +15,28 @@ _EnvOptions = options.EnvOptions
 
 _user_setup_module = None
 
-def     _user_module():
+def     _user_module( options ):
     
     global _user_setup_module
     
     if _user_setup_module is None:
         
-        sys.path.append( os.path.join( os.path.dirname( __file__ ), 'setup' ) )
+        #~ _user_setup_module = {}
+        
+        #~ setup_file = os.path.join( os.path.dirname( __file__ ), 'setup', 'aql_setup_site.py' )
+        
+        #~ if os.path.isfile( setup_file ):
+            #~ _Msg( "Using setup file: " + setup_file )
+            #~ execfile( setup_file, {}, _user_setup_module )
+        
+        #~ else:
+            #~ if __debug__:
+                #~ _Info( "Module 'aql_setup_site' has been not found...Skipped." )
         
         import imp
         
         try:
-            fp, pathname, description = imp.find_module( 'aql_setup_site' )
+            fp, pathname, description = imp.find_module( 'aql_setup_site', options.setup_path.Get() )
             
             try:
                 user_mod = imp.load_module( 'aql_setup_site', fp, pathname, description )
@@ -35,7 +45,6 @@ def     _user_module():
                 _Msg( "Using setup file: " + user_mod.__file__ )
                 
             finally:
-                del sys.path[-1]
                 if fp: fp.close()
         
         except ImportError, e:
@@ -50,10 +59,14 @@ def     _user_module():
 
 def     _tool_setup( self, env ):
     
-    user_module = _user_module()
+    options = env.get( 'AQL_OPTIONS' )
+    if options is None:
+        return
+    
+    user_module = _user_module( options )
     
     try:
-        user_module[ 'SetupTool_' + self.name ]( _EnvOptions( env ), env['ENV'], env )
+        user_module[ 'SetupTool_' + self.name ]( options, env['ENV'], env )
     
     except (TypeError, KeyError):
         if __debug__:
@@ -96,7 +109,7 @@ SCons.Tool.Tool.__init__ = _init_tool
 
 def     Setup( options, os_env ):
     
-    user_module = _user_module()
+    user_module = _user_module( options )
     
     common_setup = user_module.get('Setup')
     if common_setup is not None:

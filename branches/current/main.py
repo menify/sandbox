@@ -4,6 +4,7 @@ import os.path
 import SCons.Script
 import SCons.Tool
 import SCons.Util
+import SCons.Defaults
 
 import logging
 import options
@@ -37,7 +38,7 @@ _GenerateOptionsHelp = options_help_generator.GenerateOptionsHelp
 
 utils.AddToolPath( os.path.normpath( os.path.dirname( __file__ ) + '/tools' ) )
 
-#//-------------------------------------------------------//
+#//===========================================================================//
 
 SCons.Script.AddOption('--h', default = False,
                         dest='detailed_help',
@@ -54,8 +55,14 @@ def     _generate_help( options ):
     
         if not _detailed_help:
             SCons.Script.HelpFunction( "Use --h option for detailed help." )
+        
+        return True
+    
+    return False
 
+#//===========================================================================//
 
+SCons.Defaults.DefaultEnvironment( tools = [] )
 
 #//===========================================================================//
 
@@ -191,6 +198,9 @@ def     Build( options = None, scriptfile = None, **kw ):
         options = _BuiltinOptions()
         options.update( _ARGUMENTS )
     
+    if _generate_help( options ):
+        return
+    
     build_variants = options.build_variants
     builds = []
     for v in _COMMAND_LINE_TARGETS:
@@ -202,8 +212,6 @@ def     Build( options = None, scriptfile = None, **kw ):
     
     if builds:
         build_variants.Set( builds )
-    
-    _generate_help( options )
     
     for bv in options.build_variants.Get():
         BuildVariant( options = options( build_variant = bv ), scriptfile = scriptfile, **kw )

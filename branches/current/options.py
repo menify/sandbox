@@ -54,7 +54,6 @@ def     EnvOptions( env ):
     
     return options
 
-
 #//===========================================================================//
 #//===========================================================================//
 
@@ -187,16 +186,16 @@ class Options:
         
         if _is_string( args ):
             filename = args
-            if os.path.isfile( filename ):
-                args = {}
-                execfile( filename, {}, args )
+            args = {}
+            execfile( filename, {}, args )
         
         if _is_dict( args ):
             set_option = self.__set_option
             
             for key, value in args.iteritems():
                 set_option( key, value, update = 1, quiet = quiet )
-        
+        else:
+            _Error( "Invalid argument: %s" % (str(args)) )
 
     #//-------------------------------------------------------//
     
@@ -1211,7 +1210,8 @@ class   PathOption (OptionBase):
     
     def     __init__( self, **kw ):
         
-        kw.setdefault( 'initial_value', '' )
+        if not kw.get( 'initial_value' ):   kw['initial_value'] = ''
+        
         kw.setdefault( 'separator', os.pathsep )
         
         self.shared_data = {}

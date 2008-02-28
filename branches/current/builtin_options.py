@@ -1,4 +1,6 @@
 
+import os
+
 import logging
 import options
 
@@ -21,12 +23,16 @@ def     _add_build_options( options ):
     options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options", group = "Build setup" )
     
     options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0, group = "Build setup" )
+    
+    setup_path = os.environ.get('AQL_SETUP_PATH', os.path.join( os.path.dirname( __file__ ), 'setup' ) )
+    options.setup_path = _PathOption( initial_value = setup_path, is_list = 1 )
 
 #//===========================================================================//
 
 def     _add_platform_options( options ):
     
-    options.target_os = _EnumOption( initial_value = 'unknown', allowed_values = ( 'unknown', 'windows', 'linux', 'cygwin', 'darwin', 'java' ),
+    options.target_os = _EnumOption( initial_value = 'unknown',
+                                     allowed_values = ( 'unknown', 'windows', 'linux', 'cygwin', 'darwin', 'java', 'sunos', 'hpux' ),
                                      help = "The target system/OS name, e.g. 'Linux', 'Windows', or 'Java'.", group = "Platform" )
     
     options.target_platform = _StrOption( initial_value = '',

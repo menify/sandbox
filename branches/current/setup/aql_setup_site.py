@@ -2,12 +2,13 @@
 import sys
 import os
 
-import aql
+import aql.target
+import aql.utils
 
-_Target = aql.Target
+_Target = aql.target.Target
 
-_GetShellScriptEnv = aql.GetShellScriptEnv
-_PrependPath = aql.PrependPath
+_GetShellScriptEnv = aql.utils.GetShellScriptEnv
+_PrependPath = aql.utils.PrependPath
 
 #//---------------------------------------------------------------------------//
 
@@ -118,9 +119,6 @@ def     SetupTool_aql_tool_gcc( options, os_env, env ):
     
     if options.cc_name != '' and options.cc_name != 'gcc':
         return
-    
-    if options.target_os == 'unknown':
-        options.target_os = _Target.os
     
     if options.target_os == 'cygwin':
         os_env.update( os.environ )

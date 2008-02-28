@@ -88,65 +88,16 @@ def     _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, tool ):
 
 #//---------------------------------------------------------------------------//
 
-def     _find_gcc( env, options ):
+def     _update_gcc_specs( env, options, gcc, check_existence_only ):
     
-    if (options.cc_name != '') and (options.cc_name != 'gcc'):
-        return None
+    os_environ = os.environ
+    os_environ_path = os_environ['PATH']
+    _AppendPath( os_environ, 'PATH', env['ENV']['PATH'] )
     
-    gcc_prefix = str(options.gcc_prefix)
-    gcc_suffix = str(options.gcc_suffix)
-    
-    gcc = gcc_prefix + 'gcc' + gcc_suffix
-    gxx = gcc_prefix + 'g++' + gcc_suffix
-    
-    gcc_path = _where_is_program( env, gcc )
-    
-    if gcc_path is None:
-        return None
-    
-    gcc_path = os.path.normcase( gcc_path )
-    
-    path = os.path.dirname( gcc_path )
-    
-    gxx_path = env.WhereIs( gxx, path )
-    if (gxx_path is None):
-        return None
-    gxx_path = os.path.normcase( gxx_path )
-    
-    as_path = _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, 'as' )
-    if (as_path is None):
-        return None
-    as_path = os.path.normcase( as_path )
-    
-    ar_path = _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, 'ar' )
-    if (ar_path is None):
-        return None
-    ar_path = os.path.normcase( ar_path )
-    
-    gcc_env = {}
-    gcc_env['CC'] = gcc_path
-    gcc_env['CXX'] = gxx_path
-    gcc_env['AR'] = ar_path
-    gcc_env['AS'] = as_path
-    
-    options.gcc_path = os.path.dirname( path )
-    
-    return gcc_env
-
-#//---------------------------------------------------------------------------//
-
-def     _get_gcc_specs( env, options, gcc ):
-    
-    os_environ = os.environ.copy()
-    os.environ.update( env['ENV'] )
-    
-    options.cc_name = 'gcc'
-    options.cc_ver = os.popen( gcc + ' -dumpversion', 'r').readline().strip()
+    cc_ver = os.popen( gcc + ' -dumpversion', 'r').readline().strip()
     target = os.popen( gcc + ' -dumpmachine', 'r').readline().strip()
     
-    os.environ.update( os_environ )
-    
-    options.gcc_target = target
+    os_environ['PATH'] = os_environ_path
     
     if target == 'mingw32':
         target_machine = 'i386'
@@ -178,11 +129,76 @@ def     _get_gcc_specs( env, options, gcc ):
     if target_os.startswith('linux'):       target_os = 'linux'
     if target_machine.startswith('arm'):    target_machine = 'arm'
     
-    options.target_os = target_os
-    options.target_os_release = target_os_release
-    options.target_os_version = target_os_version
-    options.target_machine = target_machine
-    options.target_cpu = target_cpu
+    if options.cc_ver != ''                 and options.cc_ver != cc_ver:                           return False
+    if options.gcc_target != ''             and options.gcc_target != target:                       return False
+    if options.target_os != 'unknown'       and options.target_os != target_os:                     return False
+    if options.target_os_release != ''      and options.target_os_release != target_os_release:     return False
+    if options.target_os_version != ''      and options.target_os_version != target_os_version:     return False
+    if options.target_machine != 'unknown'  and options.target_machine != target_machine:           return False
+    if options.target_cpu != ''             and options.target_cpu != target_cpu:                   return False
+    
+    if not check_existence_only:
+        options.target_os = target_os
+        options.target_os_release = target_os_release
+        options.target_os_version = target_os_version
+        options.target_machine = target_machine
+        options.target_cpu = target_cpu
+        
+        options.cc_name = 'gcc'
+        options.cc_ver = cc_ver
+        options.gcc_target = target
+    
+    return True
+
+#//---------------------------------------------------------------------------//
+
+def     _try_gcc( env, options, check_existence_only ):
+    
+    if (options.cc_name != '') and (options.cc_name != 'gcc'):
+        return None
+    
+    gcc_prefix = str(options.gcc_prefix)
+    gcc_suffix = str(options.gcc_suffix)
+    
+    gcc = gcc_prefix + 'gcc' + gcc_suffix
+    gxx = gcc_prefix + 'g++' + gcc_suffix
+    
+    gcc_path = _where_is_program( env, gcc )
+    
+    if gcc_path is None:
+        return None
+    
+    gcc_path = os.path.normcase( gcc_path )
+    
+    if not _update_gcc_specs( env, options, gcc_path, check_existence_only ):
+        return None
+    
+    path = os.path.dirname( gcc_path )
+    
+    gxx_path = env.WhereIs( gxx, path )
+    if (gxx_path is None):
+        return None
+    gxx_path = os.path.normcase( gxx_path )
+    
+    as_path = _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, 'as' )
+    if (as_path is None):
+        return None
+    as_path = os.path.normcase( as_path )
+    
+    ar_path = _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, 'ar' )
+    if (ar_path is None):
+        return None
+    ar_path = os.path.normcase( ar_path )
+    
+    gcc_env = {}
+    gcc_env['CC'] = gcc_path
+    gcc_env['CXX'] = gxx_path
+    gcc_env['AR'] = ar_path
+    gcc_env['AS'] = as_path
+    
+    options.gcc_path = os.path.dirname( path )
+    
+    return gcc_env
 
 #//---------------------------------------------------------------------------//
 
@@ -209,8 +225,7 @@ def     generate( env ):
     
     options = _EnvOptions(env)
     
-    gcc_env = _find_gcc( env, options )
-    _get_gcc_specs( env, options, gcc_env['CC'] )
+    gcc_env = _try_gcc( env, options, check_existence_only = False )
     _update_os_env( env, options )
     
     
@@ -238,23 +253,32 @@ def     generate( env ):
     
     # target platform specific settings
     
-    target_os = str(options.target_os)
+    target_os = options.target_os
     
     if target_os == 'windows':
         _setup_env_windows( env )
     
-    elif target_os == 'cygwin':
-        env['SHCCFLAGS'] = SCons.Util.CLVar('$CCFLAGS')
-        env['SHCXXFLAGS'] = SCons.Util.CLVar('$CXXFLAGS')
     else:
-        env['SHCCFLAGS'] = SCons.Util.CLVar('$CCFLAGS -fPIC')
-        env['SHCXXFLAGS'] = SCons.Util.CLVar('$CXXFLAGS -fPIC')
+        env['ARCOM']        = "${TEMPFILE('" + env['ARCOM']     + "')}"
+        env['LINKCOM']      = "${TEMPFILE('" + env['LINKCOM']   + "')}"
+        env['SHLINKCOM']    = "${TEMPFILE('" + env['SHLINKCOM'] + "')}"
+        env['CXXCOM']       = "${TEMPFILE('" + env['CXXCOM']    + "')}"
+        env['SHCXXCOM']     = "${TEMPFILE('" + env['SHCXXCOM']  + "')}"
+        env['CCCOM']        = "${TEMPFILE('" + env['CCCOM']     + "')}"
+        env['SHCCCOM']      = "${TEMPFILE('" + env['SHCCCOM']   + "')}"
     
-        if target_os == 'sunos':
-            env['SHOBJSUFFIX'] = '.pic.o'
+        if target_os == 'cygwin':
+            env['SHCCFLAGS'] = SCons.Util.CLVar('$CCFLAGS')
+            env['SHCXXFLAGS'] = SCons.Util.CLVar('$CXXFLAGS')
+        else:
+            env['SHCCFLAGS'] = SCons.Util.CLVar('$CCFLAGS -fPIC')
+            env['SHCXXFLAGS'] = SCons.Util.CLVar('$CXXFLAGS -fPIC')
         
-        if target_os == 'hpux':
-            env['SHLINKFLAGS'] = SCons.Util.CLVar('$LINKFLAGS -shared -fPIC')
+            if target_os == 'sunos':
+                env['SHOBJSUFFIX'] = '.pic.o'
+            
+            elif target_os == 'hpux':
+                env['SHLINKFLAGS'] = SCons.Util.CLVar('$LINKFLAGS -shared -fPIC')
     
     # __RPATH is set to $_RPATH in the platform specification if that
     # platform supports it.
@@ -266,35 +290,27 @@ def     generate( env ):
     _setup_flags( options )
     _setup_env_flags( env )
     
-    env['ARCOM']        = "${TEMPFILE('" + env['ARCOM']     + "')}"
-    env['LINKCOM']      = "${TEMPFILE('" + env['LINKCOM']   + "')}"
-    env['SHLINKCOM']    = "${TEMPFILE('" + env['SHLINKCOM'] + "')}"
-    env['CXXCOM']       = "${TEMPFILE('" + env['CXXCOM']    + "')}"
-    env['SHCXXCOM']     = "${TEMPFILE('" + env['SHCXXCOM']  + "')}"
-    env['CCCOM']        = "${TEMPFILE('" + env['CCCOM']     + "')}"
-    env['SHCCCOM']      = "${TEMPFILE('" + env['SHCCCOM']   + "')}"
 
 #//---------------------------------------------------------------------------//
 
 def exists( env ):
-    return _find_gcc( env, _EnvOptions(env) ) is not None
+    return _try_gcc( env, _EnvOptions(env), check_existence_only = True ) is not None
 
 
 #//===========================================================================//
 #  Setting up windows environment
 #//===========================================================================//
 
-_windows_globals_is_set = 0
 _shlib_action = None
 _res_builder = None
 
 def     _setup_windows_globals():
     
-    global _windows_globals_is_set
-    if _windows_globals_is_set:
+    global _shlib_action
+    global _res_builder
+
+    if _shlib_action is not None:
         return
-    
-    _windows_globals_is_set = 1
     
     _shlib_action    = SCons.Action.Action( shlib_generator, generator=1 )
     res_action      = SCons.Action.Action('$RCCOM', '$RCCOMSTR' )
@@ -313,6 +329,7 @@ def     _setup_env_windows( env ):
     env['SHLINKFLAGS'] = SCons.Util.CLVar('$LINKFLAGS -shared')
     
     env['SHLINKCOM']   = _shlib_action
+    
     env.Append(SHLIBEMITTER = [shlib_emitter])
     
     env['WIN32DEFPREFIX']        = ''
