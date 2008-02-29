@@ -1,7 +1,6 @@
 
 import sys
 import os.path
-import types
 
 import logging
 import options

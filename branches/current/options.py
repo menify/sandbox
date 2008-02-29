@@ -1,31 +1,36 @@
 
 import os
 import sys
-import types
 
 import logging
 import version
 
 _Error = logging.Error
-_Version = version.Version
 
 #//---------------------------------------------------------------------------//
 
-def     _is_option( option ):
+def     _is_option( option, isinstance = isinstance ):
     return isinstance( option, OptionBase )
 
 #//---------------------------------------------------------------------------//
 
-def     _is_options( option ):
+def     _is_options( option, isinstance = isinstance ):
     return isinstance( option, Options )
 
 #//---------------------------------------------------------------------------//
 
-def     _is_sequence( value ):
-    t = type(value)
-    return (t is types.ListType) or (t is types.TupleType)
+def     _is_dict( value, isinstance = isinstance, dict_types = dict ):
+    return isinstance( value, dict_types )
 
-def     _to_list( value ):
+def     _is_sequence( value, isinstance=isinstance, sequence_types = (list, tuple) ):
+    return isinstance( value, sequence_types )
+
+def     _is_string( value, isinstance = isinstance, string_types = (str, unicode)):
+    return isinstance( value, string_types )
+
+#//---------------------------------------------------------------------------//
+
+def     _to_sequence( value, _is_sequence = _is_sequence ):
     
     if not _is_sequence(value):
         if value is None:
@@ -34,16 +39,6 @@ def     _to_list( value ):
         return ( value, )
     
     return value
-
-#//---------------------------------------------------------------------------//
-
-def     _is_dict( value ):
-    return type(value) is types.DictType
-
-#//---------------------------------------------------------------------------//
-
-def     _is_string( value ):
-    return type(value) is types.StringType
 
 #//---------------------------------------------------------------------------//
 
@@ -311,7 +306,7 @@ def     _split_value( value, separator ):
 
 def     _add_raw_value( self_values, option, value ):
     
-    cv = _to_list( option._convert_value( value ) )
+    cv = _to_sequence( option._convert_value( value ) )
     
     for v in cv:
         self_values.append( ('v', v) )
@@ -329,19 +324,21 @@ def     _add_option( self_values, option, value ):
 
 #//---------------------------------------------------------------------------//
 
-def     _convert_value_to_list( values, option ):
+def     _convert_value_to_sequence( values, option ):
+    
+    is_list = option.shared_data['is_list']
     
     if values is None:
-        if not option.shared_data['is_list']:
+        if not is_list:
             _Error( "Can't convert 'None' value" )
         
-        values = []
+        values = ()
     
     else:
-        if option.shared_data['is_list']:
+        if is_list:
             values = _split_value( values, option.shared_data['separator'] )
         
-        values = _to_list( values )
+        values = _to_sequence( values )
     
     return values
 
@@ -358,7 +355,7 @@ class   _ConditionalValue:
             self.values = value.values
             return
         
-        values = _convert_value_to_list( value, option )
+        values = _convert_value_to_sequence( value, option )
         
         self_values = []
         
@@ -388,7 +385,7 @@ class   _ConditionalValue:
             else:
                 opt_value = option.options[ v[1] ].Get()
                 
-                values.extend( map( convert_value, _to_list( opt_value ) ) )
+                values.extend( map( convert_value, _to_sequence( opt_value ) ) )
         
         return values
     
@@ -923,7 +920,7 @@ class   EnumOption (OptionBase):
         
         mapped_values = []
         
-        for v in _to_list( values ):
+        for v in _to_sequence( values ):
             
             v = v.lower()
             
@@ -955,7 +952,7 @@ class   EnumOption (OptionBase):
     def     AddValues( self, values ):
         values_dict = self.shared_data['values_dict']
         
-        for v in _to_list( values ):
+        for v in _to_sequence( values ):
             values_dict[ v.lower() ] = None
     
     #//=======================================================//
@@ -1187,7 +1184,7 @@ class   VersionOption (OptionBase):
     
     #//-------------------------------------------------------//
     
-    def     _convert_value( self, val ):
+    def     _convert_value( self, val, _Version = version.Version ):
         return _Version( val )
     
     #//-------------------------------------------------------//

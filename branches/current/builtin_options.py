@@ -25,7 +25,10 @@ def     _add_build_options( options ):
     options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0, group = "Build setup" )
     
     setup_path = os.environ.get('AQL_SETUP_PATH', os.path.join( os.path.dirname( __file__ ), 'setup' ) )
-    options.setup_path = _PathOption( initial_value = setup_path, is_list = 1 )
+    options.setup_path = _PathOption( initial_value = setup_path, is_list = 1,
+                                      help = "A file path(s) to setup files.\n" \
+                                             "By default environment variable AQL_SETUP_PATH is used",
+                                      group = "Build setup" )
 
 #//===========================================================================//
 

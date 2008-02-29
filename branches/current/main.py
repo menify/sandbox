@@ -13,8 +13,7 @@ import setup
 import utils
 import options_help_generator
 
-import target
-_Target = target.Target
+import local_host
 
 #//===========================================================================//
 
@@ -128,7 +127,7 @@ def     _update_env_flags( env ):
                 LIBPATH = ["$_AQL_M_LIBPATH"],
                 LIBS = ["$_AQL_M_LIBS"] )
     
-    if _Target.os == 'windows' and _Target.os_version >= "5.1":
+    if local_host.os == 'windows' and local_host.os_version >= "5.1":
         env['MAXLINELENGTH'] = 8191
     else:
         env['MAXLINELENGTH'] = 2047

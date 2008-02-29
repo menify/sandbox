@@ -1,18 +1,16 @@
 
 import sys
 import os
-import os.path
 import popen2
 import re
-import types
 
 import SCons.Tool
 import SCons.Util
 
-def     _is_sequence( value ):
-    t = type(value)
-    return (t is types.ListType) or (t is types.TupleType)
+#//===========================================================================//
 
+def     _is_sequence( value, isinstance=isinstance, sequence_types = (list, tuple) ):
+    return isinstance( value, sequence_types )
 
 #//===========================================================================//
 

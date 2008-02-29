@@ -7,6 +7,6 @@ from builtin_options import BuiltinOptions
 
 from main import Env, BuildVariant, Build
 
-from target import Target
+import local_host
 
 from utils import AddToolPath, GetShellScriptEnv, AppendPath, PrependPath

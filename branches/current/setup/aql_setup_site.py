@@ -2,10 +2,10 @@
 import sys
 import os
 
-import aql.target
+import aql.local_host
 import aql.utils
 
-_Target = aql.target.Target
+local_host = aql.local_host
 
 _GetShellScriptEnv = aql.utils.GetShellScriptEnv
 _PrependPath = aql.utils.PrependPath
@@ -100,7 +100,7 @@ def     SetupTool_aql_tool_msvc( options, os_env, env ):
         return
     
     if options.target_os == '':
-        options.target_os = _Target.os
+        options.target_os = local_host.os
     
     if options.target_os != 'windows':
         return
@@ -147,7 +147,7 @@ def     _setup_mingw( options, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-if _Target.os == 'cygwin':
+if local_host.os == 'cygwin':
     _drive = '/cygdrive/d'
 else:
     _drive = 'd:'

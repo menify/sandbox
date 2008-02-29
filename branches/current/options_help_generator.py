@@ -78,19 +78,17 @@ def     GenerateOptionsHelp( options, detailed_help ):
         line = prefix + name + ':'
         
         line += ' ' * ((max_name_len - len(name)) + 2)
-        #~ help += line + op.AllowedValuesStr()
-        #~ help += '\n%s%s' % ( ' ' * len(line), op.shared_data['help'] )
-        help += line + op.shared_data['help']
         
-        if detailed_help:
-            help += '\n' + ' ' * len(line) + 'Type: '
-            #~ if op.shared_data['is_list']:   help += 'List. '
-            help += op.AllowedValuesHelp()
+        op_help = op.shared_data['help'].replace('\n', '\n' + ' ' * len(line) )
+        
+        help += line + op_help
         
         help += '\n'
         
-        #~ help += str(op.__class__.__name__)
+        if detailed_help:
+            help += ' ' * len(line) + 'Type: ' + op.AllowedValuesHelp() + '\n'
         
-        if detailed_help or (len(names) > 1): help += '\n'
+        elif (len(names) > 1):
+            help += '\n'
     
     return help
