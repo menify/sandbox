@@ -1,4 +1,24 @@
 
+def     _print_option_help( op, names, detailed_help, prefix, help_justification ):
+    
+    help = ''
+    
+    for name in names[:-1]:
+        help += prefix + name + ':\n'
+    
+    name = names[-1]
+    tmp = prefix + name + ':'
+    help += tmp
+    help += ' ' * (len( help_justification ) - len(tmp))
+    help += op.shared_data['help'].replace('\n', '\n' + help_justification )
+    
+    if help[-1] != '\n':    help += '\n'
+    
+    if detailed_help:
+        help += help_justification + 'Type: ' + op.AllowedValuesHelp() + '\n'
+    
+    return help
+
 def     GenerateOptionsHelp( options, detailed_help ):
     
     prefix = "  "
@@ -25,6 +45,8 @@ def     GenerateOptionsHelp( options, detailed_help ):
         max_name_len = max( [ max_name_len ] + map(len, names) )
         
         sorted_options.append( (op, names) )
+    
+    help_justification = ' ' * (max_name_len + len(prefix) + 1 + 2)
     
     def     _cmp_options( op_names1, op_names2 ):
         
@@ -65,30 +87,14 @@ def     GenerateOptionsHelp( options, detailed_help ):
         else:
             if help[-1] != '\n': help += '\n'
         
-        if len(names) > 1:
-            if not help.endswith('\n\n'):
+        op_help = _print_option_help( op, names, detailed_help, prefix, help_justification )
+        
+        if op_help.count('\n') > 1:
+            if not help.endswith( '\n\n' ):
                 help += '\n'
-        
-        for name in names[:-1]:
-            help += prefix + name + ':'
-            help += '\n'
-        
-        name = names[-1]
-        
-        line = prefix + name + ':'
-        
-        line += ' ' * ((max_name_len - len(name)) + 2)
-        
-        op_help = op.shared_data['help'].replace('\n', '\n' + ' ' * len(line) )
-        
-        help += line + op_help
-        
-        help += '\n'
-        
-        if detailed_help:
-            help += ' ' * len(line) + 'Type: ' + op.AllowedValuesHelp() + '\n'
-        
-        elif (len(names) > 1):
-            help += '\n'
+            
+            help += op_help + '\n'
+        else:
+            help += op_help
     
     return help
