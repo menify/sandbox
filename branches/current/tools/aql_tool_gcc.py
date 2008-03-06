@@ -73,7 +73,6 @@ def     _setup_env_flags( env ):
 #//---------------------------------------------------------------------------//
 
 def     _where_is_program( env, prog ):
-    print "prog:", prog
     return env.WhereIs( prog ) or SCons.Util.WhereIs( prog )
 
 #//---------------------------------------------------------------------------//
@@ -132,10 +131,10 @@ def     _update_gcc_specs( env, options, gcc, check_existence_only ):
     
     if options.cc_ver                       and options.cc_ver != cc_ver:                           return False
     if options.gcc_target                   and options.gcc_target != target:                       return False
-    if options.target_os != 'unknown'       and options.target_os != target_os:                     return False
+    if options.target_os                    and options.target_os != target_os:                     return False
     if options.target_os_release            and options.target_os_release != target_os_release:     return False
     if options.target_os_version            and options.target_os_version != target_os_version:     return False
-    if options.target_machine != 'unknown'  and options.target_machine != target_machine:           return False
+    if options.target_machine               and options.target_machine != target_machine:           return False
     if options.target_cpu                   and options.target_cpu != target_cpu:                   return False
     
     if not check_existence_only:
@@ -155,8 +154,6 @@ def     _update_gcc_specs( env, options, gcc, check_existence_only ):
 
 def     _try_gcc( env, options, check_existence_only ):
     
-    print "_try_gcc"
-    
     if options.cc_name and (options.cc_name != 'gcc'):
         return None
     
@@ -169,33 +166,31 @@ def     _try_gcc( env, options, check_existence_only ):
     gcc_path = _where_is_program( env, gcc )
     
     if gcc_path is None:
-        print "1"
         return None
     
     gcc_path = os.path.normcase( gcc_path )
     
     if not _update_gcc_specs( env, options, gcc_path, check_existence_only ):
-        print "2"
         return None
     
     path = os.path.dirname( gcc_path )
     
     gxx_path = env.WhereIs( gxx, path )
     if (gxx_path is None):
-        print "3"
         return None
+    
     gxx_path = os.path.normcase( gxx_path )
     
     as_path = _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, 'as' )
     if (as_path is None):
-        print "4"
         return None
+    
     as_path = os.path.normcase( as_path )
     
     ar_path = _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, 'ar' )
     if (ar_path is None):
-        print "5"
         return None
+    
     ar_path = os.path.normcase( ar_path )
     
     gcc_env = {}

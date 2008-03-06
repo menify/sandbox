@@ -7,6 +7,7 @@ import options
 
 _Info = logging.Info
 _Msg = logging.Msg
+_Warning = logging.Warning
 
 #//===========================================================================//
 
@@ -78,7 +79,8 @@ def     _tool_exists( self, env ):
 
 def     _tool_generate( self, env ):
     if self._aql_is_exist is None:
-        _tool_exists( self, env )
+        if not _tool_exists( self, env ):
+            _Warning( "Tool: '%s' has not been found, but it is added." % (self.name) )
     
     self._aql_generate( env )
 

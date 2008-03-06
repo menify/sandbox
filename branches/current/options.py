@@ -7,7 +7,6 @@ import logging
 import version
 
 _Error = logging.Error
-_isSequence = utils.isSequence
 
 #//---------------------------------------------------------------------------//
 
@@ -259,7 +258,7 @@ class   _OptionValue:
         
     #//-------------------------------------------------------//
     
-    def     Get( self, option, opt_current_value, toSequence = utils.toSequence ):
+    def     Get( self, option, opt_current_value ):
         
         opt = option.options[ self.name ]
         
@@ -726,7 +725,7 @@ class   OptionBase:
     #//-------------------------------------------------------//
     
     def     __nonzero__( self ):
-        if self.GetList(): return 1
+        if self.Get(): return 1
         return 0
     
     #//-------------------------------------------------------//
@@ -842,7 +841,7 @@ class   EnumOption (OptionBase):
                 v = v.lower()
                 alias = values_dict[ v ]
             
-            except AttributeError, KeyError:
+            except (AttributeError, KeyError):
                 return None
             
             if alias is None:
@@ -878,13 +877,13 @@ class   EnumOption (OptionBase):
     
     #//=======================================================//
     
-    def     AddAlias( self, alias, values, _isSequence = _isSequence ):
+    def     AddAlias( self, alias, values, isSequence = utils.isSequence ):
         
         mapped_values = self.__map_values( values )
         if not mapped_values:
             _Error( "Invalid value(s): %s" % (values) )
         
-        if (not self.shared_data['is_list']) and (_isSequence( mapped_values ) and (len( mapped_values ) > 1)):
+        if (not self.shared_data['is_list']) and (isSequence( mapped_values ) and (len( mapped_values ) > 1)):
             _Error( "Can't add an alias to list of values: %s of none-list option" % (mapped_values) )
         
         self.shared_data['values_dict'][ alias ] = mapped_values

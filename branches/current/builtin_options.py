@@ -46,12 +46,10 @@ def     _add_build_options( options ):
 
 def     _add_platform_options( options ):
     
-    options.target_os = _EnumOption( initial_value = 'unknown',
-                                     allowed_values = ( 'unknown', 'windows', 'linux', 'cygwin', 'darwin', 'java', 'sunos', 'hpux' ),
+    options.target_os = _EnumOption( allowed_values = ( 'windows', 'linux', 'cygwin', 'darwin', 'java', 'sunos', 'hpux' ),
                                      help = "The target system/OS name, e.g. 'Linux', 'Windows', or 'Java'.", group = "Platform" )
     
-    options.target_platform = _StrOption( initial_value = '',
-                                          ignore_case = 1,
+    options.target_platform = _StrOption( ignore_case = 1,
                                           help = "The system's distribution, e.g. 'win32', 'Linux'",
                                           group = "Platform")
     
@@ -62,8 +60,7 @@ def     _add_platform_options( options ):
     options.target_os_version = _VersionOption( help = "The target system's release version, e.g. '2.2.0' or '5.1.2600'",
                                                 group = "Platform")
     
-    options.target_machine = _EnumOption( initial_value = 'unknown',
-                                          allowed_values = ('unknown', 'x86-32', 'x86-64','arm' ),
+    options.target_machine = _EnumOption( allowed_values = ('unknown', 'x86-32', 'x86-64','arm' ),
                                           aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32',
                                                      'i586':'x86-32', 'pc':'x86-32', 'x86':'x86-32'},
                                           help = "The target machine type, e.g. 'i386'", 
@@ -88,7 +85,7 @@ def     _set_build_dir( options ):
     #//-------------------------------------------------------//
     # Add OS
     
-    target_os_nzero = bd_if.target_os.ne('unknown')
+    target_os_nzero = bd_if.target_os.ne( None )
     target_os_nzero.build_dir += options.target_os
     
     target_os_release_nzero = target_os_nzero.target_os_release.ne('')
@@ -102,7 +99,7 @@ def     _set_build_dir( options ):
     #//-------------------------------------------------------//
     # Add CPU
     
-    target_machine_nzero = bd_if.target_machine.ne('unknown')
+    target_machine_nzero = bd_if.target_machine.ne( None )
     target_machine_nzero.build_dir += options.target_machine
     
     target_cpu_nzero = target_machine_nzero.target_cpu.ne('')
@@ -297,11 +294,11 @@ def     _add_cc_options( options ):
     options.linkflags = _StrOption( is_list = 1, help = "Linker options", group = "C/C++ compiler" )
     options.arflags = _StrOption( is_list = 1, help = "Archiver options", group = "C/C++ compiler" )
     
-    options.ocflags = _StrOption( is_list = 1, help = "C compiler optimization options", group = "C/C++ compiler" )
-    options.occflags = _StrOption( is_list = 1, help = "Common C/C++ compiler optimization options", group = "C/C++ compiler" )
-    options.ocxxflags = _StrOption( is_list = 1, help = "C++ compiler optimization options", group = "C/C++ compiler" )
-    options.olinkflags = _StrOption( is_list = 1, help = "Linker optimization options", group = "C/C++ compiler" )
-    options.oarflags = _StrOption( is_list = 1, help = "Archiver optimization options", group = "C/C++ compiler" )
+    options.ocflags = _StrOption( is_list = 1, help = "C compiler optimization options", group = "Optimization" )
+    options.occflags = _StrOption( is_list = 1, help = "Common C/C++ compiler optimization options", group = "Optimization" )
+    options.ocxxflags = _StrOption( is_list = 1, help = "C++ compiler optimization options", group = "Optimization" )
+    options.olinkflags = _StrOption( is_list = 1, help = "Linker optimization options", group = "Optimization" )
+    options.oarflags = _StrOption( is_list = 1, help = "Archiver optimization options", group = "Optimization" )
     
     options.cflags = options.ocflags
     options.ccflags = options.occflags

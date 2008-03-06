@@ -32,7 +32,7 @@ def     Msg( msg ):
 
 def     Warning( msg ):
     if LogLevel() > 0:
-        print '\n', 'AQL Warning: ***', msg, '\n'
+        print 'AQL Warning: ***', msg
 
 def     Info( msg ):
     if LogLevel() > 1:
@@ -46,5 +46,5 @@ def     DebugMsg( exception, traceback_limit = 50 ):
             except ZeroDivisionError:
                 frame = sys.exc_info()[2].tb_frame.f_back
             
-            print '\n', 'AQL DBG: ***', exception, '\n'
+            print 'AQL DBG: ***', exception
             traceback.print_stack( frame, traceback_limit )
