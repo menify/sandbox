@@ -2,16 +2,13 @@
 import os.path
 import SCons.Tool
 
-import aql
+import aql.logging
 
 #//---------------------------------------------------------------------------//
 
-_Warning = aql.Warning
-_Tool = SCons.Tool.Tool
-
-#//---------------------------------------------------------------------------//
-
-def     generate( env ):
+def     generate( env,
+                  Warning = aql.logging.Warning,
+                  Tool = SCons.Tool.Tool ):
     
     toolsets =  (
                     "aql_tool_gcc",
@@ -20,13 +17,13 @@ def     generate( env ):
                 )
     
     for tool in toolsets:
-        tool = _Tool( tool )
+        tool = Tool( tool, toolpath = env.get('toolpath', []) )
         
         if tool.exists( env ):
             tool( env )
             return
     
-    _Warning("C/C++ toolchain has not been found.")
+    Warning( "C/C++ toolchain has not been found." )
     
     default_tool_name = os.path.splitext( os.path.basename( __file__ ) )[0]
     env['TOOLS'].remove( default_tool_name )

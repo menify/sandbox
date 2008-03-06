@@ -19,6 +19,8 @@ def     _print_option_help( op, names, detailed_help, prefix, help_justification
     
     return help
 
+#//---------------------------------------------------------------------------//
+
 def     GenerateOptionsHelp( options, detailed_help ):
     
     prefix = "  "
@@ -68,7 +70,6 @@ def     GenerateOptionsHelp( options, detailed_help ):
         
         return result
     
-    #~ sorted_options.sort( lambda x,y: cmp(x[1][0].lower(), y[1][0].lower()) )
     sorted_options.sort( _cmp_options )
     
     group = ''

@@ -6,10 +6,11 @@ import SCons.Builder
 import SCons.Tool
 import SCons.Script
 
-import aql
+import aql.utils
+import aql.options
 
-_PrependPath = aql.PrependPath
-_EnvOptions = aql.EnvOptions
+_PrependEnvPath = aql.utils.prependEnvPath
+_EnvOptions = aql.options.EnvOptions
 
 
 def     _menu_parser_emitter( target, source, env ):
@@ -64,7 +65,7 @@ def     _find_ljsdk( options, env ):
     if menuparser_dirpath != os.path.join( ljsdk_path, 'bin' ):
         return None
     
-    _PrependPath( env['ENV'], 'PATH', menuparser_dirpath )
+    _PrependEnvPath( env['ENV'], 'PATH', menuparser_dirpath )
     env['LJ_MENU_PARSER_PROG'] = menuparser_path
     
     return ljsdk_path
@@ -106,7 +107,7 @@ def     generate(env):
     
     cpppath = env['CPPPATH']
     
-    SCons.Tool.Tool( 'aql_tool_qt' )( env )
+    env.Tool( 'aql_tool_qt' )
     env['CPPPATH'] = cpppath
     
     cpppath_lib = options.cpppath_lib

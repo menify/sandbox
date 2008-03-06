@@ -3,12 +3,12 @@ import os
 import os.path
 import SCons.Tool
 
-import aql
+import aql.utils
+import aql.options
 
-_AppendPath = aql.AppendPath
-_PrependPath = aql.PrependPath
-_EnvOptions = aql.EnvOptions
-
+_AppendEnvPath = aql.utils.appendEnvPath
+_PrependEnvPath = aql.utils.prependEnvPath
+_EnvOptions = aql.options.EnvOptions
 
 def     _setup_flags( options ):
     
@@ -61,7 +61,7 @@ def     _setup_flags( options ):
 
 def     _rpathlink( target, source, env, for_signature ):
     flags = ''
-    for p in aql.EnvOptions(env).libpath.Get():
+    for p in _EnvOptions(env).libpath.Get():
         flags += ' -Wl,-rpath-link,' + str(p)
     
     return flags
@@ -73,6 +73,7 @@ def     _setup_env_flags( env ):
 #//---------------------------------------------------------------------------//
 
 def     _where_is_program( env, prog ):
+    print "prog:", prog
     return env.WhereIs( prog ) or SCons.Util.WhereIs( prog )
 
 #//---------------------------------------------------------------------------//
@@ -92,7 +93,7 @@ def     _update_gcc_specs( env, options, gcc, check_existence_only ):
     
     os_environ = os.environ
     os_environ_path = os_environ['PATH']
-    _AppendPath( os_environ, 'PATH', env['ENV']['PATH'] )
+    _AppendEnvPath( os_environ, 'PATH', env['ENV']['PATH'] )
     
     cc_ver = os.popen( gcc + ' -dumpversion', 'r').readline().strip()
     target = os.popen( gcc + ' -dumpmachine', 'r').readline().strip()
@@ -129,13 +130,13 @@ def     _update_gcc_specs( env, options, gcc, check_existence_only ):
     if target_os.startswith('linux'):       target_os = 'linux'
     if target_machine.startswith('arm'):    target_machine = 'arm'
     
-    if options.cc_ver != ''                 and options.cc_ver != cc_ver:                           return False
-    if options.gcc_target != ''             and options.gcc_target != target:                       return False
+    if options.cc_ver                       and options.cc_ver != cc_ver:                           return False
+    if options.gcc_target                   and options.gcc_target != target:                       return False
     if options.target_os != 'unknown'       and options.target_os != target_os:                     return False
-    if options.target_os_release != ''      and options.target_os_release != target_os_release:     return False
-    if options.target_os_version != ''      and options.target_os_version != target_os_version:     return False
+    if options.target_os_release            and options.target_os_release != target_os_release:     return False
+    if options.target_os_version            and options.target_os_version != target_os_version:     return False
     if options.target_machine != 'unknown'  and options.target_machine != target_machine:           return False
-    if options.target_cpu != ''             and options.target_cpu != target_cpu:                   return False
+    if options.target_cpu                   and options.target_cpu != target_cpu:                   return False
     
     if not check_existence_only:
         options.target_os = target_os
@@ -154,7 +155,9 @@ def     _update_gcc_specs( env, options, gcc, check_existence_only ):
 
 def     _try_gcc( env, options, check_existence_only ):
     
-    if (options.cc_name != '') and (options.cc_name != 'gcc'):
+    print "_try_gcc"
+    
+    if options.cc_name and (options.cc_name != 'gcc'):
         return None
     
     gcc_prefix = str(options.gcc_prefix)
@@ -166,27 +169,32 @@ def     _try_gcc( env, options, check_existence_only ):
     gcc_path = _where_is_program( env, gcc )
     
     if gcc_path is None:
+        print "1"
         return None
     
     gcc_path = os.path.normcase( gcc_path )
     
     if not _update_gcc_specs( env, options, gcc_path, check_existence_only ):
+        print "2"
         return None
     
     path = os.path.dirname( gcc_path )
     
     gxx_path = env.WhereIs( gxx, path )
     if (gxx_path is None):
+        print "3"
         return None
     gxx_path = os.path.normcase( gxx_path )
     
     as_path = _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, 'as' )
     if (as_path is None):
+        print "4"
         return None
     as_path = os.path.normcase( as_path )
     
     ar_path = _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, 'ar' )
     if (ar_path is None):
+        print "5"
         return None
     ar_path = os.path.normcase( ar_path )
     
@@ -209,7 +217,7 @@ def     _update_os_env( env, options ):
     #~ gcc_ver = str(options.cc_ver)
     #~ gcc_suffix = str(options.gcc_suffix)
     
-    _PrependPath( env['ENV'], 'PATH', gcc_path )
+    _PrependEnvPath( env['ENV'], 'PATH', gcc_path )
     
     #~ cpppath_lib = options.cpppath_lib
     #~ cpppath_lib += gcc_path + '/include'

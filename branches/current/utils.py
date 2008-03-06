@@ -1,25 +1,64 @@
 
-import sys
-import os
-import popen2
-import re
+import os.path
 
-import SCons.Tool
-import SCons.Util
 
 #//===========================================================================//
 
-def     _is_sequence( value, isinstance=isinstance, sequence_types = (list, tuple) ):
+def     isSequence( value, isinstance=isinstance, sequence_types = (list, tuple) ):
     return isinstance( value, sequence_types )
 
+def     isDict( value, isinstance = isinstance, dict_types = dict ):
+    return isinstance( value, dict_types )
+
+def     isString( value, isinstance = isinstance, string_types = (str, unicode)):
+    return isinstance( value, string_types )
+
 #//===========================================================================//
 
-def     AddToolPath( toolpath ):
-    SCons.Tool.DefaultToolpath.insert( 0, toolpath )
+def     toSequence( value, separator = '',
+                    isSequence = isSequence,
+                    isString = isString ):
+    
+    if isSequence( value ):
+        return value
+    
+    if value is None:
+        return ()
+    
+    if separator:
+        if isString( value ):
+            return value.split( separator )
+    
+    return ( value, )
 
 #//===========================================================================//
 
-def     GetShellScriptEnv( os_env, script ):
+def     appendToList( values_list, values, unique ):
+    if unique:
+        for v in values:
+            if not v in values_list:
+                values_list.append( v )
+    else:
+        values_list += values
+
+#//===========================================================================//
+
+def     removeFromList( values_list, values ):
+    for v in values:
+        while 1:
+            try:
+                values_list.remove( v )
+            except ValueError:
+                break
+
+#//===========================================================================//
+
+def     getShellScriptEnv( os_env, script ):
+    
+    import sys
+    import os
+    import popen2
+    import re
     
     os_environ = os.environ
     
@@ -52,29 +91,71 @@ def     GetShellScriptEnv( os_env, script ):
 
 #//===========================================================================//
 
-_AppendPath = SCons.Util.AppendPath
-_PrependPath = SCons.Util.PrependPath
+def     normPath( path,
+                  _os_path_normpath = os.path.normpath,
+                  _os_path_normcase = os.path.normcase ):
+    
+    return _os_path_normcase( _os_path_normpath( path ) )
 
-def     AppendPath( os_env, names, value, sep = os.pathsep ):
-    
-    if not _is_sequence(names):
-        names = ( names, )
-    
-    value = os.path.normcase( os.path.normpath( value ) )
-    
-    for name in names:
-        os_env[ name ] = _AppendPath( os_env.setdefault( name, '' ), value, sep )
+#//===========================================================================//
 
-#//---------------------------------------------------------------------------//
+def     prependPath( oldpaths, newpaths, sep = os.pathsep,
+                     normPath = normPath,
+                     toSequence = toSequence,
+                     isSequence = isSequence ):
+    
+    newpaths = map( normPath, toSequence( newpaths, sep ) )
+    
+    for p in toSequence( oldpaths, sep ):
+        if p:
+            p = normPath( p )
+            if p not in newpaths:
+                newpaths.append( p )
+    
+    if isSequence( oldpaths ):
+        return newpaths
+    
+    return sep.join( newpaths )
 
-def     PrependPath( os_env, names, value, sep = os.pathsep  ):
+#//===========================================================================//
+
+def appendPath( oldpaths, newpaths, sep = os.pathsep,
+                normPath = normPath,
+                toSequence = toSequence,
+                isSequence = isSequence ):
     
-    if not _is_sequence(names):
-        names = ( names, )
+    newpaths = map( normPath, toSequence( newpaths, sep ) )
     
-    value = os.path.normcase( os.path.normpath( value ) )
+    unique_oldpaths = []
+    for p in toSequence( oldpaths, sep ):
+        if p:
+            p = normPath( p )
+            if (p not in newpaths) and (p not in unique_oldpaths):
+                unique_oldpaths.append( p )
     
-    for name in names:
-        os_env[ name ] = _PrependPath( os_env[ name ], value, sep )
+    paths = unique_oldpaths + newpaths
+    
+    if isSequence( oldpaths ):
+        return paths
+    
+    return sep.join( paths )
+
+#//===========================================================================//
+
+def     appendEnvPath( os_env, names, value, sep = os.pathsep,
+                       appendPath = appendPath,
+                       toSequence = toSequence ):
+    
+    for name in toSequence( names ):
+        os_env[ name ] = appendPath( os_env.get( name, '' ), value, sep )
+
+#//===========================================================================//
+
+def     prependEnvPath( os_env, names, value, sep = os.pathsep,
+                        prependPath = prependPath,
+                        toSequence = toSequence ):
+    
+    for name in toSequence( names ):
+        os_env[ name ] = prependPath( os_env.get( name, '' ), value, sep )
 
 

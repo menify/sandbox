@@ -5,10 +5,9 @@ import os
 import aql.local_host
 import aql.utils
 
-local_host = aql.local_host
+_local_host = aql.local_host
 
-_GetShellScriptEnv = aql.utils.GetShellScriptEnv
-_PrependPath = aql.utils.PrependPath
+_prependEnvPath = aql.utils.prependEnvPath
 
 #//---------------------------------------------------------------------------//
 
@@ -67,9 +66,9 @@ def     _setup_vc6( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     _setup_msvc_psdk( options, env, os_env ):
+def     _setup_msvc_psdk( options, env, os_env, getShellScriptEnv = aql.utils.getShellScriptEnv ):
     
-    _GetShellScriptEnv( os_env, "d:/bin/development/psdk/SetEnv.Bat /XP32  /RETAIL" )
+    getShellScriptEnv( os_env, "d:/bin/development/psdk/SetEnv.Bat /XP32  /RETAIL" )
 
 #//---------------------------------------------------------------------------//
 
@@ -96,17 +95,18 @@ def     _setup_vc8( options, env, os_env ):
 
 def     SetupTool_aql_tool_msvc( options, os_env, env ):
     
-    if options.cc_name != '' and options.cc_name != 'msvc':
+    if options.cc_name and options.cc_name != 'msvc':
         return
     
-    if options.target_os == '':
-        options.target_os = local_host.os
+    if not options.target_os:
+        options.target_os = _local_host.os
     
     if options.target_os != 'windows':
         return
     
-    if options.cc_ver == '' or options.cc_ver == '8':
+    if (not options.cc_ver) or (options.cc_ver == '8'):
         _setup_vc8( options )
+    
     elif options.cc_ver == '7':
         _setup_vc71( options )
     
@@ -117,7 +117,7 @@ def     SetupTool_aql_tool_msvc( options, os_env, env ):
 
 def     SetupTool_aql_tool_gcc( options, os_env, env ):
     
-    if options.cc_name != '' and options.cc_name != 'gcc':
+    if options.cc_name and options.cc_name != 'gcc':
         return
     
     if options.target_os == 'cygwin':
@@ -138,16 +138,16 @@ def     _setup_mingw( options, os_env ):
     if options.cc_ver == '4.1':
         cc_path = 'd:/bin/development/compilers/gcc/mingw'
     
-    if options.cc_ver == '4.2' or options.cc_ver == '':
+    if (not options.cc_ver) or (options.cc_ver == '4.2'):
         cc_path = 'd:/bin/development/compilers/gcc/mingw_4.2.1_dw2'
         options.gcc_prefix = 'mingw32-'
         options.gcc_suffix = '-dw2'
     
-    _PrependPath( os_env, 'PATH', cc_path + '/bin')
+    _prependEnvPath( os_env, 'PATH', cc_path + '/bin' )
 
 #//---------------------------------------------------------------------------//
 
-if local_host.os == 'cygwin':
+if _local_host.os == 'cygwin':
     _drive = '/cygdrive/d'
 else:
     _drive = 'd:'
@@ -156,7 +156,7 @@ def     _setup_gcc_lj( options, os_env ):
     
     mvl_path = _drive + '/bin/development/compilers/gcc/mvl/MVL-RELEASE-121822007/mvl-environment/'
     
-    _PrependPath( os_env, 'PATH', mvl_path + '/bin' )
+    _prependEnvPath( os_env, 'PATH', mvl_path + '/bin' )
     
     if options.target_machine == 'arm':
         cc_path = mvl_path + '/moto/common/devkit/arm/v6_vfp_le'
@@ -173,9 +173,10 @@ def     _setup_gcc_lj( options, os_env ):
     options.rtti = 'false'
     options.link_runtime = 'shared'
     
-    _PrependPath( os_env, 'PATH', cc_path + '/bin' )
+    _prependEnvPath( os_env, 'PATH', cc_path + '/bin' )
 
 #//---------------------------------------------------------------------------//
 
 def     SetupTool_aql_tool_ljsdk( options, os_env, env ):
-    _PrependPath( os_env, 'PATH', _drive + '/bin/development/SDK/lj/bin' )
+    
+    _prependEnvPath( os_env, 'PATH', _drive + '/bin/development/SDK/lj/bin' )

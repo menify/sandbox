@@ -8,8 +8,6 @@ import options
 _Info = logging.Info
 _Msg = logging.Msg
 
-_EnvOptions = options.EnvOptions
-
 #//===========================================================================//
 
 _user_setup_module = None
@@ -86,7 +84,7 @@ def     _tool_generate( self, env ):
 
 #//===========================================================================//
 
-def     _init_tool( self, name, toolpath=[], **kw ):
+def     _init_tool( self, name, toolpath = [], **kw ):
     
     _SCons_Tool_Tool_init( self, name, toolpath, **kw )
     

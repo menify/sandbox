@@ -33,10 +33,6 @@ _AddMethod = SCons.Util.AddMethod
 
 _GenerateOptionsHelp = options_help_generator.GenerateOptionsHelp
 
-#//-------------------------------------------------------//
-
-utils.AddToolPath( os.path.normpath( os.path.dirname( __file__ ) + '/tools' ) )
-
 #//===========================================================================//
 
 SCons.Script.AddOption('--h', default = False,
@@ -103,11 +99,11 @@ def     _update_env_flags( env ):
     
     env['_CPPDEFFLAGS'] = '${_concat(CPPDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)}'
     
-    env['_AQL_M_CFLAGS']        = lambda target, source, env, for_signature: _EnvOptions(env).cflags.Str()
-    env['_AQL_M_CCFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).ccflags.Str()
-    env['_AQL_M_CXXFLAGS']      = lambda target, source, env, for_signature: _EnvOptions(env).cxxflags.Str()
-    env['_AQL_M_LINKFLAGS']     = lambda target, source, env, for_signature: _EnvOptions(env).linkflags.Str()
-    env['_AQL_M_ARFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).arflags.Str()
+    env['_AQL_M_CFLAGS']        = lambda target, source, env, for_signature: str( _EnvOptions(env).cflags )
+    env['_AQL_M_CCFLAGS']       = lambda target, source, env, for_signature: str( _EnvOptions(env).ccflags )
+    env['_AQL_M_CXXFLAGS']      = lambda target, source, env, for_signature: str( _EnvOptions(env).cxxflags )
+    env['_AQL_M_LINKFLAGS']     = lambda target, source, env, for_signature: str( _EnvOptions(env).linkflags )
+    env['_AQL_M_ARFLAGS']       = lambda target, source, env, for_signature: str( _EnvOptions(env).arflags )
     
     env['_AQL_M_CPPPATH']       = lambda target, source, env, for_signature: _EnvOptions(env).cpppath.Get()
     env['_AQL_M_CPPDEFINES']    = lambda target, source, env, for_signature: _EnvOptions(env).cppdefines.Get()
@@ -152,7 +148,11 @@ def     Env( options, tools = None, **kw ):
     
     _Setup( options, os_env )
     
-    env = _Environment( platform = None, tools = tools, toolpath = None, options = None, **kw )
+    env = _Environment( platform = None,
+                        tools = tools,
+                        toolpath = options.tools_path.Get(),
+                        options = None,
+                        **kw )
     
     _update_env_flags( env )
     
@@ -167,8 +167,7 @@ def     BuildVariant( options, scriptfile = None, **kw ):
     if scriptfile is None:
         scriptfile = 'SConscript'
     
-    if kw.get('duplicate') is None:
-        kw['duplicate'] = 0
+    kw.setdefault( 'duplicate', 0 )
     
     if __debug__:
         _Info( "Build variant: " + str(options.bv) )

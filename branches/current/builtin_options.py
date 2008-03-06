@@ -18,17 +18,29 @@ _BoolOption = options.BoolOption
 
 def     _add_build_options( options ):
     
-    options.tools = _StrOption( initial_value = 'aql_deftool_cc', separator = ',', is_list = 1, help = "Environment tools", group = "Build setup" )
+    aql_rootdir = os.path.dirname( __file__ )
     
-    options.setup = _StrOption( separator = ',', is_list = 1, help = "Setup options", group = "Build setup" )
+    options.setup = _StrOption( separator = ',', is_list = 1,
+                                help = "Setup options", group = "Builds setup" )
     
-    options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.", is_list = 1, separator = '', unique = 0, group = "Build setup" )
+    options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.",
+                                    is_list = 1, separator = '', unique = 0, group = "Builds setup" )
     
-    setup_path = os.environ.get('AQL_SETUP_PATH', os.path.join( os.path.dirname( __file__ ), 'setup' ) )
-    options.setup_path = _PathOption( initial_value = setup_path, is_list = 1,
+    setup_path = os.environ.get('AQL_SETUP_PATH', aql_rootdir + '/setup' )
+    options.setup_path = _PathOption( initial_value = setup_path, is_list = 1, update_set = 1,
                                       help = "A file path(s) to setup files.\n" \
-                                             "By default environment variable AQL_SETUP_PATH is used",
-                                      group = "Build setup" )
+                                             "By default environment variable AQL_SETUP_PATH is used.",
+                                      group = "Builds setup" )
+    
+    options.tools = _StrOption( initial_value = 'aql_tool_default_cc', separator = ',',
+                                is_list = 1, update_set = 1,
+                                help = "Environment tools", group = "Builds setup" )
+    
+    tools_path = os.environ.get( 'AQL_TOOLS_PATH', aql_rootdir + '/tools' )
+    options.tools_path = _PathOption( initial_value = tools_path, is_list = 1, update_set = 1,
+                                      help = "A file path(s) to tools files.\n" \
+                                             "By default environment variable AQL_TOOLS_PATH is used.",
+                                      group = "Builds setup" )
 
 #//===========================================================================//
 
