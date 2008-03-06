@@ -366,17 +366,15 @@ def     _has_any( op, values1, values2 ):
 
 #//-------------------------------------------------------//
 
-_one_of = _has
-
 def     _one_of( op, value1, values2, _has = _has ):
-    return _has( op, values2, value1 )
     
-    #~ if __debug__:
-        #~ if len( value1 ) != 1:
-            #~ _Error("Must be a non-list option")
+    values2 = values2.GetList( op, value1 )
     
-    #~ return value1[0] in values2.GetList( op, value1 )
-
+    for v in value1:
+        if v not in values2:
+            return 0
+    
+    return 1
 
 #//===========================================================================//
 
