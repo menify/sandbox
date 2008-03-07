@@ -129,13 +129,20 @@ def     _update_gcc_specs( env, options, gcc, check_existence_only ):
     if target_os.startswith('linux'):       target_os = 'linux'
     if target_machine.startswith('arm'):    target_machine = 'arm'
     
-    if options.cc_ver                       and options.cc_ver != cc_ver:                           return False
-    if options.gcc_target                   and options.gcc_target != target:                       return False
-    if options.target_os                    and options.target_os != target_os:                     return False
-    if options.target_os_release            and options.target_os_release != target_os_release:     return False
-    if options.target_os_version            and options.target_os_version != target_os_version:     return False
-    if options.target_machine               and options.target_machine != target_machine:           return False
-    if options.target_cpu                   and options.target_cpu != target_cpu:                   return False
+    def     is_set( self, value ):
+        if self and self != value
+            return True
+        
+        return False
+    
+    
+    if options.cc_ver               and     options.cc_ver != cc_ver:                           return False
+    if options.gcc_target           and     options.gcc_target != target:                       return False
+    if options.target_os            and     options.target_os != target_os:                     return False
+    if options.target_os_release    and     options.target_os_release != target_os_release:     return False
+    if options.target_os_version    and     options.target_os_version != target_os_version:     return False
+    if options.target_machine       and     options.target_machine != target_machine:           return False
+    if options.target_cpu           and     options.target_cpu != target_cpu:                   return False
     
     if not check_existence_only:
         options.target_os = target_os

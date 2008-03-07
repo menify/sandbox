@@ -94,12 +94,11 @@ class Options:
     
     #//-------------------------------------------------------//
     
-    def     __get_option( self, name, attribute = 0):
+    def     __get_option( self, name, exception_type = AttributeError ):
         option = self.__find_option( name )
         
         if option is None:
-            if attribute:   raise AttributeError( "Unknown option: '%s'" % (name) )
-            else:           raise KeyError( "Unknown option: '%s'" % (name) )
+            raise exception_type( "Unknown option: '%s'" % (name) )
         
         return option
     
@@ -116,7 +115,7 @@ class Options:
     #//-------------------------------------------------------//
     
     def     __getattr__( self, name ):
-        return self.__get_option( name, attribute = 1 )
+        return self.__get_option( name )
     
     #//-------------------------------------------------------//
     
@@ -126,7 +125,7 @@ class Options:
     #//-------------------------------------------------------//
     
     def     __getitem__( self, name ):
-        return self.__get_option( name )
+        return self.__get_option( name, KeyError )
     
     #//-------------------------------------------------------//
     
@@ -606,9 +605,6 @@ class   OptionBase:
                 values = None
             
             else:
-                if len(values) != 1:
-                    _Error("Can't convert list of values: %s to non-list option: '%s'" % (values, self.Names()[0]) )
-                
                 values = values[0]
         
         cache[ id_self ] = values
