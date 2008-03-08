@@ -61,13 +61,13 @@ def     _setup_flags( options ):
 
 def     _try_tools( env, options, check_exists_only = 0 ):
     
-    if (options.cc_name != '') and (options.cc_name != 'msvc'):
+    if options.cc_name.isSetNotTo( 'msvc' ):
         return None
     
-    if (options.target_os != 'unknown') and (options.target_os != 'windows'):
+    if options.target_os.isSetNotTo( 'windows' ):
         return None
     
-    if options.cc_ver != '':
+    if options.cc_ver:
         env['MSVS_VERSION'] = str(options.cc_ver)
     
     _Tool = SCons.Tool.Tool
@@ -99,8 +99,6 @@ def     generate( env ):
     options.target_cpu = ''
     
     _setup_flags( options )
-    
-
 
 #//---------------------------------------------------------------------------//
 

@@ -364,7 +364,7 @@ def     _has_any( op, values1, values2 ):
 
 #//-------------------------------------------------------//
 
-def     _one_of( op, value1, values2, _has = _has ):
+def     _one_of( op, value1, values2 ):
     
     values2 = values2.GetList( op, value1 )
     
@@ -723,6 +723,24 @@ class   OptionBase:
     def     __nonzero__( self ):
         if self.Get(): return 1
         return 0
+    
+    #//-------------------------------------------------------//
+    
+    def     isSetNotTo( self, value ):
+        self_value = self.GetList()
+        
+        if self_value:
+            value = _Value( value, self ).GetList( self, self_value )
+            
+            if self_value != value:
+                return True
+        
+        return False
+    
+    #//-------------------------------------------------------//
+    
+    def     isNotSetOr( self, value ):
+        return not self.isSetNotTo( value )
     
     #//-------------------------------------------------------//
     

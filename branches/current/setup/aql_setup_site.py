@@ -95,16 +95,13 @@ def     _setup_vc8( options, env, os_env ):
 
 def     SetupTool_aql_tool_msvc( options, os_env, env ):
     
-    if options.cc_name and options.cc_name != 'msvc':
+    if options.cc_name.isSetNotTo( 'msvc' ):
         return
     
-    if not options.target_os:
-        options.target_os = _local_host.os
-    
-    if options.target_os != 'windows':
+    if options.target_os.isSetNotTo( 'windows' ):
         return
     
-    if (not options.cc_ver) or (options.cc_ver == '8'):
+    if options.cc_ver.isNotSetOr( 8 ):
         _setup_vc8( options )
     
     elif options.cc_ver == '7':
@@ -117,7 +114,7 @@ def     SetupTool_aql_tool_msvc( options, os_env, env ):
 
 def     SetupTool_aql_tool_gcc( options, os_env, env ):
     
-    if options.cc_name and options.cc_name != 'gcc':
+    if options.cc_name.isSetNotTo( 'gcc' ):
         return
     
     if options.target_os == 'cygwin':
@@ -129,7 +126,6 @@ def     SetupTool_aql_tool_gcc( options, os_env, env ):
     elif options.target_os == 'linux':
         if (options.target_platform == 'LinuxJava'):
             _setup_gcc_lj( options, os_env )
-    
 
 #//---------------------------------------------------------------------------//
 
@@ -138,7 +134,7 @@ def     _setup_mingw( options, os_env ):
     if options.cc_ver == '4.1':
         cc_path = 'd:/bin/development/compilers/gcc/mingw'
     
-    if (not options.cc_ver) or (options.cc_ver == '4.2'):
+    if options.cc_ver.isNotSetOr( '4.2' ):
         cc_path = 'd:/bin/development/compilers/gcc/mingw_4.2.1_dw2'
         options.gcc_prefix = 'mingw32-'
         options.gcc_suffix = '-dw2'
