@@ -4,7 +4,7 @@ import os.path
 
 #//===========================================================================//
 
-def     isSequence( value, isinstance=isinstance, sequence_types = (list, tuple) ):
+def     isSequence( value, isinstance = isinstance, sequence_types = (list, tuple) ):
     return isinstance( value, sequence_types )
 
 def     isDict( value, isinstance = isinstance, dict_types = dict ):
@@ -30,6 +30,24 @@ def     toSequence( value, separator = '',
             return value.split( separator )
     
     return ( value, )
+
+#//===========================================================================//
+
+def     toList( value,
+                isinstance = isinstance,
+                list = list,
+                tuple = tuple ):
+    
+    if isinstance( value, list ):
+        return value
+    
+    if isinstance( value, tuple ):
+        return list(value)
+    
+    if value is None:
+        return []
+    
+    return [ value ]
 
 #//===========================================================================//
 

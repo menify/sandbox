@@ -498,17 +498,19 @@ class   OptionBase:
         
         kw.setdefault( 'unique', 1 )
         
-        update_set = kw.get( 'update_set', 0 )
+        if is_list:
+            update = kw.setdefault( 'update', 'Append' )
+        else:
+            update = 'Set'
+            kw['update'] = update
+        
+        self.Update = getattr( self, update )
+        
         self.options = kw.get( 'options', _none_options )
         
         self.shared_data = kw
         
         self.conditions = []
-        
-        if (not is_list) or update_set:
-            self.Update = self.Set
-        else:
-            self.Update = self.Append
     
     #//-------------------------------------------------------//
     
@@ -530,10 +532,7 @@ class   OptionBase:
         clone.options = options
         clone.conditions = self.conditions[:]
         
-        if self.Update == self.Set:
-            clone.Update = clone.Set
-        else:
-            clone.Update = clone.Append
+        clone.Update = getattr( clone, clone.shared_data[ 'update' ] )
         
         return clone
     
@@ -563,7 +562,15 @@ class   OptionBase:
     
     def     GetList( self,
                      appendToList = utils.appendToList,
-                     removeFromList = utils.removeFromList ):
+                     removeFromList = utils.removeFromList,
+                     id = id ):
+        
+        cache = self.options.Cache()
+        id_self = id(self)
+        
+        values = cache.get( id_self )
+        if values is not None:
+            return values
         
         values = []
         
@@ -585,31 +592,23 @@ class   OptionBase:
                 elif op == '-':
                     removeFromList( values, v )
         
+        cache[ id_self ] = values
+        
         return values
     
     #//-------------------------------------------------------//
     
-    def    Get( self, id = id, len = len ):
-        
-        cache = self.options.Cache()
-        id_self = id(self)
-        
-        values = cache.get( id_self )
-        if values is not None:
-            return values
+    def     Get( self ):
         
         values = self.GetList()
         
-        if not self.shared_data['is_list']:
-            if not values:
-                values = None
+        if self.shared_data['is_list']:
+            return values
             
-            else:
-                values = values[0]
+        if not values:
+            return None
         
-        cache[ id_self ] = values
-        
-        return values
+        return values[0]
     
     #//-------------------------------------------------------//
     

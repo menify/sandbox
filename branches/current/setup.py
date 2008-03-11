@@ -1,88 +1,87 @@
 
-import sys
-import os.path
-
 import logging
+import utils
 import options
 
-_Info = logging.Info
-_Msg = logging.Msg
 _Warning = logging.Warning
 
 #//===========================================================================//
 
-_user_setup_module = None
+_site_setup = []
+#~ _user_setup = {}
+_tools_setup = {}
+_tools_post_setup = {}
 
-def     _user_module( options ):
+def     ResetSetup( site_setup = _site_setup,
+                    tools_setup = _tools_setup,
+                    tools_post_setup = _tools_post_setup ):
     
-    global _user_setup_module
-    
-    if _user_setup_module is None:
-        
-        #~ _user_setup_module = {}
-        
-        #~ setup_file = os.path.join( os.path.dirname( __file__ ), 'setup', 'aql_setup_site.py' )
-        
-        #~ if os.path.isfile( setup_file ):
-            #~ _Msg( "Using setup file: " + setup_file )
-            #~ execfile( setup_file, {}, _user_setup_module )
-        
-        #~ else:
-            #~ if __debug__:
-                #~ _Info( "Module 'aql_setup_site' has been not found...Skipped." )
-        
-        import imp
-        
-        try:
-            fp, pathname, description = imp.find_module( 'aql_setup_site', options.setup_path.Get() )
-            
-            try:
-                user_mod = imp.load_module( 'aql_setup_site', fp, pathname, description )
-                _user_setup_module = user_mod.__dict__
-                
-                _Msg( "Using setup file: " + user_mod.__file__ )
-                
-            finally:
-                if fp: fp.close()
-        
-        except ImportError, e:
-            _user_setup_module = {}
-            
-            if __debug__:
-                _Info( "Module 'aql_setup_site' has been not found...Skipped." )
-    
-    return _user_setup_module
+    del site_setup[:]
+    tools_setup.clear()
+    tools_post_setup.clear()
 
 #//===========================================================================//
 
-def     _tool_setup( self, env ):
+def     AddSiteSetup( setup_function, _site_setup = _site_setup, toList = utils.toList ):
+    site_setup += toList( setup_function )
+
+def     SiteSetup( options, os_env ):
+    
+    global _site_setup
+    
+    for f in _site_setup:
+        f( options = options, os_env = os_env )
+
+#//===========================================================================//
+
+def     AddToolSetup( tool_name, setup_function, tools_setup = _tools_setup, toList = utils.toList ):
+    
+    current_setup_functions = tools_setup.setdefault( tool_name, [] )
+    tools_setup[ tool_name ] = current_setup_functions + toList( setup_function )
+
+#//===========================================================================//
+
+def     AddToolPostSetup( tool_name, setup_function, tools_post_setup = _tools_post_setup ):
+    AddToolSetup( tool_name, setup_function, tools_post_setup )
+
+#//===========================================================================//
+
+def     _tool_setup( tool_name, env, tools_setup = _tools_setup ):
     
     options = env.get( 'AQL_OPTIONS' )
     if options is None:
         return
     
-    user_module = _user_module( options )
+    options.SetEnv( env )
+    os_env = env['ENV']
     
-    try:
-        user_module[ 'SetupTool_' + self.name ]( options, env['ENV'], env )
-    
-    except (TypeError, KeyError):
-        if __debug__:
-            _Info( "No setup for tool: " + str(self.name) )
+    for f in tools_setup.get( tool_name, []):
+        f( env = env, options = options, os_env = os_env )
+
+#//===========================================================================//
+
+def     _tool_post_setup( tool_name, env, tools_post_setup = _tools_post_setup ):
+    _tool_setup( tool_name, env, tools_post_setup )
+
+#//===========================================================================//
 
 def     _tool_exists( self, env ):
     if self._aql_is_exist is None:
-        _tool_setup( self, env )
+        _tool_setup( self.name, env )
         self._aql_is_exist = self._aql_exists( env )
     
     return self._aql_is_exist
 
+#//===========================================================================//
+
 def     _tool_generate( self, env ):
     if self._aql_is_exist is None:
         if not _tool_exists( self, env ):
-            _Warning( "Tool: '%s' has not been found, but it is added." % (self.name) )
+            _Warning( "Tool: '%s' has not been found, but it has been added." % (self.name) )
     
     self._aql_generate( env )
+    
+    _tool_post_setup( self.name, env )
 
 #//===========================================================================//
 
@@ -97,28 +96,10 @@ def     _init_tool( self, name, toolpath = [], **kw ):
     self.exists = lambda env, self = self: _tool_exists( self, env )
     self.generate = lambda env, self = self: _tool_generate( self, env )
 
-#//-------------------------------------------------------//
+#//===========================================================================//
 
 import SCons.Tool
 
 _SCons_Tool_Tool_init = SCons.Tool.Tool.__init__
 SCons.Tool.Tool.__init__ = _init_tool
 
-#//===========================================================================//
-
-def     Setup( options, os_env ):
-    
-    user_module = _user_module( options )
-    
-    common_setup = user_module.get('Setup')
-    if common_setup is not None:
-        common_setup( options, os_env )
-    
-    prefix = "Setup_"
-    
-    for name in options.setup.Get():
-        
-        function = user_module.get( prefix + name )
-        
-        if function is not None:
-            function( options, os_env )

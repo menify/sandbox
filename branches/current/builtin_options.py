@@ -27,17 +27,17 @@ def     _add_build_options( options ):
                                     is_list = 1, separator = '', unique = 0, group = "Builds setup" )
     
     setup_path = os.environ.get('AQL_SETUP_PATH', aql_rootdir + '/setup' )
-    options.setup_path = _PathOption( initial_value = setup_path, is_list = 1, update_set = 1,
+    options.setup_path = _PathOption( initial_value = setup_path, is_list = 1, update = 'Prepend',
                                       help = "A file path(s) to setup files.\n" \
                                              "By default environment variable AQL_SETUP_PATH is used.",
                                       group = "Builds setup" )
     
     options.tools = _StrOption( initial_value = 'aql_tool_default_cc', separator = ',',
-                                is_list = 1, update_set = 1,
+                                is_list = 1, update = 'Set',
                                 help = "Environment tools", group = "Builds setup" )
     
     tools_path = os.environ.get( 'AQL_TOOLS_PATH', aql_rootdir + '/tools' )
-    options.tools_path = _PathOption( initial_value = tools_path, is_list = 1, update_set = 1,
+    options.tools_path = _PathOption( initial_value = tools_path, is_list = 1, update = 'Prepend',
                                       help = "A file path(s) to tools files.\n" \
                                              "By default environment variable AQL_TOOLS_PATH is used.",
                                       group = "Builds setup" )
@@ -129,7 +129,7 @@ def     _add_variants( options ):
                                   aliases = {'release': 'release_speed'},
                                   separator = ',',
                                   is_list = 1 ,
-                                  update_set = 1,
+                                  update = 'Set',
                                   help = "Active build variants",
                                   group = "Build setup" )
     

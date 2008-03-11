@@ -8,7 +8,7 @@ _EnvOptions = aql.EnvOptions
 
 def     _setup_flags( options ):
     
-    if_ = options.If().cc_name['msvc']
+    if_ = options.If()
     
     if_.debug_symbols['true'].ccflags += '/Z7'
     if_.debug_symbols['true'].linkflags += '/DEBUG'
