@@ -3,6 +3,40 @@
 [http://scons.org SCons] is good software construction tool written on [http://python.org Python].
 For more information about [http://scons.org SCons] go to the [http://scons.org SCons's] site.
 
+This extension implements some useful features for the [http://scons.org SCons]:
+
+=== Features ===
+ * Build variants: debug, release, final, as well as user's build variants
+ * Cross-compilation, support of the host and the target platforms (OS, CPU and etc.)
+ * Abstract settings for common compiliers settings, like: optimization, warning level, debug information, RTTI and etc.
+ * Provide information about the current compilers and their versions
+ * Easy customizable compilation flags for certain targets
+ * Advanced tools configuration
+ * Very flexible options
+
+
+=== Aqualid ===
+All features of this extension are based on its [Options options].
+These options keep almost all information about the build process.
+
+The main feature of the [Options options] is conditional values.
+
+Usually, variable has only one unconditional value.
+They may be set inside conditions, but their values are unconditional.
+
+Opposite to this the [Options options] may have many conditional values.
+This means that the [Options options] remember values with conditions.
+I.e. 
+
+
+
+In [http://www.lib.ru/RUFANT/SHEFNER/girl.txt SciFi reality] (great thanks to [http://en.wikipedia.org/wiki/Vadim_Shefner Vadim Shefner]),
+*[http://www.lib.ru/RUFANT/SHEFNER/girl.txt Aqualid]* is the universal building material.
+
+Options are building material of this extension.
+
+
+
 SCons allows to create cross-platform build scripts.
 The same build scripts are used to build a code by various compilers and/or on various platforms.
 SCons encapsulates specifics of platforms and compilers.
