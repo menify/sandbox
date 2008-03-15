@@ -65,10 +65,15 @@ def     _setup_flags( options ):
     
     if_.warnings_as_errors['on'].ccflags += '-Werror'
     
-    if_.profiling['true'].ccflags += '-pg'
-    if_.profiling['true'].linkflags += '-pg'
+    if_profiling_true = if_.profiling['true']
+    if_profiling_true.ccflags += '-pg -rdynamic'
+    if_profiling_true.linkflags += '-pg -rdynamic'
+    if_profiling_true.linkflags -= '-Wl,--strip-all'
 
 #//---------------------------------------------------------------------------//
+
+def     _add_libs( env ):
+    env.Append( LIBS = ["$_AQL_M_LIBS"] )       # duplicate libs to resolve recursive dependencies
 
 def     _rpathlink( target, source, env, for_signature ):
     flags = ''
@@ -369,11 +374,11 @@ def     _add_link( env ):
 
 #//===========================================================================//
 
-def     _add_ar( env, as_path ):
+def     _add_ar( env, ar_path ):
     
     SCons.Tool.createStaticLibBuilder(env)
 
-    env['AR']          = 'ar'
+    env['AR']          = ar_path
     env['ARFLAGS']     = SCons.Util.CLVar('rc')
     env['ARCOM']       = '$AR $ARFLAGS $TARGET $SOURCES'
     env['LIBPREFIX']   = 'lib'
@@ -446,8 +451,6 @@ def     generate( env ):
     if not _try_gcc( env, options, check_existence_only = False ):
         return
     
-    #~ _update_os_env( env, options )
-    
     #//-------------------------------------------------------//
     
     # target platform specific settings
@@ -479,6 +482,7 @@ def     generate( env ):
             env['__RPATH'] = '$_RPATH'
     
     _add_rpath( env )
+    _add_libs( env )
     
     env['ARCOM']        = "${TEMPFILE('" + env['ARCOM']     + "')}"
     env['LINKCOM']      = "${TEMPFILE('" + env['LINKCOM']   + "')}"
@@ -489,6 +493,7 @@ def     generate( env ):
     env['SHCCCOM']      = "${TEMPFILE('" + env['SHCCCOM']   + "')}"
     
     _setup_flags( options )
+
 
 #//---------------------------------------------------------------------------//
 

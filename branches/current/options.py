@@ -987,8 +987,8 @@ class   IntOption (OptionBase):
     
     def     __init__( self, **kw ):
         
-        kw['min'] = int( kw.setdefault( 'min', -(sys.maxint - 1) ) )
-        kw['max'] = int( kw.setdefault( 'max', sys.maxint ) )
+        kw['min'] = int( kw.get( 'min', -(sys.maxint - 1) ) )
+        kw['max'] = int( kw.get( 'max', sys.maxint ) )
         
         if __debug__:
             if kw['min'] > kw['max']:

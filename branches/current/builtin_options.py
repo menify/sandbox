@@ -32,8 +32,7 @@ def     _add_build_options( options ):
                                              "By default environment variable AQL_SETUP_PATH is used.",
                                       group = "Builds setup" )
     
-    options.tools = _StrOption( initial_value = 'aql_tool_default_cc', separator = ',',
-                                is_list = 1, update = 'Set',
+    options.tools = _StrOption( separator = ',', is_list = 1,
                                 help = "Environment tools", group = "Builds setup" )
     
     tools_path = os.environ.get( 'AQL_TOOLS_PATH', aql_rootdir + '/tools' )
@@ -119,6 +118,8 @@ def     _set_build_dir( options ):
     
     options.build_dir += '/'
     options.build_dir += options.build_variant
+    
+    bd_if.profiling['true'].build_dir += '_prof'
 
 #//===========================================================================//
 

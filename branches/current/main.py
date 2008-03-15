@@ -97,8 +97,6 @@ def     _cpppath_lib( target, source, env, for_signature ):
 
 def     _update_env_flags( env ):
     
-    env['_CPPDEFFLAGS'] = '${_concat(CPPDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)}'
-    
     env['_AQL_M_CFLAGS']        = lambda target, source, env, for_signature: _EnvOptions(env).cflags.GetList()
     env['_AQL_M_CCFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).ccflags.GetList()
     env['_AQL_M_CXXFLAGS']      = lambda target, source, env, for_signature: _EnvOptions(env).cxxflags.GetList()
@@ -111,6 +109,8 @@ def     _update_env_flags( env ):
     env['_AQL_M_LIBS']          = lambda target, source, env, for_signature: _EnvOptions(env).libs.GetList()
     
     env['_AQL_M_CPPINCFLAGS']   = _cpppath_lib
+    
+    env['_CPPDEFFLAGS'] = '${_concat(CPPDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)}'
     
     env.Append( CFLAGS = [ "$_AQL_M_CFLAGS"],
                 CCFLAGS = ["$_AQL_M_CCFLAGS"],
@@ -130,12 +130,7 @@ def     _update_env_flags( env ):
 
 #//---------------------------------------------------------------------------//
 
-def     Env( options, tools = None, **kw ):
-    
-    kw['AQL_OPTIONS'] = options
-    
-    if tools is None:
-        tools = options.tools.GetList()
+def     Env( options, **kw  ):
     
     os_env = kw.setdefault( 'ENV', {} )
     os_env.setdefault( 'PATH', '' )
@@ -146,10 +141,12 @@ def     Env( options, tools = None, **kw ):
     except KeyError:
         pass
     
+    kw['AQL_OPTIONS'] = options
+    
     _Setup( options, os_env )
     
     env = _Environment( platform = None,
-                        tools = tools,
+                        tools = options.tools.GetList(),
                         toolpath = options.tools_path.GetList(),
                         options = None,
                         **kw )

@@ -8,7 +8,7 @@ _Warning = logging.Warning
 #//===========================================================================//
 
 _site_setup = []
-#~ _user_setup = {}
+_user_setup = {}
 _tools_setup = {}
 _tools_post_setup = {}
 
@@ -23,7 +23,7 @@ def     ResetSetup( site_setup = _site_setup,
 #//===========================================================================//
 
 def     AddSiteSetup( setup_function, _site_setup = _site_setup, toList = utils.toList ):
-    site_setup += toList( setup_function )
+    _site_setup += toList( setup_function )
 
 def     SiteSetup( options, os_env ):
     
@@ -31,6 +31,19 @@ def     SiteSetup( options, os_env ):
     
     for f in _site_setup:
         f( options = options, os_env = os_env )
+    
+    UserSetup( options, os_env )
+
+#//===========================================================================//
+
+def     AddUserSetup( setup_id, setup_function, _user_setup = _user_setup ):
+    AddToolSetup( setup_id, setup_function, _user_setup )
+
+def     UserSetup( options, os_env, _user_setup = _user_setup ):
+    
+    for s in options.setup.GetList():
+        for f in _user_setup.get( s, [] ):
+            f( options = options, os_env = os_env )
 
 #//===========================================================================//
 
@@ -55,7 +68,7 @@ def     _tool_setup( tool_name, env, tools_setup = _tools_setup ):
     options.SetEnv( env )
     os_env = env['ENV']
     
-    for f in tools_setup.get( tool_name, []):
+    for f in tools_setup.get( tool_name, [] ):
         f( env = env, options = options, os_env = os_env )
 
 #//===========================================================================//
