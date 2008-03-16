@@ -8,74 +8,84 @@ This extension implements some useful features for the [http://scons.org SCons]:
 === Features ===
  * Build variants: debug, release, final, as well as user's build variants
  * Cross-compilation, support of the host and the target platforms (OS, CPU and etc.)
- * Abstract settings for common compiliers settings, like: optimization, warning level, debug information, RTTI and etc.
+ * Abstract settings for common compilers settings, like: optimization, warning level, debug information, RTTI and etc.
  * Provide information about the current compilers and their versions
  * Easy customizable compilation flags for certain targets
- * Advanced tools configuration
+ * Dynamic configuration of tools
  * Very flexible options
-
+ * Any option can be changed via a configuration file or/and a command line
+ * and more
 
 === Aqualid ===
 All features of this extension are based on its [Options options].
 These options keep almost all information about the build process.
 
-The main feature of the [Options options] is conditional values.
+The main feature of the options is conditional values.
 
 Usually, variable has only one unconditional value.
 They may be set inside conditions, but their values are unconditional.
 
-Opposite to this the [Options options] may have many conditional values.
-This means that the [Options options] remember values with conditions.
-I.e. 
+Opposite to this, the options may have many conditional values (as well as unconditional values).
+This means that the options remember values with conditions.
 
+The current value is only one, but it depends from conditions.
+Conditions are tested during accessing to an [Options option].
 
+For example:
+    Usual value:
+        {{{
+        if build_variant == 'release':
+            optimization = 'speed'
+            debug_symbols = 'off'
+            runtime_debugging = 'off'
+        
+        elif build_variant == 'debug':
+            optimization = 'off'
+            debug_symbols = 'on'
+            runtime_debugging = 'on'
+        }}}
+    
+    Conditional values:
+        {{{
+        release = options.If().build_variant['release']  # generate a release condition
+        release.optimization        = 'speed'
+        release.debug_symbols       = 'off'
+        release.runtime_debugging   = 'off'
+        
+        debug = options.If().build_variant['debug']     # generate a debug condition
+        debug.optimization        = 'off'
+        debug.debug_symbols       = 'on'
+        debug.runtime_debugging   = 'on'
+        }}}
+
+The conditional values remember conditions. This means that a value is valid only if its condition is true.
+
+For example:
+    {{{
+    options.build_variant = 'release'
+    print "optimization:", options.optimization
+    print "debug_symbols:", options.debug_symbols
+    
+    options.build_variant = 'debug'
+    print "optimization:", options.optimization
+    print "debug_symbols:", options.debug_symbols
+    }}}
+    
+Result will be:
+    {{{
+    optimization: speed
+    debug_symbols: off
+    
+    optimization: off
+    debug_symbols: on
+    }}}
+
+The values of `optimization` and `debug_symbols` depends from `build_variant`.
+
+Conditional values make the options very flexible.
+They help to easily setup different and complex build variants.
 
 In [http://www.lib.ru/RUFANT/SHEFNER/girl.txt SciFi reality] (great thanks to [http://en.wikipedia.org/wiki/Vadim_Shefner Vadim Shefner]),
 *[http://www.lib.ru/RUFANT/SHEFNER/girl.txt Aqualid]* is the universal building material.
 
-Options are building material of this extension.
-
-
-
-SCons allows to create cross-platform build scripts.
-The same build scripts are used to build a code by various compilers and/or on various platforms.
-SCons encapsulates specifics of platforms and compilers.
-And it doesn't provide any information about what compiler is used or what platform the code is being compiled for
-(actually SCons assumes that the target platform is the host platform).
-
-It's fine if the project doesn't need this information.
-But usually for big cross-platform projects this information is very important.
-
-Sometimes we need to use some specific compiler's options according to the current compiler and/or the target platform
-(it may be not equal to the current platform).
-
-Some files should be compiled only for the specific platforms.
-And etc.
-
-This extension helps to get such (and other) information from the build scripts.
-
-
-=== Features ===
- * Build variants: debug, release, final, as well as user's build variants
- * Cross-compilation, support host and target platforms
- * Easy customizable compilation flags for certain targets
- * Specific OS environment setup for any tool
- * Very flexible options
-
-=== Aqualid ===
-
-Standard SCons's options are not enough flexible.
-So more flexible [Options options] were implemented (these options are most important part of this extension).
-
-Aqualid options keep a lot of information about the build process.
-
-And these options control a building process of all targets.
-
-In [http://www.lib.ru/RUFANT/SHEFNER/girl.txt SciFi reality] (great thanks to [http://en.wikipedia.org/wiki/Vadim_Shefner Vadim Shefner]),
-*[http://www.lib.ru/RUFANT/SHEFNER/girl.txt Aqualid]* is the universal building material.
-
-Options are building material of this extension.
-
-=== [Using How to use] ===
-
-
+The options are building material of this extension.
