@@ -80,7 +80,7 @@ Result will be:
     debug_symbols: on
     }}}
 
-The values of `optimization` and `debug_symbols` depends from `build_variant`.
+The values of `optimization` and `debug_symbols` depend from `build_variant`.
 
 Conditional values make the options very flexible.
 They help to easily setup different and complex build variants.
