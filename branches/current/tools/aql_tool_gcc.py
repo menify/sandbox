@@ -274,7 +274,7 @@ def     _add_gcc( env, gcc_path ):
     
     env['OBJPREFIX']      = ''
     env['OBJSUFFIX']      = '.o'
-    env['SHOBJPREFIX']    = '$OBJPREFIX'
+    env['SHOBJPREFIX']    = '${OBJPREFIX}'
     env['SHOBJSUFFIX']    = '.os'
     env['STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME'] = 0
     
@@ -354,7 +354,7 @@ def     _add_link( env ):
     env['PROGPREFIX']     = ''
     env['PROGSUFFIX']     = ''
     
-    env['SHLIBPREFIX']    = '$LIBPREFIX'
+    env['SHLIBPREFIX']    = '${LIBPREFIX}'
     env['SHLIBSUFFIX']    = '.so'
     
     if env['PLATFORM'] == 'hpux':
@@ -367,8 +367,8 @@ def     _add_link( env ):
     # setting them the same means that LoadableModule works everywhere.
     SCons.Tool.createLoadableModuleBuilder(env)
     env['LDMODULE'] = '$SHLINK'
-    env['LDMODULEPREFIX'] = '$SHLIBPREFIX' 
-    env['LDMODULESUFFIX'] = '$SHLIBSUFFIX' 
+    env['LDMODULEPREFIX'] = '${SHLIBPREFIX}'
+    env['LDMODULESUFFIX'] = '${SHLIBSUFFIX}'
     env['LDMODULEFLAGS'] = '$SHLINKFLAGS'
     env['LDMODULECOM'] = '$SHLINKCOM'
 
@@ -486,7 +486,10 @@ def     generate( env ):
     
     env['ARCOM']        = "${TEMPFILE('" + env['ARCOM']     + "')}"
     env['LINKCOM']      = "${TEMPFILE('" + env['LINKCOM']   + "')}"
-    env['SHLINKCOM']    = "${TEMPFILE('" + env['SHLINKCOM'] + "')}"
+    
+    if target_os != 'windows':
+        env['SHLINKCOM']    = "${TEMPFILE('" + env['SHLINKCOM'] + "')}"
+    
     env['CXXCOM']       = "${TEMPFILE('" + env['CXXCOM']    + "')}"
     env['SHCXXCOM']     = "${TEMPFILE('" + env['SHCXXCOM']  + "')}"
     env['CCCOM']        = "${TEMPFILE('" + env['CCCOM']     + "')}"
@@ -539,7 +542,7 @@ def     _setup_env_windows( env ):
     
     env.Append(SHLIBEMITTER = [shlib_emitter])
     
-    env['WIN32DEFPREFIX']        = ''
+    env['WIN32DEFPREFIX']        = '${SHLIBPREFIX}'
     env['WIN32DEFSUFFIX']        = '.def'
     env['WINDOWSDEFPREFIX']      = '${WIN32DEFPREFIX}'
     env['WINDOWSDEFSUFFIX']      = '${WIN32DEFSUFFIX}'
@@ -569,6 +572,7 @@ def shlib_generator(target, source, env, for_signature):
     if implib: cmd.append('-Wl,--out-implib,'+implib.get_string(for_signature))
     
     def_target = env.FindIxes(target, 'WINDOWSDEFPREFIX', 'WINDOWSDEFSUFFIX')
+    
     if def_target: cmd.append('-Wl,--output-def,'+def_target.get_string(for_signature))
     
     return [cmd]

@@ -19,8 +19,7 @@ def     _get_setup_modules( options,
                             isfile = os.path.isfile,
                             isdir = os.path.isdir,
                             path_join = os.path.join,
-                            glob = glob.glob,
-                            _setup_modules = _setup_modules ):
+                            glob = glob.glob ):
     
     global _setup_path
     
@@ -43,12 +42,13 @@ def     _get_setup_modules( options,
                     setup_modules.append( m )
     
     _setup_path = setup_path
-
+    
     return setup_modules
 
 #//===========================================================================//
 
 def     _load_setup_modules( options,
+                             ResetSetup = setup.ResetSetup,
                              _basename = os.path.basename,
                              _splitext = os.path.splitext,
                              _dirname = os.path.dirname):
@@ -58,6 +58,8 @@ def     _load_setup_modules( options,
     setup_modules = _get_setup_modules( options )
     if setup_modules == _setup_modules:
         return
+    
+    ResetSetup()
     
     for module_file in setup_modules:
         
@@ -82,8 +84,6 @@ def     _load_setup_modules( options,
 def     Init( options, os_env,
               ResetSetup = setup.ResetSetup,
               SiteSetup = setup.SiteSetup ):
-    
-    ResetSetup()
     
     _load_setup_modules( options )
     

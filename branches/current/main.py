@@ -135,11 +135,10 @@ def     Env( options, **kw  ):
     os_env = kw.setdefault( 'ENV', {} )
     os_env.setdefault( 'PATH', '' )
     
-    try:
-        os_env.setdefault( 'TEMP', os.environ['TEMP'] )
-        os_env.setdefault( 'TMP', os.environ['TMP'] )
-    except KeyError:
-        pass
+    for t in ['TEMP', 'TMP']:
+        tmp = os.environ.get( t )
+        if tmp:
+            os_env.setdefault( t, tmp )
     
     kw['AQL_OPTIONS'] = options
     
@@ -158,6 +157,8 @@ def     Env( options, **kw  ):
 #//===========================================================================//
 
 def     BuildVariant( options, scriptfile = None, **kw ):
+    
+    logging.LogLevel( options.log_level.Get() )
     
     kw = kw.copy()
     
@@ -208,6 +209,6 @@ def     Build( options = None, scriptfile = None, **kw ):
     if builds:
         build_variants.Set( builds )
     
-    for bv in options.build_variants.GetList():
+    for bv in build_variants.GetList():
         BuildVariant( options = options( build_variant = bv ), scriptfile = scriptfile, **kw )
 

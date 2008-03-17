@@ -4,6 +4,7 @@ import utils
 import options
 
 _Warning = logging.Warning
+_Info = logging.Info
 
 #//===========================================================================//
 
@@ -13,10 +14,14 @@ _tools_setup = {}
 _tools_post_setup = {}
 
 def     ResetSetup( site_setup = _site_setup,
+                    user_setup = _user_setup,
                     tools_setup = _tools_setup,
                     tools_post_setup = _tools_post_setup ):
+    if __debug__:
+        _Info( "ResetSetup" )
     
     del site_setup[:]
+    user_setup.clear()
     tools_setup.clear()
     tools_post_setup.clear()
 
@@ -30,6 +35,8 @@ def     SiteSetup( options, os_env ):
     global _site_setup
     
     for f in _site_setup:
+        if __debug__:
+            _Info( "SiteSetup: " + f.__name__ )
         f( options = options, os_env = os_env )
     
     UserSetup( options, os_env )
@@ -42,6 +49,10 @@ def     AddUserSetup( setup_id, setup_function, _user_setup = _user_setup ):
 def     UserSetup( options, os_env, _user_setup = _user_setup ):
     
     for s in options.setup.GetList():
+        
+        if __debug__:
+            _Info( "User setup: " + s )
+        
         for f in _user_setup.get( s, [] ):
             f( options = options, os_env = os_env )
 
@@ -69,6 +80,8 @@ def     _tool_setup( tool_name, env, tools_setup = _tools_setup ):
     os_env = env['ENV']
     
     for f in tools_setup.get( tool_name, [] ):
+        if __debug__:
+            _Info( "Setup tool: " + tool_name + ' (' + f.__name__ + ')' )
         f( env = env, options = options, os_env = os_env )
 
 #//===========================================================================//

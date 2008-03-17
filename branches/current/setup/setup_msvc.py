@@ -31,7 +31,7 @@ def     _setup_vc6( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     _setup_msvc_psdk( options, env, os_env, getShellScriptEnv = aql.utils.getShellScriptEnv ):
+def     _setup_msvc_psdk( os_env, getShellScriptEnv = aql.utils.getShellScriptEnv ):
     
     getShellScriptEnv( os_env, "d:/bin/development/psdk/SetEnv.Bat /XP32  /RETAIL" )
 
@@ -51,10 +51,11 @@ def     _setup_vc71( options, env, os_env ):
 
 #//---------------------------------------------------------------------------//
 
-def     _setup_vc8( options, env, os_env ):
-    _GetShellScriptEnv( os_env, "%VS80COMNTOOLS%vsvars32.bat" )
+def     _setup_vc8( options, os_env ):
     
-    _setup_msvc_psdk( options )
+    aql.utils.getShellScriptEnv( os_env, "%VS80COMNTOOLS%vsvars32.bat" )
+    
+    #~ _setup_msvc_psdk( os_env )
 
 #//---------------------------------------------------------------------------//
 
@@ -67,7 +68,7 @@ def     setup_msvc( options, os_env, env ):
         return
     
     if options.cc_ver.isNotSetOr( 8 ):
-        _setup_vc8( options )
+        _setup_vc8( options, os_env )
     
     elif options.cc_ver == '7':
         _setup_vc71( options )

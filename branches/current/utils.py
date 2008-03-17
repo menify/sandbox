@@ -82,7 +82,7 @@ def     getShellScriptEnv( os_env, script ):
     
     if (sys.platform == "win32"):
         shell = os_environ.get("COMSPEC", "cmd.exe")
-        script = 'call ' + script
+        script = 'call "' + script + '"'
     else:
         shell = '/bin/sh'
         script = '. ' + script
@@ -106,6 +106,7 @@ def     getShellScriptEnv( os_env, script ):
             current = os_environ.get( name )
             if (current is None) or (value != current):
                 os_env[ name ] = value
+
 
 #//===========================================================================//
 

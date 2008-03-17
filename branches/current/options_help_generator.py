@@ -26,7 +26,7 @@ def     GenerateOptionsHelp( options, detailed_help ):
     prefix = "  "
     
     help = "\nOptions to control builds.\n" \
-           "The values can be overridden via command line or a config file.\n" \
+           "The values can be overridden via a command line.\n" \
            "Like this: scons optimization=speed debug_info=1 cc_name=gcc\n" \
            "Or within your build scripts or config files.\n"
     help += '=' * max( map(len, help.split('\n')) ) + '\n'

@@ -40,7 +40,12 @@ def     _add_build_options( options ):
                                       help = "A file path(s) to tools files.\n" \
                                              "By default environment variable AQL_TOOLS_PATH is used.",
                                       group = "Builds setup" )
-
+    
+    log_level = _IntOption( initial_value = 1, help = "AQL log level", group = "Builds setup" )
+    options.log_level = log_level
+    options.ll = log_level
+    
+    
 #//===========================================================================//
 
 def     _add_platform_options( options ):
@@ -59,7 +64,7 @@ def     _add_platform_options( options ):
     options.target_os_version = _VersionOption( help = "The target system's release version, e.g. '2.2.0' or '5.1.2600'",
                                                 group = "Platform")
     
-    options.target_machine = _EnumOption( allowed_values = ('unknown', 'x86-32', 'x86-64','arm' ),
+    options.target_machine = _EnumOption( allowed_values = ('x86-32', 'x86-64','arm' ),
                                           aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32',
                                                      'i586':'x86-32', 'pc':'x86-32', 'x86':'x86-32'},
                                           help = "The target machine type, e.g. 'i386'", 

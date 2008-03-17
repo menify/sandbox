@@ -73,7 +73,7 @@ def     _try_tools( env, options, check_exists_only = 0 ):
     _Tool = SCons.Tool.Tool
     
     for t in ('msvc', 'mslink', 'mslib'):
-        tool = _Tool( t )
+        tool = _Tool( t, toolpath = env.get('toolpath', []) )
         if not tool.exists( env ):
             return 0
         
@@ -88,7 +88,8 @@ def     generate( env ):
     
     options = _EnvOptions(env)
     
-    _try_tools( env, options )
+    if not _try_tools( env, options ):
+        return
     
     options.cc_name = 'msvc'
     options.cc_ver = env['MSVS_VERSION']
