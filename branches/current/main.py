@@ -35,10 +35,11 @@ _GenerateOptionsHelp = options_help_generator.GenerateOptionsHelp
 
 #//===========================================================================//
 
-SCons.Script.AddOption('--h', default = False,
-                        dest='detailed_help',
-                        action="store_true",
-                        help='Print a detailed help message.')
+SCons.Script.AddOption('--h',
+                        default = False,
+                        dest = 'detailed_help',
+                        action = "store_true",
+                        help = 'Print a detailed help message.')
 
 _detailed_help = SCons.Script.GetOption('detailed_help')
 

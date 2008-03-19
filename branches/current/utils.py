@@ -51,13 +51,18 @@ def     toList( value,
 
 #//===========================================================================//
 
-def     appendToList( values_list, values, unique ):
-    if unique:
-        for v in values:
-            if not v in values_list:
-                values_list.append( v )
-    else:
+def     appendToListUnique( values_list, values ):
+    for v in values:
+        if not v in values_list:
+            values_list.append( v )
+
+#//===========================================================================//
+
+def     appendToList( values_list, values, isSequence = isSequence ):
+    if isSequence( values ):
         values_list += values
+    else:
+        values_list.append( values )
 
 #//===========================================================================//
 

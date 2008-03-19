@@ -253,18 +253,24 @@ class   _OptionValue:
         self.name = value.Names()[0]
         
         if __debug__:
-            option.Convert( value.GetList() )      # check the current value
+            map( option._convert_value, value.GetList() ) # check the current value
         
     #//-------------------------------------------------------//
     
-    def     Get( self, option, opt_current_value ):
+    def     Get( self, option, opt_current_value, appendToList = utils.appendToList ):
         
         opt = option.options[ self.name ]
         
         if opt is option:
             return opt_current_value
         
-        return  map( option._convert_value, opt.GetList() )
+        _convert_value = option._convert_value
+        values = []
+        
+        for v in opt.GetList():
+            appendToList( values, _convert_value( v ) )
+        
+        return values
 
 #//===========================================================================//
 
@@ -335,16 +341,37 @@ class   _Value:
 #//===========================================================================//
 #//===========================================================================//
 
-def     _lt( op, value1, value2 ):          return value1 <  value2.GetList( op, value1 )
-def     _le( op, value1, value2 ):          return value1 <= value2.GetList( op, value1 )
-def     _eq( op, value1, value2 ):          return value1 == value2.GetList( op, value1 )
-def     _ne( op, value1, value2 ):          return value1 != value2.GetList( op, value1 )
-def     _gt( op, value1, value2 ):          return value1 >  value2.GetList( op, value1 )
-def     _ge( op, value1, value2 ):          return value1 >= value2.GetList( op, value1 )
+# All below condtions assumes that 'None' (the empty list) can be anyone
+
+def     _lt( op, value1, value2, len = len ):
+    if len(value1) == 0:    return 0
+    return value1 <  value2.GetList( op, value1 )
+
+def     _le( op, value1, value2, len = len ):
+    if len(value1) == 0:    return 1
+    return value1 <= value2.GetList( op, value1 )
+
+def     _eq( op, value1, value2, len = len ):
+    if len(value1) == 0:    return 1
+    return value1 == value2.GetList( op, value1 )
+
+def     _ne( op, value1, value2, len = len ):
+    if len(value1) == 0:    return 0
+    return value1 != value2.GetList( op, value1 )
+
+def     _gt( op, value1, value2, len = len ):
+    if len(value1) == 0:    return 0
+    return value1 >  value2.GetList( op, value1 )
+
+def     _ge( op, value1, value2, len = len ):
+    if len(value1) == 0:    return 1
+    return value1 >= value2.GetList( op, value1 )
 
 #//-------------------------------------------------------//
 
-def     _has( op, values1, values2 ):
+def     _has( op, values1, values2, len = len ):
+    
+    if len(values1) == 0:    return 1
     
     for v in values2.GetList( op, values1 ):
         if v not in values1:
@@ -354,7 +381,9 @@ def     _has( op, values1, values2 ):
 
 #//-------------------------------------------------------//
 
-def     _has_any( op, values1, values2 ):
+def     _has_any( op, values1, values2, len = len ):
+    
+    if len(values1) == 0:    return 1
     
     for v in values2.GetList( op, values1 ):
         if v in values1:
@@ -364,11 +393,13 @@ def     _has_any( op, values1, values2 ):
 
 #//-------------------------------------------------------//
 
-def     _one_of( op, value1, values2 ):
+def     _one_of( op, values1, values2, len = len ):
     
-    values2 = values2.GetList( op, value1 )
+    if len(values1) == 0:    return 1
     
-    for v in value1:
+    values2 = values2.GetList( op, values1 )
+    
+    for v in values1:
         if v not in values2:
             return 0
     
@@ -561,7 +592,7 @@ class   OptionBase:
     #//-------------------------------------------------------//
     
     def     GetList( self,
-                     appendToList = utils.appendToList,
+                     appendToList = utils.appendToListUnique,
                      removeFromList = utils.removeFromList,
                      id = id ):
         
@@ -574,7 +605,11 @@ class   OptionBase:
         
         values = []
         
-        unique = self.shared_data['unique']
+        if not self.shared_data['unique']:
+            def     appendListToList( values_list, values ):
+                values_list += values
+            appendToList = appendListToList
+        
         options = self.options
         
         for c in self.conditions:
@@ -587,7 +622,7 @@ class   OptionBase:
                     values = v
                 
                 elif op == '+':
-                    appendToList( values, v, unique )
+                    appendToList( values, v )
                 
                 elif op == '-':
                     removeFromList( values, v )
@@ -722,24 +757,6 @@ class   OptionBase:
     def     __nonzero__( self ):
         if self.Get(): return 1
         return 0
-    
-    #//-------------------------------------------------------//
-    
-    def     isSetNotTo( self, value ):
-        self_value = self.GetList()
-        
-        if self_value:
-            value = _Value( value, self ).GetList( self, self_value )
-            
-            if self_value != value:
-                return True
-        
-        return False
-    
-    #//-------------------------------------------------------//
-    
-    def     isNotSetOr( self, value ):
-        return not self.isSetNotTo( value )
     
     #//-------------------------------------------------------//
     
@@ -1008,7 +1025,8 @@ class   IntOption (OptionBase):
             _Error( "Invalid type of value: %s, type: %s" % (val, type(val)) )
         
         if (int_val < self.shared_data['min']) or (int_val > self.shared_data['max']):
-            _Error( "Invalid value: %s" % (val) )
+            _Error( "The value: %s for option: '%s' is out of range: [%d..%d]" % \
+                    (val, self.Names()[0], self.shared_data['min'], self.shared_data['max']) )
         
         return int_val
     

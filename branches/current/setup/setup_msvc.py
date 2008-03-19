@@ -61,13 +61,10 @@ def     _setup_vc8( options, os_env ):
 
 def     setup_msvc( options, os_env, env ):
     
-    if options.cc_name.isSetNotTo( 'msvc' ):
+    if (options.cc_name != 'msvc') or (options.target_os != 'windows'):
         return
     
-    if options.target_os.isSetNotTo( 'windows' ):
-        return
-    
-    if options.cc_ver.isNotSetOr( 8 ):
+    if options.cc_ver == '8':
         _setup_vc8( options, os_env )
     
     elif options.cc_ver == '7':

@@ -3,6 +3,7 @@ import os
 
 import logging
 import options
+import local_host
 
 _Error = logging.Error
 _Options = options.Options
@@ -74,9 +75,12 @@ def     _add_platform_options( options ):
                                      help = "The target real processor name, e.g. 'amdk6'.",
                                      group = "Platform" )
     
-    options.target_cpu_flags = _StrOption(  ignore_case = 1, is_list = 1,
-                                            help = "The target CPU flags, e.g. 'mmx', 'sse2'.",
-                                            group = "Platform" )
+    options.target_cpu_flags = _StrOption( ignore_case = 1, is_list = 1,
+                                           help = "The target CPU flags, e.g. 'mmx', 'sse2'.",
+                                           group = "Platform" )
+    
+    if local_host.os:       options.target_os = local_host.os
+    if local_host.machine:  options.target_machine = local_host.machine
 
 #//===========================================================================//
 

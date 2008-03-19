@@ -4,6 +4,12 @@ import platform
 
 import version
 
+machine = platform.machine().lower()
+
+cpu = platform.processor().lower()
+
+cpu_flags = []
+
 if sys.platform == 'cygwin':
     os = 'cygwin'
 else:
@@ -12,12 +18,6 @@ else:
 os_release = platform.release().lower()
 
 os_version = version.Version( platform.version() )
-
-machine = platform.machine().lower()
-
-cpu = platform.processor().lower()
-
-cpu_flags = []
 
 platform = sys.platform.lower()
 

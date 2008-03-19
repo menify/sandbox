@@ -167,15 +167,15 @@ def     _get_gcc_specs( env, options, gcc, check_existence_only ):
     if target_os.startswith('linux'):       target_os = 'linux'
     if target_machine.startswith('arm'):    target_machine = 'arm'
     
-    if options.cc_ver.              isSetNotTo( cc_ver ) or \
-       options.gcc_target.          isSetNotTo( target ) or \
-       options.target_os.           isSetNotTo( target_os ) or \
-       options.target_os_release.   isSetNotTo( target_os_release ) or \
-       options.target_os_version.   isSetNotTo( target_os_version ) or \
-       options.target_machine.      isSetNotTo( target_machine ) or \
-       options.target_cpu.          isSetNotTo( target_cpu ):
+    if options.cc_ver               != cc_ver or \
+       options.gcc_target           != target or \
+       options.target_os            != target_os or \
+       options.target_os_release    != target_os_release or \
+       options.target_os_version    != target_os_version or \
+       options.target_machine       != target_machine or \
+       options.target_cpu           != target_cpu:
        
-       return False
+       return 0
     
     if not check_existence_only:
         options.target_os = target_os
@@ -188,14 +188,14 @@ def     _get_gcc_specs( env, options, gcc, check_existence_only ):
         options.cc_ver = cc_ver
         options.gcc_target = target
     
-    return True
+    return 1
 
 #//---------------------------------------------------------------------------//
 
 def     _try_gcc( env, options, check_existence_only ):
     
-    if options.cc_name.isSetNotTo('gcc'):
-        return False
+    if options.cc_name != 'gcc':
+        return 0
     
     gcc_prefix = str(options.gcc_prefix)
     gcc_suffix = str(options.gcc_suffix)
@@ -206,10 +206,10 @@ def     _try_gcc( env, options, check_existence_only ):
     gcc_path = _where_is_program( env, gcc )
     
     if not gcc_path:
-        return False
+        return 0
         
     if not _get_gcc_specs( env, options, gcc_path, check_existence_only ):
-        return False
+        return 0
     
     path = os.path.dirname( gcc_path )
     
@@ -225,12 +225,12 @@ def     _try_gcc( env, options, check_existence_only ):
             if t == 'ranlib':
                 continue
             
-            return False
+            return 0
         
         if not check_existence_only:
             f( env, tool_path )
     
-    return True
+    return 1
 
 #//===========================================================================//
 
@@ -448,7 +448,7 @@ def     generate( env ):
     
     options = _EnvOptions(env)
     
-    if not _try_gcc( env, options, check_existence_only = False ):
+    if not _try_gcc( env, options, check_existence_only = 0 ):
         return
     
     #//-------------------------------------------------------//
@@ -501,7 +501,7 @@ def     generate( env ):
 #//---------------------------------------------------------------------------//
 
 def exists( env ):
-    return _try_gcc( env, _EnvOptions(env), check_existence_only = True )
+    return _try_gcc( env, _EnvOptions(env), check_existence_only = 1 )
 
 
 #//===========================================================================//
