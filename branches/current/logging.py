@@ -31,16 +31,16 @@ def     Msg( msg ):
         print 'AQL: ***', msg
 
 def     Warning( msg ):
-    if LogLevel() > 0:
-        print 'AQL Warning: ***', msg
+    if _log_level > 0:
+        print 'AQL: Warning: ***', msg
 
 def     Info( msg ):
-    if LogLevel() > 1:
-        print 'AQL Information: ***', msg
+    if _log_level > 1:
+        print 'AQL: Info: ***', msg
 
 def     DebugMsg( exception, traceback_limit = 50 ):
     if __debug__:
-        if LogLevel() > 2:
+        if _log_level > 2:
             try:
                 raise ZeroDivisionError
             except ZeroDivisionError:

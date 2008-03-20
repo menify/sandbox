@@ -35,11 +35,11 @@ _GenerateOptionsHelp = options_help_generator.GenerateOptionsHelp
 
 #//===========================================================================//
 
-SCons.Script.AddOption('--h',
+SCons.Script.AddOption( '--h',
                         default = False,
                         dest = 'detailed_help',
                         action = "store_true",
-                        help = 'Print a detailed help message.')
+                        help = 'Print a detailed help message.' )
 
 _detailed_help = SCons.Script.GetOption('detailed_help')
 
@@ -186,6 +186,8 @@ def     BuildVariant( options, scriptfile = None, **kw ):
         aliases += bv_aliases
     
     env.Alias( aliases, kw['build_dir'] )
+    
+    return env
 
 #//---------------------------------------------------------------------------//
 
