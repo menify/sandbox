@@ -272,7 +272,7 @@ def     _add_code_generation_options( options ):
 
 def     _add_runtime_options( options ):
     
-    runtime_linking = _EnumOption( initial_value = 'static', allowed_values = ['static', 'shared'],
+    runtime_linking = _EnumOption( initial_value = 'default', allowed_values = ['default', 'static', 'shared'],
                                    aliases = {'dynamic': 'shared'},
                                     help = 'Linkage type of runtime library', group = "Runtime" )
     options.runtime_linking = runtime_linking

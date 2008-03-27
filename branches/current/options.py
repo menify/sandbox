@@ -160,8 +160,11 @@ class Options:
         
         if isString( args ):
             filename = args
-            args = {}
+            args = {'options':self}
             execfile( filename, {}, args )
+            
+            if args['options'] is self:
+                del args['options']
         
         if isDict( args ):
             set_option = self.__set_option
@@ -199,6 +202,8 @@ class Options:
     def     Clone( self ):
         
         options = Options()
+        
+        options.__dict__['__env'] = self.__dict__['__env']
         
         for ident, id_list     in    self.__dict__['__ids_dict'].iteritems():
             
@@ -247,36 +252,48 @@ class Options:
 #//===========================================================================//
 #//===========================================================================//
 
+def     _convert_value( option, value,
+                        len = len,
+                        toSequence = utils.toSequence,
+                        appendToList = utils.appendToList ):
+    
+    convert_value = option._convert_value
+    values = []
+    
+    for v in toSequence( value ):
+        appendToList( values, convert_value( v ) )
+    
+    if (not option.shared_data['is_list']) and (len(values) != 1):
+        _Error("Can't convert list of values: %s to non-list option: '%s'" % (values, option.Names()[0]) )
+    
+    return values
+
+#//=======================================================//
+
 class   _OptionValue:
     def     __init__( self, value, option ):
         
         self.name = value.Names()[0]
         
         if __debug__:
-            map( option._convert_value, value.GetList() ) # check the current value
+            _convert_value( option, value.GetList() )       # check the current value
         
     #//-------------------------------------------------------//
     
-    def     Get( self, option, opt_current_value, appendToList = utils.appendToList ):
+    def     Get( self, option, opt_current_value ):
         
         opt = option.options[ self.name ]
         
         if opt is option:
             return opt_current_value
         
-        _convert_value = option._convert_value
-        values = []
-        
-        for v in opt.GetList():
-            appendToList( values, _convert_value( v ) )
-        
-        return values
+        return _convert_value( option, opt.GetList() )
 
 #//===========================================================================//
 
 class   _SimpleValue:
-    def     __init__( self, value, option, toSequence = utils.toSequence ):
-        self.value = toSequence( option._convert_value( value ) )
+    def     __init__( self, value, option ):
+        self.value = _convert_value( option, value )
     
     #//-------------------------------------------------------//
     
@@ -324,7 +341,7 @@ class   _Value:
     
     #//-------------------------------------------------------//
     
-    def     Get( self, option, opt_current_value, len = len ):
+    def     Get( self, option, opt_current_value ):
         values = self.GetList( option, opt_current_value )
         
         if option.shared_data['is_list']:
@@ -332,9 +349,6 @@ class   _Value:
         
         if not values:
             return None
-        
-        if len(values) != 1:
-            _Error("Can't convert list of values: %s to non-list option: '%s'" % (values, option.Names()[0]) )
         
         return values[0]
 

@@ -10,7 +10,6 @@ import logging
 import options
 import builtin_options
 import setup_init
-import utils
 import options_help_generator
 
 import local_host
@@ -64,20 +63,25 @@ SCons.Defaults.DefaultEnvironment( tools = [] )
 
 import glob
 
-def     _glob( self, pathname ):
+def     _glob( self, pathname, filter_function = None ):
     
     build_dir = os.getcwd()
     src_dir = str(self.Dir('.').srcnode())
     
     os.chdir( src_dir )
     
-    files = glob.glob( pathname )
-    os.chdir( build_dir )
+    try:
+        files = filter( filter_function, glob.glob( pathname ) )
+    finally:
+        os.chdir( build_dir )
     
     return files
 
-_Environment.Glob = _glob
-#~ _Environment.AQL_Options = _EnvOptions
+#//===========================================================================//
+
+def     _add_aql_methods( env ):
+    env.AddMethod( _glob, 'aqlGlob' )
+    env.AddMethod( _EnvOptions, 'aqlOptions' )
 
 #//===========================================================================//
 
@@ -98,31 +102,31 @@ def     _cpppath_lib( target, source, env, for_signature ):
 
 def     _update_env_flags( env ):
     
-    env['_AQL_M_CFLAGS']        = lambda target, source, env, for_signature: _EnvOptions(env).cflags.GetList()
-    env['_AQL_M_CCFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).ccflags.GetList()
-    env['_AQL_M_CXXFLAGS']      = lambda target, source, env, for_signature: _EnvOptions(env).cxxflags.GetList()
-    env['_AQL_M_LINKFLAGS']     = lambda target, source, env, for_signature: _EnvOptions(env).linkflags.GetList()
-    env['_AQL_M_ARFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).arflags.GetList()
+    env['_AQL_CFLAGS']        = lambda target, source, env, for_signature: _EnvOptions(env).cflags.GetList()
+    env['_AQL_CCFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).ccflags.GetList()
+    env['_AQL_CXXFLAGS']      = lambda target, source, env, for_signature: _EnvOptions(env).cxxflags.GetList()
+    env['_AQL_LINKFLAGS']     = lambda target, source, env, for_signature: _EnvOptions(env).linkflags.GetList()
+    env['_AQL_ARFLAGS']       = lambda target, source, env, for_signature: _EnvOptions(env).arflags.GetList()
     
-    env['_AQL_M_CPPPATH']       = lambda target, source, env, for_signature: _EnvOptions(env).cpppath.GetList()
-    env['_AQL_M_CPPDEFINES']    = lambda target, source, env, for_signature: _EnvOptions(env).cppdefines.GetList()
-    env['_AQL_M_LIBPATH']       = lambda target, source, env, for_signature: _EnvOptions(env).libpath.GetList()
-    env['_AQL_M_LIBS']          = lambda target, source, env, for_signature: _EnvOptions(env).libs.GetList()
+    env['_AQL_CPPPATH']       = lambda target, source, env, for_signature: _EnvOptions(env).cpppath.GetList()
+    env['_AQL_CPPDEFINES']    = lambda target, source, env, for_signature: _EnvOptions(env).cppdefines.GetList()
+    env['_AQL_LIBPATH']       = lambda target, source, env, for_signature: _EnvOptions(env).libpath.GetList()
+    env['_AQL_LIBS']          = lambda target, source, env, for_signature: _EnvOptions(env).libs.GetList()
     
-    env['_AQL_M_CPPINCFLAGS']   = _cpppath_lib
+    env['_AQL_CPPINCFLAGS']   = _cpppath_lib
     
     env['_CPPDEFFLAGS'] = '${_concat(CPPDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)}'
     
-    env.Append( CFLAGS = [ "$_AQL_M_CFLAGS"],
-                CCFLAGS = ["$_AQL_M_CCFLAGS"],
-                CXXFLAGS = [ "$_AQL_M_CXXFLAGS" ],
-                _CPPINCFLAGS = " $_AQL_M_CPPINCFLAGS",
-                CPPPATH = [ "$_AQL_M_CPPPATH" ],
-                CPPDEFINES = ["$_AQL_M_CPPDEFINES"],
-                LINKFLAGS = ["$_AQL_M_LINKFLAGS"],
-                ARFLAGS = ["$_AQL_M_ARFLAGS"],
-                LIBPATH = ["$_AQL_M_LIBPATH"],
-                LIBS = ["$_AQL_M_LIBS"] )
+    env.Append( CFLAGS = [ "$_AQL_CFLAGS"],
+                CCFLAGS = ["$_AQL_CCFLAGS"],
+                CXXFLAGS = [ "$_AQL_CXXFLAGS" ],
+                _CPPINCFLAGS = " $_AQL_CPPINCFLAGS",
+                CPPPATH = [ "$_AQL_CPPPATH" ],
+                CPPDEFINES = ["$_AQL_CPPDEFINES"],
+                LINKFLAGS = ["$_AQL_LINKFLAGS"],
+                ARFLAGS = ["$_AQL_ARFLAGS"],
+                LIBPATH = ["$_AQL_LIBPATH"],
+                LIBS = ["$_AQL_LIBS"] )
     
     if local_host.os == 'windows' and local_host.os_version >= "5.1":
         env['MAXLINELENGTH'] = 8191
@@ -153,18 +157,17 @@ def     Env( options, **kw  ):
     
     _update_env_flags( env )
     
+    _add_aql_methods( env )
+    
     return env
 
 #//===========================================================================//
 
-def     BuildVariant( options, scriptfile = None, **kw ):
+def     BuildVariant( scriptfile, options, **kw ):
     
     logging.LogLevel( options.log_level.Get() )
     
     kw = kw.copy()
-    
-    if scriptfile is None:
-        scriptfile = 'SConscript'
     
     kw.setdefault( 'duplicate', 0 )
     
@@ -191,7 +194,7 @@ def     BuildVariant( options, scriptfile = None, **kw ):
 
 #//---------------------------------------------------------------------------//
 
-def     Build( options = None, scriptfile = None, **kw ):
+def     Build( scriptfile, options = None, **kw ):
     
     if options is None:
         options = _BuiltinOptions()

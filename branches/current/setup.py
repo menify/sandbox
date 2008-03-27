@@ -81,7 +81,7 @@ def     _tool_setup( tool_name, env, tools_setup = _tools_setup ):
             _Info( "Setup tool: No setup for tool: " + tool_name )
             return
     
-    for f in tools_setup.get( tool_name, [] ):
+    for f in setup_functions:
         if __debug__:
             _Info( "Tool setup: " + tool_name + ' (' + f.__name__ + ')' )
         
@@ -111,7 +111,7 @@ def     _tool_post_setup( tool_name, env, tools_post_setup = _tools_post_setup )
             _Info( "Tool post setup: No setup for tool: " + tool_name )
             return
     
-    for f in tools_post_setup.get( tool_name, [] ):
+    for f in setup_functions:
         if __debug__:
             _Info( "Tool post setup: " + tool_name + ' (' + f.__name__ + ')' )
         f( env = env, options = options, os_env = os_env )

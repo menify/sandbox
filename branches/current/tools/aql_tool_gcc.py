@@ -31,8 +31,8 @@ def     _setup_flags( options ):
     if_.debug_symbols['true'].ccflags += '-g'
     if_.debug_symbols['false'].linkflags += '-Wl,--strip-all'
     
-    if_.link_runtime['static'].linkflags += '-Wl,-Bstatic'
-    if_.link_runtime['shared'].linkflags += '-Wl,-Bdynamic'
+    if_.link_runtime['static'].linkflags += '-static-libgcc'
+    if_.link_runtime['shared'].linkflags += '-shared-libgcc'
     
     if_.target_os['windows'].runtime_threading['multi'].ccflags += '-mthreads'
     if_.target_os.ne('windows').runtime_threading['multi'].ccflags += '-pthreads'
@@ -73,7 +73,7 @@ def     _setup_flags( options ):
 #//---------------------------------------------------------------------------//
 
 def     _add_libs( env ):
-    env.Append( LIBS = ["$_AQL_M_LIBS"] )       # duplicate libs to resolve recursive dependencies
+    env.Append( LIBS = ["$_AQL_LIBS"] )       # duplicate libs to resolve recursive dependencies
 
 def     _rpathlink( target, source, env, for_signature ):
     flags = ''
