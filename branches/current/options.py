@@ -385,8 +385,6 @@ def     _ge( op, value1, value2, len = len ):
 
 def     _has( op, values1, values2, len = len ):
     
-    if len(values1) == 0:    return 1
-    
     for v in values2.GetList( op, values1 ):
         if v not in values1:
             return 0
@@ -397,8 +395,6 @@ def     _has( op, values1, values2, len = len ):
 
 def     _has_any( op, values1, values2, len = len ):
     
-    if len(values1) == 0:    return 1
-    
     for v in values2.GetList( op, values1 ):
         if v in values1:
             return 1
@@ -408,8 +404,6 @@ def     _has_any( op, values1, values2, len = len ):
 #//-------------------------------------------------------//
 
 def     _one_of( op, values1, values2, len = len ):
-    
-    if len(values1) == 0:    return 1
     
     values2 = values2.GetList( op, values1 )
     

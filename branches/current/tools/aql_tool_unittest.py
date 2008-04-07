@@ -1,4 +1,5 @@
 
+import sys
 import subprocess
 
 #//===========================================================================//
@@ -6,6 +7,8 @@ import subprocess
 def     _ut_action( target, source, env ):
     
     test_program = source[0].abspath
+    
+    verbose = env.has_key('UT_VERBOSE')
     
     output = open( target[0].abspath, 'w' )
     try:
@@ -17,14 +20,17 @@ def     _ut_action( target, source, env ):
         
         else:
             output.write( "\n-= FAILED =-\n" )
+            verbose = 1
+        
+    finally:
+        if verbose:
             output.close()
             output = open( output.name, 'r' )
             for l in output:
-                print l
+                sys.stderr.write( l )
+            sys.stderr.flush()
         
-    finally:
         output.close()
-        
     
     return 1
 

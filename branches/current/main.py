@@ -5,6 +5,7 @@ import SCons.Script
 import SCons.Tool
 import SCons.Util
 import SCons.Defaults
+import SCons.Builder
 
 import logging
 import options
@@ -34,15 +35,21 @@ _GenerateOptionsHelp = options_help_generator.GenerateOptionsHelp
 
 #//===========================================================================//
 
-SCons.Script.AddOption( '--h',
-                        default = False,
-                        dest = 'detailed_help',
-                        action = "store_true",
-                        help = 'Print a detailed help message.' )
+_detailed_help = 0
 
-_detailed_help = SCons.Script.GetOption('detailed_help')
+def     _add_aql_cmdline_options():
+    SCons.Script.AddOption( '--h',
+                            default = False,
+                            dest = 'aql_detailed_help',
+                            action = "store_true",
+                            help = 'Print a detailed help message.' )
 
-if _detailed_help:      SCons.Script.SetOption('help', True )
+    _detailed_help = SCons.Script.GetOption('aql_detailed_help')
+
+    if _detailed_help:
+        SCons.Script.SetOption('help', True )
+
+#//-------------------------------------------------------//
 
 def     _generate_help( options ):
     if SCons.Script.GetOption('help'):
@@ -57,7 +64,21 @@ def     _generate_help( options ):
 
 #//===========================================================================//
 
-SCons.Defaults.DefaultEnvironment( tools = [] )
+def     _set_scons_perfomance_settings():
+    SCons.Defaults.DefaultEnvironment( tools = [] )
+    SCons.Script.SetOption( 'implicit_cache', 1 )
+    SCons.Script.SetOption( 'max_drift', 1 )
+    SCons.Script.SetOption( 'num_jobs', os.environ.get('NUMBER_OF_PROCESSORS', 1) )
+
+#//===========================================================================//
+
+def     _src_relative_dir( self, path ):
+    
+    path = os.path.normcase( os.path.abspath( path ) )
+    cur_dir = os.path.normcase( self.Dir('.').srcnode().abspath )
+    common_prefix = os.path.commonprefix( [cur_dir, path ] )
+    
+    return path[ len( common_prefix ): ].lstrip( os.path.sep + os.path.altsep )
 
 #//===========================================================================//
 
@@ -80,8 +101,19 @@ def     _glob( self, pathname, filter_function = None ):
 #//===========================================================================//
 
 def     _add_aql_methods( env ):
+    env.AddMethod( _src_relative_dir, 'aqlSrcRelativeDir' )
     env.AddMethod( _glob, 'aqlGlob' )
     env.AddMethod( _EnvOptions, 'aqlOptions' )
+
+#//===========================================================================//
+
+def     _add_hook_to_builder_get_prefix():
+    
+    def     _get_prefix(self, env, sources=[], builder_get_prefix = SCons.Builder.BuilderBase.get_prefix ):
+        prefix = builder_get_prefix( self, env, sources )
+        return str(_EnvOptions( env ).prefix) + prefix
+    
+    SCons.Builder.BuilderBase.get_prefix = _get_prefix
 
 #//===========================================================================//
 
@@ -155,6 +187,9 @@ def     Env( options, **kw  ):
                         options = None,
                         **kw )
     
+    env.Decider( 'MD5-timestamp' )
+    env.SourceCode( '.', None )
+    
     _update_env_flags( env )
     
     _add_aql_methods( env )
@@ -217,4 +252,10 @@ def     Build( scriptfile, options = None, **kw ):
     
     for bv in build_variants.GetList():
         BuildVariant( options = options( build_variant = bv ), scriptfile = scriptfile, **kw )
+
+#//===========================================================================//
+
+_add_aql_cmdline_options()
+_add_hook_to_builder_get_prefix()
+_set_scons_perfomance_settings()
 

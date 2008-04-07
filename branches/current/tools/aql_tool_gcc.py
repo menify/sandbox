@@ -53,7 +53,7 @@ def     _setup_flags( options ):
     
     if_.keep_asm['false'].ccflags += '-pipe'
     if_.keep_asm['true'].ccflags += '-fverbose-asm -save-temps'
-    if_.keep_asm['true'].target_machine['x86'].ccflags -= '-masm=intel'
+    if_.keep_asm['true'].target_machine['x86'].ccflags += '-masm=intel'
     
     
     if_.warning_level[0].ccflags += '-w'

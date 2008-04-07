@@ -38,13 +38,13 @@ def     Info( msg ):
     if _log_level > 1:
         print 'AQL: Info: ***', msg
 
-def     DebugMsg( exception, traceback_limit = 50 ):
+def     DebugMsg( exception, traceback_limit = 50, backtfrom = 2 ):
     if __debug__:
         if _log_level > 2:
             try:
                 raise ZeroDivisionError
             except ZeroDivisionError:
-                frame = sys.exc_info()[2].tb_frame.f_back
+                frame = sys.exc_info()[ backtfrom ].tb_frame.f_back
             
             print 'AQL DBG: ***', exception
             traceback.print_stack( frame, traceback_limit )

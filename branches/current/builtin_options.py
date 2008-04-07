@@ -27,6 +27,9 @@ def     _add_build_options( options ):
     options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.",
                                     is_list = 1, separator = '', unique = 0, group = "Builds setup" )
     
+    options.prefix = _StrOption( help = "The building target prefix.",
+                                 is_list = 1, separator = '', unique = 0, group = "Builds setup" )
+    
     setup_path = os.environ.get('AQL_SETUP_PATH', aql_rootdir + '/setup' )
     options.setup_path = _PathOption( initial_value = setup_path, is_list = 1, update = 'Prepend',
                                       help = "A file path(s) to setup files.\n" \
@@ -42,7 +45,7 @@ def     _add_build_options( options ):
                                              "By default environment variable AQL_TOOLS_PATH is used.",
                                       group = "Builds setup" )
     
-    log_level = _IntOption( initial_value = 1, help = "AQL log level", group = "Builds setup" )
+    log_level = _IntOption( initial_value = 1, min = 0, max = 3, help = "AQL log level", group = "Builds setup" )
     options.log_level = log_level
     options.ll = log_level
     
@@ -141,7 +144,7 @@ def     _add_variants( options ):
                                   is_list = 1 ,
                                   update = 'Set',
                                   help = "Active build variants",
-                                  group = "Build setup" )
+                                  group = "Builds setup" )
     
     options.build_variants = build_variants
     options.builds = build_variants
@@ -152,7 +155,7 @@ def     _add_variants( options ):
                                    options = options,
                                    linked_opt_name = 'build_variants',
                                    help = "The current build variant.",
-                                   group = "Build setup" )
+                                   group = "Builds setup" )
     
     options.build_variant = build_variant
     options.bv = build_variant
@@ -324,8 +327,13 @@ def     _add_cc_options( options ):
     options.gcc_prefix = _StrOption( help = "GCC C/C++ compiler prefix", group = "C/C++ compiler" )
     options.gcc_suffix = _StrOption( help = "GCC C/C++ compiler suffix", group = "C/C++ compiler" )
     
-    options.cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines", group = "C/C++ compiler" )
-    options.cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers", is_node = 1, group = "C/C++ compiler" )
+    cppdefines = _StrOption( is_list = 1, help = "C/C++ preprocessor defines", group = "C/C++ compiler" )
+    options.cppdefines = cppdefines
+    options.defines = cppdefines
+    
+    cpppath = _PathOption( is_list = 1, help = "C/C++ preprocessor paths to headers", is_node = 1, group = "C/C++ compiler" )
+    options.cpppath = cpppath
+    options.include = cpppath
     
     cpppath_lib = _PathOption( is_list = 1, help = "C/C++ preprocessor path to library headers", is_node = 1, group = "C/C++ compiler" )
     options.cpppath_const = cpppath_lib
