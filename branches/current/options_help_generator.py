@@ -35,14 +35,10 @@ def     GenerateOptionsHelp( options, detailed_help ):
     
     max_name_len = 0
     
-    for id, op_names in options.__dict__['__ids_dict'].iteritems():
-        
-        op = op_names[0]
+    for op, names   in  options.__dict__['__ids_dict'].itervalues():
         
         if op.shared_data['help'] is None:
             continue
-        
-        names = op_names[1:]
         
         max_name_len = max( [ max_name_len ] + map(len, names) )
         

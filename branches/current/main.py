@@ -37,15 +37,15 @@ _GenerateOptionsHelp = options_help_generator.GenerateOptionsHelp
 
 _detailed_help = 0
 
-def     _add_aql_cmdline_options():
+def     _add_cmdline_options():
     SCons.Script.AddOption( '--h',
                             default = False,
                             dest = 'aql_detailed_help',
                             action = "store_true",
                             help = 'Print a detailed help message.' )
-
+    
     _detailed_help = SCons.Script.GetOption('aql_detailed_help')
-
+    
     if _detailed_help:
         SCons.Script.SetOption('help', True )
 
@@ -58,9 +58,9 @@ def     _generate_help( options ):
         if not _detailed_help:
             SCons.Script.HelpFunction( "Use --h option for detailed help." )
         
-        return True
+        return 1
     
-    return False
+    return 0
 
 #//===========================================================================//
 
@@ -77,22 +77,41 @@ def     _src_relative_dir( self, path ):
     path = os.path.normcase( os.path.abspath( path ) )
     cur_dir = os.path.normcase( self.Dir('.').srcnode().abspath )
     common_prefix = os.path.commonprefix( [cur_dir, path ] )
+    if common_prefix:
+        alt_sep = os.path.altsep
+        if not alt_sep:
+            alt_sep = ''
+        path = path[ len( common_prefix ): ].lstrip( os.path.sep + alt_sep )
     
-    return path[ len( common_prefix ): ].lstrip( os.path.sep + os.path.altsep )
+    return path
 
 #//===========================================================================//
 
 import glob
 
-def     _glob( self, pathname, filter_function = None ):
+def     _glob( self, path, filter_function = None, absolute_paths = False ):
     
     build_dir = os.getcwd()
-    src_dir = str(self.Dir('.').srcnode())
+    src_dir = self.Dir('.').srcnode().abspath
     
     os.chdir( src_dir )
     
+    path = os.path.normcase( os.path.abspath( path ) )
+    
+    if not absolute_paths:
+        src_dir = os.path.normcase( src_dir )
+        common_prefix = os.path.commonprefix( [src_dir, path ] )
+        if common_prefix:
+            alt_sep = os.path.altsep
+            if not alt_sep:
+                alt_sep = ''
+            path = path[ len( common_prefix ): ].lstrip( os.path.sep + alt_sep )
+    
     try:
-        files = filter( filter_function, glob.glob( pathname ) )
+        files = glob.glob( path )
+        
+        if filter_function is not None:
+            files = filter( filter_function, files )
     finally:
         os.chdir( build_dir )
     
@@ -101,7 +120,7 @@ def     _glob( self, pathname, filter_function = None ):
 #//===========================================================================//
 
 def     _add_aql_methods( env ):
-    env.AddMethod( _src_relative_dir, 'aqlSrcRelativeDir' )
+    env.AddMethod( _src_relative_dir, 'aqlSrcDir' )
     env.AddMethod( _glob, 'aqlGlob' )
     env.AddMethod( _EnvOptions, 'aqlOptions' )
 
@@ -211,7 +230,7 @@ def     BuildVariant( scriptfile, options, **kw ):
     
     env = Env( options, **kw )
     
-    kw['build_dir'] = os.path.normpath( str( options.build_dir ) )
+    kw['variant_dir'] = os.path.normpath( str( options.build_dir ) )
     kw['exports'] = [ {'env' : env} ]
     
     env.SConscript( scriptfile, **kw )
@@ -223,7 +242,7 @@ def     BuildVariant( scriptfile, options, **kw ):
     if bv_aliases:
         aliases += bv_aliases
     
-    env.Alias( aliases, kw['build_dir'] )
+    env.Alias( aliases, kw['variant_dir'] )
     
     return env
 
@@ -255,7 +274,7 @@ def     Build( scriptfile, options = None, **kw ):
 
 #//===========================================================================//
 
-_add_aql_cmdline_options()
+_add_cmdline_options()
 _add_hook_to_builder_get_prefix()
 _set_scons_perfomance_settings()
 

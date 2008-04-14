@@ -22,7 +22,6 @@ def     _ut_action( target, source, env ):
             output.write( "\n-= FAILED =-\n" )
             verbose = 1
         
-    finally:
         if verbose:
             output.close()
             output = open( output.name, 'r' )
@@ -30,6 +29,7 @@ def     _ut_action( target, source, env ):
                 sys.stderr.write( l )
             sys.stderr.flush()
         
+    finally:
         output.close()
     
     return 1

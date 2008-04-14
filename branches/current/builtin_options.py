@@ -320,6 +320,8 @@ def     _add_cc_options( options ):
     options.arflags = options.oarflags
     
     options.cc_name = _StrOption( help = "C/C++ compiler name", group = "C/C++ compiler" )
+    options.cc = options.cc_name
+    
     options.cc_ver = _VersionOption( help = "C/C++ compiler version", group = "C/C++ compiler" )
     
     options.gcc_path = _StrOption()

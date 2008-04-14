@@ -34,24 +34,16 @@ class Options:
     
     def     __init__( self ):
         
-        self.__dict__['__names_dict']       = {}
-        self.__dict__['__ids_dict']         = {}
-        self.__dict__['__env']              = None
-        self.__dict__['__cache']            = {}
+        self.__dict__['__names_dict']   = {}
+        self.__dict__['__ids_dict']     = {}
+        self.__dict__['__env']          = None
+        self.__dict__['__cache']        = {}
     
     #//-------------------------------------------------------//
     
-    def     __add_to_dict( self, name, option ):
+    def     __add_to_dict( self, name, option, id = id ):
         self.__dict__['__names_dict'][ name ] = option
-        
-        opt_id = id( option )
-        ids_dict = self.__dict__['__ids_dict']
-        id_list = ids_dict.get( opt_id )
-        
-        if id_list is None:
-            ids_dict[ opt_id ] = [ option, name ]
-        else:
-            id_list.append( name )
+        self.__dict__['__ids_dict'].setdefault( id( option ), (option, []) )[1].append( name )
     
     #//-------------------------------------------------------//
     
@@ -184,10 +176,8 @@ class Options:
     
     #//-------------------------------------------------------//
     
-    def     OptionNames( self, opt ):
-        
-        names = self.__dict__['__ids_dict'].get( id(opt), [ None ] )
-        return names[1:]
+    def     OptionNames( self, opt, id = id ):
+        return self.__dict__['__ids_dict'][ id(opt) ][1]
     
     #//-------------------------------------------------------//
     
@@ -199,19 +189,23 @@ class Options:
     
     #//-------------------------------------------------------//
     
-    def     Clone( self ):
+    def     Clone( self, id = id ):
         
         options = Options()
         
         options.__dict__['__env'] = self.__dict__['__env']
         
-        for ident, id_list     in    self.__dict__['__ids_dict'].iteritems():
+        ids_dict = options.__dict__['__ids_dict']
+        names_dict = options.__dict__['__names_dict']
+        
+        for opt, names  in  self.__dict__['__ids_dict'].itervalues():
             
-            opt = id_list[0]._clone( options )
-            names = id_list[1:]
+            option = opt._clone( options )
             
             for name in names:
-                options[ name ] = opt
+                names_dict[ name ] = option
+            
+            ids_dict[ id( option ) ] = ( option, names )
         
         return options
     
@@ -355,7 +349,7 @@ class   _Value:
 #//===========================================================================//
 #//===========================================================================//
 
-# All below condtions assumes that 'None' (the empty list) can be anyone
+# All below condtions assumes that 'None' (an empty list) can be anyone
 
 def     _lt( op, value1, value2, len = len ):
     if len(value1) == 0:    return 0
@@ -604,7 +598,8 @@ class   OptionBase:
                      removeFromList = utils.removeFromList,
                      id = id ):
         
-        cache = self.options.Cache()
+        options = self.options
+        cache = options.Cache()
         id_self = id(self)
         
         values = cache.get( id_self )
@@ -617,8 +612,6 @@ class   OptionBase:
             def     appendListToList( values_list, values ):
                 values_list += values
             appendToList = appendListToList
-        
-        options = self.options
         
         for c in self.conditions:
             if c.IsTrue( options, self, values ):

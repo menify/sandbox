@@ -1,6 +1,5 @@
 
 import os
-import os.path
 import SCons.Tool
 import SCons.Util
 
@@ -126,16 +125,23 @@ def     _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, tool,
 
 #//---------------------------------------------------------------------------//
 
-def     _get_gcc_specs( env, options, gcc, check_existence_only ):
+if not aql.utils.__dict__.has_key( 'gcc_specs_cache' ):
+    aql.utils.gcc_specs_cache = {}
+
+def     _get_gcc_specs( env, options, gcc, check_existence_only, gcc_specs_cache = aql.utils.gcc_specs_cache ):
     
-    os_environ = os.environ
-    os_environ_path = os_environ['PATH']
-    _AppendEnvPath( os_environ, 'PATH', env['ENV']['PATH'] )
+    cc_ver, target = gcc_specs_cache.get( gcc, (None, None) )
     
-    cc_ver = os.popen( gcc + ' -dumpversion', 'r').readline().strip()
-    target = os.popen( gcc + ' -dumpmachine', 'r').readline().strip()
-    
-    os_environ['PATH'] = os_environ_path
+    if cc_ver is None:
+        os_environ = os.environ
+        os_environ_path = os_environ['PATH']
+        _AppendEnvPath( os_environ, 'PATH', env['ENV']['PATH'] )
+        
+        cc_ver = os.popen( gcc + ' -dumpversion', 'r').readline().strip()
+        target = os.popen( gcc + ' -dumpmachine', 'r').readline().strip()
+        
+        os_environ['PATH'] = os_environ_path
+        gcc_specs_cache[ gcc ] = ( cc_ver, target )
     
     if target == 'mingw32':
         target_machine = 'i386'
@@ -164,8 +170,10 @@ def     _get_gcc_specs( env, options, gcc, check_existence_only ):
         target_os_release = ''
         target_os_version = ''
     
+    if target_os == 'mingw32':              target_os = 'windows'
     if target_os.startswith('linux'):       target_os = 'linux'
     if target_machine.startswith('arm'):    target_machine = 'arm'
+    
     
     if options.cc_ver               != cc_ver or \
        options.gcc_target           != target or \
@@ -214,7 +222,7 @@ def     _try_gcc( env, options, check_existence_only ):
     path = os.path.dirname( gcc_path )
     
     if not check_existence_only:
-        #~ options.gcc_path = path
+        options.gcc_path = path
         _add_gcc( env, gcc_path )
         _add_link( env )
     
@@ -293,11 +301,11 @@ def     _add_gxx( env, gxx_path ):
         shared_obj.add_emitter(suffix, SCons.Defaults.SharedObjectEmitter)
     
     env['CXX']        = gxx_path
-    env['CXXFLAGS']   = SCons.Util.CLVar('$CCFLAGS')
-    env['CXXCOM']     = '$CXX -o $TARGET -c $CXXFLAGS $_CCCOMCOM $SOURCES'
+    env['CXXFLAGS']   = SCons.Util.CLVar('')
+    env['CXXCOM']     = '$CXX -o $TARGET -c $CXXFLAGS $CCFLAGS $_CCCOMCOM $SOURCES'
     env['SHCXX']      = '$CXX'
-    env['SHCXXFLAGS'] = SCons.Util.CLVar('$CXXFLAGS -fPIC')
-    env['SHCXXCOM']   = '$SHCXX -o $TARGET -c $SHCXXFLAGS $_CCCOMCOM $SOURCES'
+    env['SHCXXFLAGS'] = SCons.Util.CLVar('$CXXFLAGS')
+    env['SHCXXCOM']   = '$SHCXX -o $TARGET -c $SHCXXFLAGS $SHCCFLAGS $_CCCOMCOM $SOURCES'
     
     env['CXXFILESUFFIX'] = '.cc'
 
