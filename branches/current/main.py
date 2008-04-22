@@ -74,14 +74,11 @@ def     _set_scons_perfomance_settings():
 
 def     _src_relative_dir( self, path ):
     
-    path = os.path.normcase( os.path.abspath( path ) )
+    rel_path = os.path.normcase( os.path.abspath( path ) )
     cur_dir = os.path.normcase( self.Dir('.').srcnode().abspath )
-    common_prefix = os.path.commonprefix( [cur_dir, path ] )
+    common_prefix = os.path.commonprefix( [cur_dir, rel_path ] )
     if common_prefix:
-        alt_sep = os.path.altsep
-        if not alt_sep:
-            alt_sep = ''
-        path = path[ len( common_prefix ): ].lstrip( os.path.sep + alt_sep )
+        return rel_path[ len( common_prefix ): ].lstrip( os.path.sep )
     
     return path
 
@@ -102,10 +99,7 @@ def     _glob( self, path, filter_function = None, absolute_paths = False ):
         src_dir = os.path.normcase( src_dir )
         common_prefix = os.path.commonprefix( [src_dir, path ] )
         if common_prefix:
-            alt_sep = os.path.altsep
-            if not alt_sep:
-                alt_sep = ''
-            path = path[ len( common_prefix ): ].lstrip( os.path.sep + alt_sep )
+            path = path[ len( common_prefix ): ].lstrip( os.path.sep )
     
     try:
         files = glob.glob( path )
@@ -130,7 +124,7 @@ def     _add_hook_to_builder_get_prefix():
     
     def     _get_prefix(self, env, sources=[], builder_get_prefix = SCons.Builder.BuilderBase.get_prefix ):
         prefix = builder_get_prefix( self, env, sources )
-        return str(_EnvOptions( env ).prefix) + prefix
+        return prefix + str(_EnvOptions( env ).prefix)
     
     SCons.Builder.BuilderBase.get_prefix = _get_prefix
 

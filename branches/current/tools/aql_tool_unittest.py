@@ -7,6 +7,7 @@ import subprocess
 def     _ut_action( target, source, env ):
     
     test_program = source[0].abspath
+    result = 0
     
     verbose = env.has_key('UT_VERBOSE')
     
@@ -16,10 +17,10 @@ def     _ut_action( target, source, env ):
         
         if process.wait() == 0:
             output.write( "\n-= PASSED =-\n" )
-            return 0
         
         else:
             output.write( "\n-= FAILED =-\n" )
+            result = 1
             verbose = 1
         
         if verbose:
@@ -32,7 +33,7 @@ def     _ut_action( target, source, env ):
     finally:
         output.close()
     
-    return 1
+    return result
 
 #//===========================================================================//
 
