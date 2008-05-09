@@ -48,7 +48,7 @@ def     AddUserSetup( setup_id, setup_function, user_setup = _user_setup ):
 
 def     UserSetup( options, os_env, user_setup = _user_setup ):
     
-    for s in options.setup.GetList():
+    for s in options.setup.Value():
         
         if __debug__:
             _Info( "User setup: " + s )

@@ -24,8 +24,7 @@ def     _add_build_options( options ):
     options.setup = _StrOption( separator = ',', is_list = 1,
                                 help = "Setup options", group = "Builds setup" )
     
-    options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.",
-                                    is_list = 1, separator = '', unique = 0, group = "Builds setup" )
+    options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.", group = "Builds setup" )
     
     options.prefix = _StrOption( help = "The building target prefix.",
                                  is_list = 1, separator = '', unique = 0, group = "Builds setup" )
@@ -349,15 +348,26 @@ def     _add_cc_options( options ):
 
 def     _add_lint_options( options ):
     
-    options.lint = _EnumOption( initial_value = 'off', allowed_values = ['off', 'single', 'on', 'all'],
-                                aliases = {'global': 'all', '0': 'off', '1':'single', '2':'on', '3':'all'},
+    options.lint = _EnumOption( initial_value = 'off', allowed_values = ['off', 'on', 'glob'],
+                                aliases = {'global': 'glob', '0': 'off', '1':'on', '2':'glob' },
                                 help = 'Lint method', group = "Lint" )
     
     #//-------------------------------------------------------//
     
-    options.lint_passes = _IntOption( initial_value = 3, min=1, help = 'The number of passes Flexelint makes over the source code', group = "Lint" )
+    options.lint_flags = _StrOption( initial_value = '-b', is_list = 1, help = "Flexelint options", group = "Lint" )
     
-    options.lint_flags = _StrOption( is_list = 1, help = "Flexelint options", group = "Lint" )
+    options.lint_passes = _IntOption( initial_value = 3, min=1, help = 'The number of passes Flexelint makes over the source code', group = "Lint" )
+    options.lint_passes_flag = _StrOption( initial_value = '-passes(' )
+    options.lint_passes_flag += options.lint_passes
+    options.lint_passes_flag += ')'
+    
+    options.lint_warning_level_flag = _StrOption( initial_value = '-w' )
+    options.lint_warning_level_flag += options.warning_level
+    
+    options.lint_flags += options.lint_passes_flag
+    options.lint_flags += options.lint_warning_level_flag
+    
+    options.If().warnings_as_errors['off'].lint_flags += '-zero'
 
 #//===========================================================================//
 
@@ -365,14 +375,15 @@ def     BuiltinOptions():
     
     options = _Options()
     
-    prefix = '_add'
-    suffix = '_options'
-    
-    local_names = globals()
-    
-    for name, function in local_names.iteritems():
-        if name.startswith( prefix ) and name.endswith( suffix ):
-            function( options )
+    _add_build_options( options )
+    _add_platform_options( options )
+    _add_optimization_options( options )
+    _add_debug_options( options )
+    _add_warning_options( options )
+    _add_code_generation_options( options )
+    _add_runtime_options( options )
+    _add_cc_options( options )
+    _add_lint_options( options )
     
     _add_variants( options )
     

@@ -23,7 +23,7 @@ def     _get_setup_modules( options,
     
     global _setup_path
     
-    setup_path = options.setup_path.GetList()
+    setup_path = options.setup_path.Value()
     
     if setup_path == _setup_path:
         return _setup_modules

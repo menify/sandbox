@@ -33,6 +33,19 @@ def     toSequence( value, separator = '',
 
 #//===========================================================================//
 
+def     flattenList( values, isSequence = isSequence ):
+    
+    flatten_list = []
+    for v in values:
+        if isSequence( v ):
+            flatten_list += flattenList( v )
+        else:
+            flatten_list.append( v )
+    
+    return flatten_list
+
+#//===========================================================================//
+
 def     toList( value,
                 isinstance = isinstance,
                 list = list,

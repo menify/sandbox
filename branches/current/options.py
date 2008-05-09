@@ -177,7 +177,12 @@ class Options:
     #//-------------------------------------------------------//
     
     def     OptionNames( self, opt, id = id ):
-        return self.__dict__['__ids_dict'][ id(opt) ][1]
+        
+        try:
+            return self.__dict__['__ids_dict'][ id(opt) ][1]
+        
+        except KeyError:
+            return ['__unknown__']
     
     #//-------------------------------------------------------//
     
@@ -247,30 +252,24 @@ class Options:
 #//===========================================================================//
 
 def     _convert_value( option, value,
-                        len = len,
-                        toSequence = utils.toSequence,
-                        appendToList = utils.appendToList ):
+                        isSequence = utils.isSequence ):
     
-    convert_value = option._convert_value
-    values = []
+    converted_value = option._convert_value( value )
     
-    for v in toSequence( value ):
-        appendToList( values, convert_value( v ) )
+    if isSequence(converted_value):
+        _Error("Can't convert a sequence: %s to non-sequence option: '%s'" % (converted_value, option.Name()) )
     
-    if (not option.shared_data['is_list']) and (len(values) != 1):
-        _Error("Can't convert list of values: %s to non-list option: '%s'" % (values, option.Names()[0]) )
-    
-    return values
+    return converted_value
 
-#//=======================================================//
+#//---------------------------------------------------------------------------//
 
 class   _OptionValue:
     def     __init__( self, value, option ):
         
-        self.name = value.Names()[0]
+        self.name = value.Name()
         
         if __debug__:
-            _convert_value( option, value.GetList() )       # check the current value
+            _convert_value( option, value  )     # check the current value
         
     #//-------------------------------------------------------//
     
@@ -281,42 +280,110 @@ class   _OptionValue:
         if opt is option:
             return opt_current_value
         
-        return _convert_value( option, opt.GetList() )
+        return _convert_value( option, opt )
 
-#//===========================================================================//
+#//---------------------------------------------------------------------------//
 
 class   _SimpleValue:
-    def     __init__( self, value, option ):
-        self.value = _convert_value( option, value )
+    def     __init__( self, value, option, isSequence = utils.isSequence ):
+        
+        if isSequence( value ):
+            _Error("Can't convert a sequence: %s to non-sequence option: '%s'" % (value, option.Name()) )
+        
+        if value is None:
+            self.value  = None
+        
+        else:
+            self.value = _convert_value( option, value )
     
     #//-------------------------------------------------------//
     
     def     Get( self, option, opt_current_value ):
         return self.value
 
-#//===========================================================================//
+#//---------------------------------------------------------------------------//
 
 class   _Value:
     
+    def     __init__( self, value, option ):
+        
+        if _is_option( value ):
+            self.value = _OptionValue( value, option )
+        
+        else:
+            self.value = _SimpleValue( value, option )
+    
+    #//-------------------------------------------------------//
+    
+    def     Get( self, option, opt_current_value ):
+        return self.value.Get( option, opt_current_value )
+
+
+#//===========================================================================//
+
+def     _convert_list_values( option, value,
+                             toSequence = utils.toSequence,
+                             appendToList = utils.appendToList ):
+    
+    convert_value = option._convert_value
+    
+    values = []
+    for v in toSequence( value ):
+        appendToList( values, convert_value( v ) )
+    
+    return values
+
+#//---------------------------------------------------------------------------//
+
+class   _OptionListValue:
+    def     __init__( self, value, option ):
+        
+        self.name = value.Name()
+        
+        if __debug__:
+            _convert_list_values( option, value.Value() )   # check the current value
+        
+    #//-------------------------------------------------------//
+    
+    def     Get( self, option, opt_current_value,
+                 toSequence = utils.toSequence ):
+        
+        opt = option.options[ self.name ]
+        
+        if opt is option:
+            return toSequence( opt_current_value )
+        
+        return _convert_list_values( option, opt.Value() )
+
+#//---------------------------------------------------------------------------//
+
+class   _SimpleListValue:
+    def     __init__( self, value, option ):
+        self.values = utils.toSequence( option._convert_value( value ) )
+    
+    #//-------------------------------------------------------//
+    
+    def     Get( self, option, opt_current_value ):
+        return self.values
+
+#//---------------------------------------------------------------------------//
+
+class   _ValueList:
+    
     def     __init__( self, values, option,
-                      isinstance = isinstance,
                       toSequence = utils.toSequence ):
         
-        if isinstance( values, _Value ):
-            self.values = values.values
-            return
-        
         values = toSequence( values, option.shared_data['separator'] )
-        
+    
         self_values = []
         
         for v in values:
             
             if _is_option( v ):
-                v = _OptionValue( v, option )
+                v = _OptionListValue( v, option )
             
             else:
-                v = _SimpleValue( v, option )
+                v = _SimpleListValue( v, option )
             
             self_values.append( v )
         
@@ -324,7 +391,7 @@ class   _Value:
     
     #//-------------------------------------------------------//
     
-    def     GetList( self, option, opt_current_value ):
+    def     Get( self, option, opt_current_value ):
         
         values = []
         
@@ -332,54 +399,55 @@ class   _Value:
             values += v.Get( option, opt_current_value )
         
         return values
+
+#//===========================================================================//
+
+def     _MakeValue( value, option, isinstance = isinstance ):
     
-    #//-------------------------------------------------------//
+    if isinstance( value, ( _Value, _ValueList ) ):
+        return value
     
-    def     Get( self, option, opt_current_value ):
-        values = self.GetList( option, opt_current_value )
-        
-        if option.shared_data['is_list']:
-            return values
-        
-        if not values:
-            return None
-        
-        return values[0]
+    if option.shared_data['is_list']:       return _ValueList( value, option )
+    else:                                   return _Value( value, option )
 
 #//===========================================================================//
 #//===========================================================================//
 
-# All below condtions assumes that 'None' (an empty list) can be anyone
+# All below condtions assumes that 'None' can be anyone
 
-def     _lt( op, value1, value2, len = len ):
-    if len(value1) == 0:    return 0
-    return value1 <  value2.GetList( op, value1 )
+def     _lt( op, value1, value2 ):
+    if value1 is None:  return 0
+    return value1 <  value2.Get( op, value1 )
 
-def     _le( op, value1, value2, len = len ):
-    if len(value1) == 0:    return 1
-    return value1 <= value2.GetList( op, value1 )
+def     _le( op, value1, value2 ):
+    if value1 is None:  return 1
+    return value1 <= value2.Get( op, value1 )
 
-def     _eq( op, value1, value2, len = len ):
-    if len(value1) == 0:    return 1
-    return value1 == value2.GetList( op, value1 )
+def     _eq( op, value1, value2 ):
+    if value1 is None:  return 1
+    return value1 == value2.Get( op, value1 )
 
-def     _ne( op, value1, value2, len = len ):
-    if len(value1) == 0:    return 0
-    return value1 != value2.GetList( op, value1 )
+def     _ne( op, value1, value2 ):
+    if value1 is None:  return 0
+    return value1 != value2.Get( op, value1 )
 
-def     _gt( op, value1, value2, len = len ):
-    if len(value1) == 0:    return 0
-    return value1 >  value2.GetList( op, value1 )
+def     _gt( op, value1, value2 ):
+    if value1 is None:  return 0
+    return value1 >  value2.Get( op, value1 )
 
-def     _ge( op, value1, value2, len = len ):
-    if len(value1) == 0:    return 1
-    return value1 >= value2.GetList( op, value1 )
+def     _ge( op, value1, value2 ):
+    if value1 is None:  return 1
+    return value1 >= value2.Get( op, value1 )
 
 #//-------------------------------------------------------//
 
-def     _has( op, values1, values2, len = len ):
+def     _has( op, values1, values2 ):
     
-    for v in values2.GetList( op, values1 ):
+    if __debug__:
+        if not op.shared_data['is_list']:
+            _Error( "Operation 'has' is not allowed for a non-sequence option (%s)" % (op.Name()) )
+    
+    for v in values2.Get( op, values1 ):
         if v not in values1:
             return 0
     
@@ -387,9 +455,13 @@ def     _has( op, values1, values2, len = len ):
 
 #//-------------------------------------------------------//
 
-def     _has_any( op, values1, values2, len = len ):
+def     _has_any( op, values1, values2 ):
     
-    for v in values2.GetList( op, values1 ):
+    if __debug__:
+        if not op.shared_data['is_list']:
+            _Error( "Operation 'has' is not allowed for a non-sequence option (%s)" % (op.Name()) )
+    
+    for v in values2.Get( op, values1 ):
         if v in values1:
             return 1
     
@@ -397,15 +469,13 @@ def     _has_any( op, values1, values2, len = len ):
 
 #//-------------------------------------------------------//
 
-def     _one_of( op, values1, values2, len = len ):
+def     _one_of( op, value1, values2, len = len ):
     
-    values2 = values2.GetList( op, values1 )
+    if __debug__:
+        if op.shared_data['is_list']:
+            _Error( "Operation 'one_of' is not allowed for a sequence option (%s)" % (op.Name()) )
     
-    for v in values1:
-        if v not in values2:
-            return 0
-    
-    return 1
+    return value1 in values2.Get( op, value1 )
 
 #//===========================================================================//
 
@@ -428,7 +498,7 @@ class   _Condition:
         option = options[ self.name ]
         
         if option is not op:
-            current_value = option.GetList()
+            current_value = option.Value()
         
         return self.cond_function( option, current_value, self.value )
 
@@ -506,6 +576,7 @@ class       _NoneOptions:
     def     __setitem__( self, name, value ):   self.__error()
     def     __getattr__( self, name ):          self.__error()
     def     __getitem__(self, name ):           self.__error()
+    def     OptionNames( self, opt ):           return ['__unknown__']
     def     Cache( self ):                      return {}
     def     ClearCache( self ):                 pass
 
@@ -521,15 +592,20 @@ class   OptionBase:
         kw.setdefault( 'help', None )
         kw.setdefault( 'group', "User" )
         kw.setdefault( 'initial_value', None )
+        kw.setdefault( 'unique', 1 )
         
         is_list = kw.setdefault( 'is_list', 0 )
         
+        allowed_operations = kw.setdefault( 'allowed_operations', [] )
+        
+        if '=' not in allowed_operations:
+            allowed_operations.append( '=' )
+        
         if is_list:
+            utils.appendToListUnique( allowed_operations, ['+', '-'] )
             kw.setdefault( 'separator', ' ' )
         else:
             kw.setdefault( 'separator', '' )
-        
-        kw.setdefault( 'unique', 1 )
         
         if is_list:
             update = kw.setdefault( 'update', 'Append' )
@@ -549,10 +625,15 @@ class   OptionBase:
     
     def     _set_default( self ):
         
+        initial_value = self.shared_data[ 'initial_value' ]
+        
+        if initial_value is None:
+            return
+        
         if self.shared_data[ 'is_list' ]:
-            self.Append( self.shared_data[ 'initial_value' ] )
+            self.Append( initial_value )
         else:
-            self.Set( self.shared_data[ 'initial_value' ] )
+            self.Set( initial_value )
     
     #//-------------------------------------------------------//
     
@@ -581,30 +662,46 @@ class   OptionBase:
     
     #//-------------------------------------------------------//
     
-    def     Names( self ):
-        
-        names = self.options.OptionNames( self )
-        
-        if __debug__:
-            if not names:
-                _Error( "No names of the option" )
-        
-        return names
+    def     Name( self ):
+        return self.options.OptionNames( self )[0]
     
     #//-------------------------------------------------------//
     
-    def     GetList( self,
-                     appendToList = utils.appendToListUnique,
-                     removeFromList = utils.removeFromList,
-                     id = id ):
+    def     __value( self ):
+        
+        value = None
         
         options = self.options
-        cache = options.Cache()
-        id_self = id(self)
         
-        values = cache.get( id_self )
-        if values is not None:
-            return values
+        for c in self.conditions:
+            if c.IsTrue( options, self, value ):
+                
+                op, v = c.GetValue()
+                v = v.Get( self, value )
+                
+                if op == '=':
+                    value = v
+                
+                elif v is None:
+                    continue
+                
+                elif op == '+':
+                    if value is None:
+                        value = v
+                    else:
+                        value += v
+                
+                elif op == '-':
+                    if value is not None:
+                        value -= v
+        
+        return value
+    
+    #//-------------------------------------------------------//
+    
+    def     __value_list( self,
+                     appendToList = utils.appendToListUnique,
+                     removeFromList = utils.removeFromList ):
         
         values = []
         
@@ -613,11 +710,13 @@ class   OptionBase:
                 values_list += values
             appendToList = appendListToList
         
+        options = self.options
+        
         for c in self.conditions:
             if c.IsTrue( options, self, values ):
                 
                 op, v = c.GetValue()
-                v = v.GetList( self, values )
+                v = v.Get( self, values )
                 
                 if op == '=':
                     values = v
@@ -628,23 +727,28 @@ class   OptionBase:
                 elif op == '-':
                     removeFromList( values, v )
         
-        cache[ id_self ] = values
-        
         return values
     
     #//-------------------------------------------------------//
     
-    def     Get( self ):
+    def     Value( self, id = id ):
         
-        values = self.GetList()
+        cache = self.options.Cache()
+        id_self = id(self)
+        
+        try:
+            return cache[ id_self ]
+        except KeyError:
+            pass
         
         if self.shared_data['is_list']:
-            return values
-            
-        if not values:
-            return None
+            value = self.__value_list()
+        else:
+            value = self.__value()
         
-        return values[0]
+        cache[ id_self ] = value
+        
+        return value
     
     #//-------------------------------------------------------//
     
@@ -713,10 +817,10 @@ class   OptionBase:
     def     _add_condition( self, condition, value, operation, pre = 0 ):
         
         if __debug__:
-            if (not self.shared_data['is_list']) and (operation != '='):
-                _Error( "Append/remove operations are not allowed for none-list options." )
+            if operation not in self.shared_data['allowed_operations']:
+                _Error( "Operation: '%s' is not allowed for option: '%s'" % (operation, self.Name()) )
         
-        value = _Value( value, self )
+        value = _MakeValue( value, self )
         
         conditional_value = _ConditionalValue()
         conditional_value.Append( condition )
@@ -725,7 +829,9 @@ class   OptionBase:
         
         if not pre:
             if (operation == '=') and (condition is _always_true_condition):
-                self.conditions = []                                    # clear the conditions list if it's an unconditional set
+                
+                # clear the conditions list if it's an unconditional set
+                self.conditions = []
             
             self.conditions.append( conditional_value )
         else:
@@ -737,32 +843,40 @@ class   OptionBase:
     
     def     Convert( self, value ):
         if value is self:
-            return self.Get()
+            return self.Value()
         
-        return _Value( value, self ).Get( self, None )
+        return _MakeValue( value, self ).Get( self, None )
     
-    def     __lt__( self, other):       return _lt( self, self.GetList(), _Value( other, self ) )
-    def     __le__( self, other):       return _le( self, self.GetList(), _Value( other, self ) )
-    def     __eq__( self, other):       return _eq( self, self.GetList(), _Value( other, self ) )
-    def     __ne__( self, other):       return _ne( self, self.GetList(), _Value( other, self ) )
-    def     __gt__( self, other):       return _gt( self, self.GetList(), _Value( other, self ) )
-    def     __ge__( self, other):       return _ge( self, self.GetList(), _Value( other, self ) )
+    def     __lt__( self, other):       return _lt( self, self.Value(), _MakeValue( other, self ) )
+    def     __le__( self, other):       return _le( self, self.Value(), _MakeValue( other, self ) )
+    def     __eq__( self, other):       return _eq( self, self.Value(), _MakeValue( other, self ) )
+    def     __ne__( self, other):       return _ne( self, self.Value(), _MakeValue( other, self ) )
+    def     __gt__( self, other):       return _gt( self, self.Value(), _MakeValue( other, self ) )
+    def     __ge__( self, other):       return _ge( self, self.Value(), _MakeValue( other, self ) )
     
     def     __contains__(self, other):  return self.has( other )
-    def     has( self, other ):         return _has( self, self.GetList(), _Value( other, self ) )
-    def     has_any( self, other ):     return _has_any( self, self.GetList(), _Value( other, self ) )
-    def     one_of( self, values ):     return _one_of( self, self.GetList(), _Value( values, self ) )
+    def     has( self, other ):         return _has( self, self.Value(), _ValueList( other, self ) )
+    def     has_any( self, other ):     return _has_any( self, self.Value(), _ValueList( other, self ) )
+    def     one_of( self, values ):     return _one_of( self, self.Value(), _ValueList( values, self ) )
     
     #//-------------------------------------------------------//
     
     def     __nonzero__( self ):
-        if self.Get(): return 1
+        if self.Value(): return 1
         return 0
     
     #//-------------------------------------------------------//
     
     def     __str__( self, map = map, str = str ):
-        return self.shared_data['separator'].join( map(str, self.GetList() ) )
+        
+        if self.shared_data['is_list']:
+            return self.shared_data['separator'].join( map(str, self.Value() ) )
+        
+        value = self.Value()
+        if value is None:
+            return ''
+        
+        return str( value )
 
 
 #//===========================================================================//
@@ -869,7 +983,7 @@ class   EnumOption (OptionBase):
         for v in toSequence( values ):
             
             try:
-                v = v.lower()
+                v = str(v).lower()
                 alias = values_dict[ v ]
             
             except (AttributeError, KeyError):
@@ -886,12 +1000,15 @@ class   EnumOption (OptionBase):
     
     def     _convert_value( self, val ):
         
-        value = self.__map_values( val )
+        values = self.__map_values( val )
         
-        if not value:
+        if not values:
             _Error( "Invalid value: '%s', type: %s" % (val, type(val)) )
         
-        return value
+        if len( values ) == 1:
+            return values[0]
+        
+        return values
     
     #//=======================================================//
     
@@ -914,7 +1031,7 @@ class   EnumOption (OptionBase):
         if not mapped_values:
             _Error( "Invalid value(s): %s" % (values) )
         
-        if (not self.shared_data['is_list']) and (isSequence( mapped_values ) and (len( mapped_values ) > 1)):
+        if (not self.shared_data['is_list']) and (len( mapped_values ) > 1):
             _Error( "Can't add an alias to list of values: %s of none-list option" % (mapped_values) )
         
         self.shared_data['values_dict'][ alias ] = mapped_values
@@ -1012,6 +1129,8 @@ class   IntOption (OptionBase):
             if kw['min'] > kw['max']:
                 _Error( "Minimal value: %d is greater than maximal value: %d " % (min, max) )
         
+        kw['allowed_operations'] = ['+','-']
+        
         self._init_base( **kw )
         self._set_default()
     
@@ -1027,14 +1146,14 @@ class   IntOption (OptionBase):
         
         if (int_val < self.shared_data['min']) or (int_val > self.shared_data['max']):
             _Error( "The value: %s for option: '%s' is out of range: [%d..%d]" % \
-                    (val, self.Names()[0], self.shared_data['min'], self.shared_data['max']) )
+                    (val, self.Name(), self.shared_data['min'], self.shared_data['max']) )
         
         return int_val
     
     #//-------------------------------------------------------//
     
     def     __int__( self ):
-        return self.Get()
+        return self.Value()
     
     #//-------------------------------------------------------//
     
@@ -1058,6 +1177,8 @@ class   StrOption (OptionBase):
     def     __init__( self, **kw ):
         
         kw.setdefault( 'ignore_case', 0 )
+        
+        kw['allowed_operations'] = ['+']
         
         self._init_base( **kw )
         self._set_default()
@@ -1104,11 +1225,16 @@ class   LinkedOption (OptionBase):
     
     #//-------------------------------------------------------//
     
-    def     _convert_value( self, value ):
+    def     _convert_value( self, value, isSequence = utils.isSequence ):
         
         linked_option = self.options[ self.shared_data['linked_opt_name'] ]
         
-        return linked_option._convert_value( value )
+        value = linked_option._convert_value( value )
+        
+        if isSequence( value ) and (len( value ) == 1):
+            return value[0]
+        
+        return value
     
     #//-------------------------------------------------------//
     
@@ -1184,7 +1310,7 @@ class   PathOption (OptionBase):
             env = self.options.Env()
             
             if env is not None:
-                return env.Dir( val ).srcnode()
+                return env.Dir( str(val) ).srcnode()
         
         return normcase( abspath( val ) )
     
@@ -1324,16 +1450,16 @@ class   _ConditionalOption:
         
         conditional_value = self.conditional_value.Clone()
         
-        value = _Value( value, self.option )
+        value = _MakeValue( value, self.option )
         conditional_value.Append( _Condition( self.name, cond_function, value ) )
         
         return _ConditionalOptions( self.options, conditional_value )
     
     #//-------------------------------------------------------//
     
-    def     has( self, value ):         return self.__cond_options( _has, value )
-    def     has_any( self, values ):    return self.__cond_options( _has_any, values )
-    def     one_of( self, values ):     return self.__cond_options( _one_of, values )
+    def     has( self, value ):         return self.__cond_options( _has, _ValueList( value, self.option ) )
+    def     has_any( self, values ):    return self.__cond_options( _has_any, _ValueList( values, self.option ) )
+    def     one_of( self, values ):     return self.__cond_options( _one_of, _ValueList( values, self.option ) )
     def     eq( self, value ):          return self.__cond_options( _eq, value )
     def     ne( self, value ):          return self.__cond_options( _ne, value )
     def     gt( self, value ):          return self.__cond_options( _gt, value )

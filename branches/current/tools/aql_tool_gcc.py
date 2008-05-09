@@ -76,7 +76,7 @@ def     _add_libs( env ):
 
 def     _rpathlink( target, source, env, for_signature ):
     flags = ''
-    for p in _EnvOptions(env).libpath.GetList():
+    for p in _EnvOptions(env).libpath.Value():
         flags += ' -Wl,-rpath-link,' + str(p)
     
     return flags
@@ -102,6 +102,8 @@ def     _where_is_program( env, prog, normcase = os.path.normcase ):
     
     if tool_path:
         return normcase( tool_path )
+    
+    print prog,": ", tool_path
     
     return tool_path
 
@@ -222,7 +224,6 @@ def     _try_gcc( env, options, check_existence_only ):
     path = os.path.dirname( gcc_path )
     
     if not check_existence_only:
-        options.gcc_path = path
         _add_gcc( env, gcc_path )
         _add_link( env )
     
@@ -237,6 +238,9 @@ def     _try_gcc( env, options, check_existence_only ):
         
         if not check_existence_only:
             f( env, tool_path )
+    
+    if not check_existence_only:
+        options.gcc_path = os.path.dirname( path )
     
     return 1
 
@@ -433,22 +437,22 @@ def     _add_as( env, as_path ):
 
 #//---------------------------------------------------------------------------//
 
-#~ def     _update_os_env( env, options ):
+def     _add_stdlib_paths( options ):
     
-    #~ gcc_path = str(options.gcc_path)
-    #~ gcc_target_platform = str(options.gcc_target)
-    #~ gcc_ver = str(options.cc_ver)
-    #~ gcc_suffix = str(options.gcc_suffix)
+    gcc_path = str(options.gcc_path)
+    gcc_target_platform = str(options.gcc_target)
+    gcc_ver = str(options.cc_ver)
+    gcc_suffix = str(options.gcc_suffix)
     
-    #~ _PrependEnvPath( env['ENV'], 'PATH', gcc_path )
+    cpppath_lib = options.cpppath_lib
+    cpppath_lib += gcc_path + '/include'
+    cpppath_lib += gcc_path + '/include/c++/'
+    cpppath_lib += gcc_path + '/include/c++/' + gcc_ver
+    cpppath_lib += gcc_path + '/include/c++/' + gcc_ver + '/' + gcc_target_platform
+    cpppath_lib += gcc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include'
+    cpppath_lib += gcc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include/c++'
     
-    #~ cpppath_lib = options.cpppath_lib
-    #~ cpppath_lib += gcc_path + '/include'
-    #~ cpppath_lib += gcc_path + '/include/c++/' + gcc_ver
-    #~ cpppath_lib += gcc_path + '/include/c++/' + gcc_ver + '/' + gcc_target_platform
-    #~ cpppath_lib += gcc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include'
-    
-    #~ options.libpath += gcc_path +'/lib'
+    options.libpath += gcc_path +'/lib'
 
 #//---------------------------------------------------------------------------//
 
@@ -460,6 +464,8 @@ def     generate( env ):
         return
     
     #//-------------------------------------------------------//
+    
+    _add_stdlib_paths( options )
     
     # target platform specific settings
     
