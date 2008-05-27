@@ -25,7 +25,12 @@ def     setup_gcc( options, os_env, env ):
         
         cc_path = _drive_d
 
-        if options.cc_ver == '4.2':
+        if options.cc_ver == '4.3':
+            cc_path += '/bin/development/compilers/gcc/mingw_4.3'
+            options.gcc_prefix = 'mingw32-'
+            options.gcc_suffix = ''
+        
+        elif options.cc_ver == '4.2':
             cc_path += '/bin/development/compilers/gcc/mingw_4.2.1_dw2'
             options.gcc_prefix = 'mingw32-'
             options.gcc_suffix = '-dw2'

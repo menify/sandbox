@@ -444,14 +444,25 @@ def     _add_stdlib_paths( options ):
     gcc_ver = str(options.cc_ver)
     gcc_suffix = str(options.gcc_suffix)
     
-    cpppath_lib = options.cpppath_lib
-    cpppath_lib += gcc_path + '/include'
-    cpppath_lib += gcc_path + '/include/c++/'
-    cpppath_lib += gcc_path + '/include/c++/' + gcc_ver
-    cpppath_lib += gcc_path + '/include/c++/' + gcc_ver + '/' + gcc_target_platform
-    cpppath_lib += gcc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include'
-    cpppath_lib += gcc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include/c++'
+    gcc_cpppath_cc = gcc_path + '/include'
+    gcc_cpppath_cxx = gcc_cpppath_cc + '/c++'
     
+    gcc_lib_cpppath_cc = gcc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include'
+    gcc_lib_cpppath_cxx = gcc_lib_cpppath_cc + '/c++'
+    
+    gcc_cpppath = \
+        [
+            gcc_lib_cpppath_cxx + '/' + gcc_target_platform,
+            gcc_lib_cpppath_cxx,
+            gcc_lib_cpppath_cc,
+            
+            gcc_cpppath_cxx + '/' + gcc_ver + '/' + gcc_target_platform,
+            gcc_cpppath_cxx + '/' + gcc_ver,
+            gcc_cpppath_cxx,
+            gcc_cpppath_cc
+        ]
+    
+    options.cpppath_lib += gcc_cpppath
     options.libpath += gcc_path +'/lib'
 
 #//---------------------------------------------------------------------------//

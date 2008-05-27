@@ -29,6 +29,7 @@ def     _create_src_lnt( target, source, env, for_signature, lint_glob ):
         defines = [ '-d' + m for m in cpp_defines ]
         
         paths = env.subst_list( '$CPPPATH' )[0]
+        
         paths += env.aqlOptions().cpppath_lib.Value()
         
         paths = [ '-i' + os.path.abspath( str(d) ) for d in paths ]

@@ -44,6 +44,7 @@ def     _add_cmdline_options():
                             action = "store_true",
                             help = 'Print a detailed help message.' )
     
+    global _detailed_help
     _detailed_help = SCons.Script.GetOption('aql_detailed_help')
     
     if _detailed_help:
@@ -54,7 +55,7 @@ def     _add_cmdline_options():
 def     _generate_help( options ):
     if SCons.Script.GetOption('help'):
         SCons.Script.HelpFunction( _GenerateOptionsHelp( options, _detailed_help ) )
-    
+        
         if not _detailed_help:
             SCons.Script.HelpFunction( "Use --h option for detailed help." )
         
@@ -226,6 +227,9 @@ def     BuildVariant( scriptfile, options, **kw ):
     
     kw['variant_dir'] = os.path.normpath( str( options.build_dir ) )
     kw['exports'] = [ {'env' : env} ]
+    
+    if options.lint != 'off':
+        SCons.Script.SetOption( 'num_jobs', 1 )
     
     env.SConscript( scriptfile, **kw )
     
