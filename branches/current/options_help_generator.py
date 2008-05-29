@@ -3,19 +3,36 @@ def     _print_option_help( op, names, detailed_help, prefix, help_justification
     
     help = ''
     
-    for name in names[:-1]:
-        help += prefix + name + ':\n'
+    if detailed_help:
+        for name in names[:-1]:
+            help += prefix + name + ':\n'
     
-    name = names[-1]
+        name = names[-1]
+    
+    else:
+        name = max( names, key = len )
+    
     tmp = prefix + name + ':'
     help += tmp
     help += ' ' * (len( help_justification ) - len(tmp))
-    help += op.shared_data['help'].replace('\n', '\n' + help_justification )
     
-    if help[-1] != '\n':    help += '\n'
+    h = op.shared_data['help']
     
     if detailed_help:
+        help += h.replace('\n', '\n' + help_justification )
+    
+        if help[-1] != '\n':    help += '\n'
+        
         help += help_justification + 'Type: ' + op.AllowedValuesHelp() + '\n'
+    
+    else:
+        line_end = h.find('\n')
+        if line_end == -1:
+            help += h
+        else:
+            help += h[:line_end]
+        
+        help += '\n'
     
     return help
 
@@ -93,5 +110,7 @@ def     GenerateOptionsHelp( options, detailed_help ):
             help += op_help + '\n'
         else:
             help += op_help
+    
+    help += '\n'
     
     return help
