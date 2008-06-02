@@ -65,8 +65,8 @@ def     _setup_flags( options ):
     if_.warnings_as_errors['on'].ccflags += '-Werror'
     
     if_profiling_true = if_.profiling['true']
-    if_profiling_true.ccflags += '-pg -rdynamic'
-    if_profiling_true.linkflags += '-pg -rdynamic'
+    if_profiling_true.ccflags += '-pg'
+    if_profiling_true.linkflags += '-pg'
     if_profiling_true.linkflags -= '-Wl,--strip-all'
 
 #//---------------------------------------------------------------------------//

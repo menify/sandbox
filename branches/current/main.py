@@ -233,15 +233,6 @@ def     BuildVariant( scriptfile, options, **kw ):
     
     env.SConscript( scriptfile, **kw )
     
-    #~ bv = str(options.bv)
-    #~ aliases = [ bv ]
-    #~ bv_aliases = options.build_variants.Aliases()[ bv ]
-    
-    #~ if bv_aliases:
-        #~ aliases += bv_aliases
-    
-    #~ env.Alias( aliases, kw['variant_dir'] )
-    
     return env
 
 #//---------------------------------------------------------------------------//

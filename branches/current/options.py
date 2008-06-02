@@ -182,7 +182,7 @@ class Options:
             return self.__dict__['__ids_dict'][ id(opt) ][1]
         
         except KeyError:
-            return ['__unknown__']
+            return [ None ]
     
     #//-------------------------------------------------------//
     
@@ -266,7 +266,12 @@ def     _convert_value( option, value,
 class   _OptionValue:
     def     __init__( self, value, option ):
         
-        self.name = value.Name()
+        name = value.Name()
+        
+        if name is None:
+            _Error("Unknown option name. Can't use a value of the unknown option" )
+        
+        self.name = name
         
         if __debug__:
             _convert_value( option, value  )     # check the current value
@@ -338,7 +343,12 @@ def     _convert_list_values( option, value,
 class   _OptionListValue:
     def     __init__( self, value, option ):
         
-        self.name = value.Name()
+        name = value.Name()
+        
+        if name is None:
+            _Error("Unknown option name. Can't use a value of the unknown option" )
+        
+        self.name = name
         
         if __debug__:
             _convert_list_values( option, value.Value() )   # check the current value
@@ -576,7 +586,7 @@ class       _NoneOptions:
     def     __setitem__( self, name, value ):   self.__error()
     def     __getattr__( self, name ):          self.__error()
     def     __getitem__(self, name ):           self.__error()
-    def     OptionNames( self, opt ):           return ['__unknown__']
+    def     OptionNames( self, opt ):           return [ None ]
     def     Cache( self ):                      return {}
     def     ClearCache( self ):                 pass
 

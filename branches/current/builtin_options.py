@@ -136,9 +136,18 @@ def     _set_build_dir( options ):
 
 def     _add_variants( options ):
     
+    bv_aliases = { 'release': 'release_speed',
+                   'rel': 'release_speed',
+                   'dbg': 'debug',
+                   'r': 'release_speed',
+                   'rd' : 'release_speed',
+                   'rz' : 'release_size',
+                   'f' : 'final',
+                   'd' : 'debug' }
+    
     build_variants = _EnumOption( initial_value = 'debug',
                                   allowed_values = ('debug', 'release_speed', 'release_size', 'final'),
-                                  aliases = {'release': 'release_speed'},
+                                  aliases = bv_aliases,
                                   separator = ',',
                                   is_list = 1 ,
                                   update = 'Set',
@@ -147,6 +156,7 @@ def     _add_variants( options ):
     
     options.build_variants = build_variants
     options.builds = build_variants
+    options.b = build_variants
     
     build_variants.AddAlias( 'all', build_variants.AllowedValues() )
     
@@ -218,7 +228,6 @@ def     _add_debug_options( options ):
     debug_symbols = _BoolOption( initial_value = 'off', help = 'Include debug symbols', group = "Debug" )
     options.debug_symbols = debug_symbols
     options.debug_info = debug_symbols
-    options.debug = debug_symbols
     
     #//-------------------------------------------------------//
     
