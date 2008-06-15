@@ -971,6 +971,7 @@ class   EnumOption (OptionBase):
     def     __init__( self, **kw ):
         
         kw['values_dict'] = {}
+        kw.setdefault('all_key', 'all')
         
         aliases = kw.get( 'aliases', {} )
         allowed_values = kw.get( 'allowed_values', () )
@@ -997,7 +998,12 @@ class   EnumOption (OptionBase):
                 alias = values_dict[ v ]
             
             except (AttributeError, KeyError):
-                return None
+                
+                if self.shared_data['all_key'] == v:
+                    alias = self.AllowedValues()
+                
+                else:
+                    return None
             
             if alias is None:
                 mapped_values.append( v )
@@ -1028,14 +1034,21 @@ class   EnumOption (OptionBase):
         for v in toSequence( values ):
             
             try:
-                values_dict[ v.lower() ] = None
-            
+                v = v.lower()
             except AttributeError:
                 _Error( "Invalid value: '%s', type: %s" % (val, type(val)) )
+            
+            if self.__map_values( v ):
+                _Error( "Can't change an existing value: %s" % (v) )
+            
+            values_dict[ v ] = None
     
     #//=======================================================//
     
     def     AddAlias( self, alias, values, isSequence = utils.isSequence ):
+        
+        if self.__map_values( alias ):
+            _Error( "Can't change an existing value: %s" % (alias) )
         
         mapped_values = self.__map_values( values )
         if not mapped_values:

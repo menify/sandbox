@@ -140,7 +140,7 @@ def     _add_variants( options ):
                    'rel': 'release_speed',
                    'dbg': 'debug',
                    'r': 'release_speed',
-                   'rd' : 'release_speed',
+                   'rs' : 'release_speed',
                    'rz' : 'release_size',
                    'f' : 'final',
                    'd' : 'debug' }
@@ -157,8 +157,6 @@ def     _add_variants( options ):
     options.build_variants = build_variants
     options.builds = build_variants
     options.b = build_variants
-    
-    build_variants.AddAlias( 'all', build_variants.AllowedValues() )
     
     build_variant = _LinkedOption( initial_value = 'debug',
                                    options = options,

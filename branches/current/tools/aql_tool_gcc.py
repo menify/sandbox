@@ -72,7 +72,8 @@ def     _setup_flags( options ):
 #//---------------------------------------------------------------------------//
 
 def     _add_libs( env ):
-    env.Append( LIBS = ["$_AQL_LIBS"] )       # duplicate libs to resolve recursive dependencies
+    env['_LIBFLAGS'] = '--start-group ' + env['_LIBFLAGS'] + ' --end-group'
+    #~ env.Append( LIBS = ["$_AQL_LIBS"] )       # duplicate libs to resolve recursive dependencies
 
 def     _rpathlink( target, source, env, for_signature ):
     flags = ''
