@@ -1,5 +1,6 @@
 
 import os.path
+import fnmatch
 
 import SCons.Script
 import SCons.Tool
@@ -114,9 +115,42 @@ def     _glob( self, path, filter_function = None, absolute_paths = False ):
 
 #//===========================================================================//
 
+def     _findFiles( env, path, pattern ):
+    
+    abs = 1
+    
+    path = os.path.normpath( path )
+    
+    if not os.path.isabs( path ):
+        abs = 0
+        src_dir = env.Dir('.').srcnode().abspath
+        path = os.path.join( src_dir, path )
+    
+    files = []
+    
+    def     _walker( files, dirname, names ):
+        
+        match_files = fnmatch.filter( names, pattern )
+        match_files = [ os.path.join( dirname, f) for f in match_files ]
+        match_files = filter( os.path.isfile, match_files )
+        
+        files += match_files
+    
+    os.path.walk( path, _walker, files )
+    
+    if not abs:
+        strip_len = len(src_dir)
+        files = [ f[ strip_len : ].lstrip( os.path.sep ) for f in files ]
+    
+    return files
+    
+
+#//===========================================================================//
+
 def     _add_aql_methods( env ):
     env.AddMethod( _src_relative_dir, 'aqlSrcDir' )
     env.AddMethod( _glob, 'aqlGlob' )
+    env.AddMethod( _findFiles, 'aqlFindFiles' )
     env.AddMethod( _EnvOptions, 'aqlOptions' )
 
 #//===========================================================================//

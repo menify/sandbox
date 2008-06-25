@@ -57,7 +57,7 @@ class Options:
         if not _is_option( value ):
             _Error( "Option '%s' is unknown and value '%s' is not an option" % (name,value) )
             #~ if _isSequence( value ):   is_list = 1
-            #~ else:                       is_list = 0
+            #~ else:                      is_list = 0
             
             #~ value = StrOption( initial_value = value, is_list = is_list )   # use the default option type for unknown options
         
@@ -640,7 +640,7 @@ class   OptionBase:
         if initial_value is None:
             return
         
-        if self.shared_data[ 'is_list' ]:
+        if '+' in self.shared_data[ 'allowed_operations' ]:
             self.Append( initial_value )
         else:
             self.Set( initial_value )
@@ -1187,9 +1187,9 @@ class   IntOption (OptionBase):
     
     def     AllowedValuesHelp( self ):
         if self.shared_data['is_list']:
-            return 'List of integers from: ' + self.AllowedValuesStr()
+            return 'List of integers in range: ' + self.AllowedValuesStr()
         
-        return 'An integer from: ' + self.AllowedValuesStr()
+        return 'An integer in range: ' + self.AllowedValuesStr()
 
 
 #//===========================================================================//

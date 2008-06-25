@@ -97,7 +97,7 @@ class _LintCom:
         if options.lint == 'off':
             return []
         
-        lint_glob = (options.lint == 'glob')
+        lint_glob = (options.lint == 'global')
         
         if self.file_type == "src":
             target_lnt_file = _create_src_lnt( target, source, env, for_signature, lint_glob )

@@ -1,12 +1,36 @@
 
+# Copyright (c) 2007, 2008 Konstantin Bozhikov
+#
+# Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 The SCons Foundation
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+# KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
 import os
+import subprocess
 import SCons.Tool
 import SCons.Util
 
 import aql.utils
 import aql.options
 
-_AppendEnvPath = aql.utils.appendEnvPath
 _PrependEnvPath = aql.utils.prependEnvPath
 _EnvOptions = aql.options.EnvOptions
 
@@ -57,8 +81,9 @@ def     _setup_flags( options ):
     
     if_.warning_level[0].ccflags += '-w'
     if_.warning_level[2].ccflags += '-Wall'
-    if_.warning_level[3].ccflags += '-Wall'
-    if_.warning_level[4].ccflags += '-Wall -Wextra'
+    if_.warning_level[3].ccflags += '-Wall -Wextra -Wfloat-equal -Wundef -Wshadow -Wredundant-decls'
+    if_.warning_level[4].ccflags += '-Wall -Wextra -Wfloat-equal -Wundef -Wshadow -Wredundant-decls'
+    if_.warning_level[4].cxxflags += '-Weffc++'
     
     if_.warning_level[4].cc_ver.ge(4).ccflags += '-Wfatal-errors'
     
@@ -104,10 +129,7 @@ def     _where_is_program( env, prog, normcase = os.path.normcase ):
     if tool_path:
         return normcase( tool_path )
     
-    print prog,": ", tool_path
-    
     return tool_path
-
 
 #//---------------------------------------------------------------------------//
 
@@ -136,14 +158,13 @@ def     _get_gcc_specs( env, options, gcc, check_existence_only, gcc_specs_cache
     cc_ver, target = gcc_specs_cache.get( gcc, (None, None) )
     
     if cc_ver is None:
-        os_environ = os.environ
-        os_environ_path = os_environ['PATH']
-        _AppendEnvPath( os_environ, 'PATH', env['ENV']['PATH'] )
         
-        cc_ver = os.popen( gcc + ' -dumpversion', 'r').readline().strip()
-        target = os.popen( gcc + ' -dumpmachine', 'r').readline().strip()
+        os_env = os.environ.copy()
+        _PrependEnvPath( os_env, 'PATH', env['ENV']['PATH'] )
         
-        os_environ['PATH'] = os_environ_path
+        cc_ver = subprocess.Popen( gcc + ' -dumpversion', shell=True, stdout=subprocess.PIPE, env = os_env ).stdout.readline().strip()
+        target = subprocess.Popen( gcc + ' -dumpmachine', shell=True, stdout=subprocess.PIPE, env = os_env ).stdout.readline().strip()
+        
         gcc_specs_cache[ gcc ] = ( cc_ver, target )
     
     if target == 'mingw32':

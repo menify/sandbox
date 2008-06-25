@@ -67,9 +67,9 @@ def     _add_platform_options( options ):
     options.target_os_version = _VersionOption( help = "The target system's release version, e.g. '2.2.0' or '5.1.2600'",
                                                 group = "Platform")
     
-    options.target_machine = _EnumOption( allowed_values = ('x86-32', 'x86-64','arm' ),
+    options.target_machine = _EnumOption( allowed_values = ('x86-32', 'x86-64', 'arm' ),
                                           aliases = {'i386':'x86-32','i586':'x86-32','i486':'x86-32','i686':'x86-32',
-                                                     'i586':'x86-32', 'pc':'x86-32', 'x86':'x86-32'},
+                                                     'i586':'x86-32', 'pc':'x86-32', 'x86':'x86-32', '80x86': 'x86-32'},
                                           help = "The target machine type, e.g. 'i386'", 
                                           group = "Platform" )
     
@@ -355,8 +355,8 @@ def     _add_cc_options( options ):
 
 def     _add_lint_options( options ):
     
-    options.lint = _EnumOption( initial_value = 'off', allowed_values = ['off', 'on', 'glob'],
-                                aliases = {'global': 'glob', '0': 'off', '1':'on', '2':'glob' },
+    options.lint = _EnumOption( initial_value = 'off', allowed_values = ['off', 'on', 'global'],
+                                aliases = {'0': 'off', '1':'on', '2':'global' },
                                 help = 'Lint method', group = "Lint" )
     
     #//-------------------------------------------------------//
