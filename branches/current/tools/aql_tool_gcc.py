@@ -83,7 +83,7 @@ def     _setup_flags( options ):
     if_.warning_level[2].ccflags += '-Wall'
     if_.warning_level[3].ccflags += '-Wall -Wextra -Wfloat-equal -Wundef -Wshadow -Wredundant-decls'
     if_.warning_level[4].ccflags += '-Wall -Wextra -Wfloat-equal -Wundef -Wshadow -Wredundant-decls'
-    if_.warning_level[4].cxxflags += '-Weffc++'
+    #~ if_.warning_level[4].cxxflags += '-Weffc++'
     
     if_.warning_level[4].cc_ver.ge(4).ccflags += '-Wfatal-errors'
     
@@ -150,10 +150,7 @@ def     _find_gcc_tool( env, gcc_prefix, gcc_suffix, path, tool,
 
 #//---------------------------------------------------------------------------//
 
-if not aql.utils.__dict__.has_key( 'gcc_specs_cache' ):
-    aql.utils.gcc_specs_cache = {}
-
-def     _get_gcc_specs( env, options, gcc, check_existence_only, gcc_specs_cache = aql.utils.gcc_specs_cache ):
+def     _get_gcc_specs( env, options, gcc, check_existence_only, gcc_specs_cache = {} ):
     
     cc_ver, target = gcc_specs_cache.get( gcc, (None, None) )
     

@@ -36,10 +36,11 @@ import SCons.Util
 
 import aql.utils
 import aql.options
+import aql.logging
 
 _EnvOptions = aql.options.EnvOptions
 _PrependEnvPath = aql.utils.prependEnvPath
-
+_Info = aql.logging.Info
 
 #//---------------------------------------------------------------------------//
 
@@ -423,15 +424,15 @@ def     _where_is_program( env, prog, normcase = os.path.normcase ):
     
     if tool_path:
         return normcase( tool_path )
+    else:
+        _Info("'%s' has not been found." % (prog))
+        _Info("PATH: %s" % (env['ENV']['PATH']))
     
     return tool_path
 
 #//---------------------------------------------------------------------------//
 
-if not aql.utils.__dict__.has_key( 'msvc_specs_cache' ):
-    aql.utils.msvc_specs_cache = {}
-
-def     _get_msvc_specs( env, options, bin_path, check_existence_only, msvc_specs_cache = aql.utils.msvc_specs_cache ):
+def     _get_msvc_specs( env, options, bin_path, check_existence_only, msvc_specs_cache = {} ):
     
     cc_ver, target_machine = msvc_specs_cache.get( bin_path, (None, None) )
     
@@ -461,6 +462,7 @@ def     _get_msvc_specs( env, options, bin_path, check_existence_only, msvc_spec
     #//-------------------------------------------------------//
     
     if not cc_ver:
+        
         return 0
     
     target_os = 'windows'
@@ -498,6 +500,7 @@ def     _get_msvc_specs( env, options, bin_path, check_existence_only, msvc_spec
 def     _try( env, options, check_existence_only = 0 ):
     
     if (options.cc_name != 'msvc') or (options.target_os != 'windows'):
+        _Info( "Wrong 'cc_name (%s)' or 'target_os (%s)'" % (options.cc_name, options.target_os) )
         return 0
     
     cl_path = _where_is_program( env, 'cl' )
@@ -507,14 +510,16 @@ def     _try( env, options, check_existence_only = 0 ):
     bin_path = os.path.dirname( cl_path )
     
     if not env.WhereIs('link', bin_path ):
+        _Info( "'link' has been not found" )
         return 0
     
     if not env.WhereIs('lib', bin_path ):
+        _Info( "'lib' has been not found." )
         return 0
     
     if not _get_msvc_specs( env, options, bin_path, check_existence_only ):
+        _Info( "MS VC specs mismatch." )
         return 0
-    
     
     if not check_existence_only:
         

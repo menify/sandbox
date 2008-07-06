@@ -118,7 +118,7 @@ def     getShellScriptEnv( os_env, script ):
         
         if match:
             index = arg.find('=')
-            name = arg[:index]
+            name = arg[:index].upper()
             value = arg[index + 1:].rstrip('\n \t\r')
             
             current = os_environ.get( name )
