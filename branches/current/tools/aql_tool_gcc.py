@@ -456,36 +456,6 @@ def     _add_as( env, as_path ):
 
 #//---------------------------------------------------------------------------//
 
-def     _add_stdlib_paths( options ):
-    
-    gcc_path = str(options.gcc_path)
-    gcc_target_platform = str(options.gcc_target)
-    gcc_ver = str(options.cc_ver)
-    gcc_suffix = str(options.gcc_suffix)
-    
-    gcc_cpppath_cc = gcc_path + '/include'
-    gcc_cpppath_cxx = gcc_cpppath_cc + '/c++'
-    
-    gcc_lib_cpppath_cc = gcc_path + '/lib/gcc/' + gcc_target_platform + '/' + gcc_ver + gcc_suffix + '/include'
-    gcc_lib_cpppath_cxx = gcc_lib_cpppath_cc + '/c++'
-    
-    gcc_cpppath = \
-        [
-            gcc_lib_cpppath_cxx + '/' + gcc_target_platform,
-            gcc_lib_cpppath_cxx,
-            gcc_lib_cpppath_cc,
-            
-            gcc_cpppath_cxx + '/' + gcc_ver + '/' + gcc_target_platform,
-            gcc_cpppath_cxx + '/' + gcc_ver,
-            gcc_cpppath_cxx,
-            gcc_cpppath_cc
-        ]
-    
-    options.cpppath_lib += gcc_cpppath
-    options.libpath += gcc_path +'/lib'
-
-#//---------------------------------------------------------------------------//
-
 def     generate( env ):
     
     options = _EnvOptions(env)
@@ -494,8 +464,6 @@ def     generate( env ):
         return
     
     #//-------------------------------------------------------//
-    
-    _add_stdlib_paths( options )
     
     # target platform specific settings
     
