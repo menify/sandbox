@@ -23,7 +23,15 @@ def     _print_option_help( op, names, detailed_help, prefix, help_justification
     
         if help[-1] != '\n':    help += '\n'
         
-        help += help_justification + 'Type: ' + op.AllowedValuesHelp() + '\n'
+        val_help = help_justification + 'Type: '
+        help += val_help
+        
+        val_just = ' ' * len(val_help)
+        val_help = op.AllowedValuesHelp()
+        
+        val_help = val_help.replace('\n', '\n' + val_just )
+        
+        help += val_help + '\n'
     
     else:
         line_end = h.find('\n')
