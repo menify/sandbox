@@ -1,0 +1,4 @@
+
+options.sbe_debug = aql.BoolOption( initial_value = 'on', help = 'Enable SBE debug code' )
+
+options.If().sbe_debug['on'].defines += 'SBE_DEBUG'

@@ -1,0 +1,12 @@
+import aql
+
+options = aql.BuiltinOptions()
+
+options.build_dir.Prepend( '../' )
+options.build_dir += '/tests'
+
+execfile( 'user_options.scons' )
+
+options.update( ARGUMENTS )
+
+aql.Build( 'make.scons', options )
