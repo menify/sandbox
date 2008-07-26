@@ -1,0 +1,98 @@
+
+// options
++linebuf
++linebuf
++linebuf
++linebuf
++linebuf
++macros
++macros
++macros
++macros
++macros
++macros
++macros
+
++libclass(ansi,angle)
+
+au-sm123.lnt
+
+// flags
++ffb    // for loop creates separate block
+-fpn    // pointer parameter may NOT be NULL
++fsc    // string constants are Const char
++ffn    // files full names
++fet    // Explicit Throw flag
+
+// other options
+-A
++cpp(cc)
++cpp(cxx)
++cpp(hpp)
+-idlen(32)
+-size(a,512)
+-t4
+//-template(1)    // agressively compile base classes
+//-etemplate(957)                         // 957   Function 'Symbol' defined without a prototype in scope
+
+
+--emacro((910),NULL)  // 910   Implicit conversion (Context) from 0 to pointer
+
+-e537   // Repeated include file 'FileName'
+-e830   // Location cited in prior message
+-e831   // Reference cited in prior message
+-e915   // Implicit conversion (initialization) - size_t  x = 0;
+-e917   // Prototype corection - void f( size_t  x); f( 12 );
+-e911   // Implicit expression promotion from 'type' to 'type'
+-e912   // Implicit binary conversion 'type' to 'type'
+-e925   // Cast from void pointer to pointer
+-e921   // Cast from Type to Type
+-e920   // Cast from Type to void
+-e922   // Cast from double to int
+-e923   // Cast from pinter to int
+//-e927   // A cast is being made to convert a char (or unsigned char) pointer to a non-char pointer
+-e929   // Cast from pointer to pointer
+-e930   // A cast is being made to or from an enumeration type.
+-e955   // Note -- Parameter name missing from prototype for function
+
+//-emacro((*), va_start)
+//-emacro((*), va_end)
+
+-e960 // Violates MISRA Required Rules
+-e961 // Violates MISRA Advisory Rule
+//-esym( 960, 33, 42, 57, 58, 59, 69 )  // Violates MISRA Required Rules
+//-esym( 961, 18, 44, 47, 55, 60, 92 )  // Violates MISRA Advisory Rule
+
+-e952   // Parameter 'Symbol' could be declared const
+//-e956   // Non const, non volatile static or external variable
+-e801   // Use of goto is deprecated  -- A goto was detected
+-e935   // int within struct
+-e946   // Relational or subtract operator applied to pointers
+-e947   // Subtract operator applied to pointers
+-e958   // Padding of Integer byte(s) is required to align member on Integer byte boundary
+-e959   // struct size is not an even multiple of the maximum member alignment
+-e1927  // Symbol 'Symbol' was not initialized in the constructor initializer list
+-e1704  // Constructor 'Symbol' has private access specification
+-e1712  // default constructor not defined for class
+//-e1928  // Symbol did not appear in the constructor initializer list
+//-e1401  // member symbol not initialized by constructor
+-e1509  // base class destructor for class 'Name' is not virtual
+-e1502  // defined object 'Symbol' has no data members
+-e966   // Indirectly included header file 'FileName' not used in module
+-e1904  // Old-style C comment
+-e970   // Use of modifier or type 'Name' outside of a typedef
+-e971   // Use of 'char' without 'signed' or 'unsigned'
+-e1932  // Base class is not abstract
+//-e1740  // pointer member not directly freed or zero'ed by destructor
+-e1962  // Non-const member function contains a deep modification
+-e1901  // Creating a temporary of type
+-e1916  // Ellipsis encountered
+-e964   // Header file FileName not directly used in module
+-e1923  // Note -- macro could become const variable
+
+-e1905  // Note -- implicit default constructor generated for class
+-e1907  // Note -- implicit destructor generated for class
+
+-e768    // Info -- global struct member not referenced
+-e526    // Warning -- Symbol not defined
+-e755 -e756 -e757 -e758

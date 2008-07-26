@@ -344,7 +344,7 @@ def _add_msvc( env ):
     if not env.has_key('ENV'):
         env['ENV'] = {}
     if not env['ENV'].has_key('SystemRoot'):    # required for dlls in the winsxs folders
-        env['ENV']['SystemRoot'] = SCons.Platform.win32.get_system_root()
+        env['ENV']['SystemRoot'] = str( SCons.Platform.win32.get_system_root() )
 
 #//---------------------------------------------------------------------------//
 

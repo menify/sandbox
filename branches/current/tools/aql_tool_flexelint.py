@@ -58,7 +58,8 @@ def     _getCompilerPredefines( target, source, env ):
     if not os.path.isfile( dummy_file ):
         open( dummy_file, 'w').close()
     
-    cxx_pp = subprocess.Popen( env.subst('$CXX $CXXFLAGS $CCFLAGS -v -dM -E') + ' ' + dummy_file, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env = env['ENV'] )
+    cxx_pp = subprocess.Popen( env.subst('$CXX $CXXFLAGS $CCFLAGS -v -dM -E') + ' ' + dummy_file,
+                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env = env['ENV'] )
     
     cxx_defines = cxx_pp.stdout
     cxx_includes = cxx_pp.stderr
@@ -255,8 +256,9 @@ def generate(env):
     if_msvc_ver['8.0'].lint_flags  += 'co-msc80.lnt'
     if_msvc_ver['9.0'].lint_flags  += 'co-msc90.lnt'
     
-    if_cc_name['wcc'].lint_flags   += 'co-wc32.lnt'
-    if_cc_name['gcc'].target_os['windows'].lint_flags += 'co-gcc.lnt'
+    if_cc_name['wcc'].lint_flags += 'co-wc32.lnt'
+    if_cc_name['gcc'].lint_flags += 'co-gcc.lnt'
+    
     if_cc_name['gcc'].lint_flags += '--u_GLIBCXX_CONCEPT_CHECKS'
 
 def exists(env):

@@ -1,0 +1,4 @@
+
+-hfb3
+-width(0,30)
+-format="%(%f(line %l): %)msg# %n: %t -- %m"

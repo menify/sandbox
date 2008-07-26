@@ -1,5 +1,7 @@
 
+import sys
 import os.path
+import subprocess
 import fnmatch
 
 import SCons.Script
@@ -15,6 +17,7 @@ import setup_init
 import options_help_generator
 
 import local_host
+import utils
 
 #//===========================================================================//
 
@@ -215,6 +218,45 @@ def     _update_env_flags( env ):
 
 #//---------------------------------------------------------------------------//
 
+def     _start_shell( env, options ):
+    
+    os_env = env['ENV'].copy()
+    os_env.update( os.environ )
+    
+    utils.prependEnvPath( os_env, 'PATH', env['ENV']['PATH'] )
+    
+    path = os_env['PATH']
+    
+    shell = os_env.get('SHELL')
+    if not shell or not env.WhereIs( shell, path ):
+        shell = env.subst('$SHELL')
+    
+    wait_shell = True
+    
+    title = str(options.target)
+    
+    if local_host.os == 'windows':
+        start_cmd = 'start ' + shell + ' /k title ' + title
+        wait_shell = False
+    
+    else:
+        termimal = os_env.get('TERM')
+        
+        if termimal and env.WhereIs( termimal, path ):
+            start_cmd = termimal
+            wait_shell = False
+        
+        else:
+            start_cmd = shell
+    
+    p = subprocess.Popen( start_cmd, env = os_env, shell = True )
+    if wait_shell:
+        os.waitpid( p.pid, 0 )
+    
+    sys.exit()
+
+#//---------------------------------------------------------------------------//
+
 def     Env( options, **kw  ):
     
     os_env = kw.setdefault( 'ENV', {} )
@@ -266,6 +308,10 @@ def     BuildVariant( scriptfile, options, **kw ):
         SCons.Script.SetOption( 'num_jobs', 1 )
     
     env.SConscript( scriptfile, **kw )
+    
+    if 'shell' in _COMMAND_LINE_TARGETS:
+        SCons.Script.SetOption( 'num_jobs', 1 )
+        _start_shell( env, options )
     
     return env
 

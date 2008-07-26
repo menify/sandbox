@@ -1,4 +1,5 @@
 
+import os.path
 import aql.utils
 import aql.setup
 
@@ -7,7 +8,7 @@ import aql.setup
 def     setup_flexelint( options, os_env, env ):
     
     FLEXELINTDIR = 'd:/bin/development/flexelint'
-    FLEXLINT_USER_DIR = 'd:/work/settings/flexelint'
+    FLEXLINT_USER_DIR = os.path.join( os.path.dirname( __file__ ), 'lnt' )
     
     aql.utils.prependEnvPath( os_env, 'PATH', FLEXELINTDIR + '/bin' )
     

@@ -81,52 +81,66 @@ def     _add_platform_options( options ):
                                            help = "The target CPU flags, e.g. 'mmx', 'sse2'.",
                                            group = "Platform" )
     
+    options.target = _StrOption( initial_value = '',
+                                 help = "The overall target platform.\n" \
+                                         "By default: <target_os>_<target_machine>_<cc_name><cc_ver>",
+                                 group = "Platform" )
+    
     if local_host.os:       options.target_os = local_host.os
     if local_host.machine:  options.target_machine = local_host.machine
 
 #//===========================================================================//
 
-def     _set_build_dir( options ):
+def     _set_target( options ):
     
     # build_dir = build/<target OS>_<target CPU>_<cc name><cc ver>/<build variant>
     
-    bd_if = options.If()
+    if_ = options.If()
     
     #//-------------------------------------------------------//
     # Add OS
     
-    target_os_nzero = bd_if.target_os.ne( None )
-    target_os_nzero.build_dir += options.target_os
+    target_os_nzero = if_.target_os.ne( None )
+    target_os_nzero.target += options.target_os
     
     target_os_release_nzero = target_os_nzero.target_os_release.ne('')
-    target_os_release_nzero.build_dir += '-'
-    target_os_release_nzero.build_dir += options.target_os_release
+    target_os_release_nzero.target += '-'
+    target_os_release_nzero.target += options.target_os_release
     
-    target_os_release_nzero.target_os_version.ne('').build_dir += options.target_os_version
+    target_os_release_nzero.target_os_version.ne('').target += options.target_os_version
     
-    target_os_nzero.build_dir += '_'
+    target_os_nzero.target += '_'
     
     #//-------------------------------------------------------//
     # Add CPU
     
-    target_machine_nzero = bd_if.target_machine.ne( None )
-    target_machine_nzero.build_dir += options.target_machine
+    target_machine_nzero = if_.target_machine.ne( None )
+    target_machine_nzero.target += options.target_machine
     
     target_cpu_nzero = target_machine_nzero.target_cpu.ne('')
-    target_cpu_nzero.build_dir += '-'
-    target_cpu_nzero.build_dir += options.target_cpu
+    target_cpu_nzero.target += '-'
+    target_cpu_nzero.target += options.target_cpu
     
-    target_machine_nzero.build_dir += '_'
+    target_machine_nzero.target += '_'
     
     #//-------------------------------------------------------//
     # add C/C++ compiler
     
-    options.build_dir += options.cc_name
+    options.target += options.cc_name
     
-    cc_name_nzero = bd_if.cc_name.ne('')
-    cc_name_nzero.build_dir += '-'
-    cc_name_nzero.build_dir += options.cc_ver
+    cc_name_nzero = if_.cc_name.ne('')
+    cc_name_nzero.target += '-'
+    cc_name_nzero.target += options.cc_ver
+
+#//===========================================================================//
+
+def     _set_build_dir( options ):
     
+    # build_dir = build/<target>/<build variant>
+    
+    bd_if = options.If()
+    
+    options.build_dir += options.target
     options.build_dir += '/'
     options.build_dir += options.build_variant
     
@@ -393,5 +407,6 @@ def     BuiltinOptions():
     _add_lint_options( options )
     
     _add_variants( options )
+    _set_target( options )
     
     return options
