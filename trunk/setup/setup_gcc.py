@@ -47,9 +47,8 @@ def     setup_gcc( options, os_env, env ):
     
     #//-------------------------------------------------------//
     
-    if (options.target_os == 'cygwin') and (aql.local_host.os == 'cygwin'):
-        os_env.update( os.environ )
-        return 1
+    os_env.update( os.environ )
+    return 1
     
 
 #//===========================================================================//
