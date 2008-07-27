@@ -2,12 +2,18 @@
 import os.path
 import aql.utils
 import aql.setup
+import aql.local_host
 
 #//---------------------------------------------------------------------------//
 
+if aql.local_host.os == 'cygwin':
+    _drive_d = '/cygdrive/d'
+else:
+    _drive_d = 'd:'
+
 def     setup_flexelint( options, os_env, env ):
     
-    FLEXELINTDIR = 'd:/bin/development/flexelint'
+    FLEXELINTDIR = _drive_d + '/bin/development/flexelint'
     FLEXLINT_USER_DIR = os.path.join( os.path.dirname( __file__ ), 'lnt' )
     
     aql.utils.prependEnvPath( os_env, 'PATH', FLEXELINTDIR + '/bin' )

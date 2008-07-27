@@ -1120,11 +1120,8 @@ class   EnumOption (OptionBase):
             
             a = aliases[v]
             
-            v = "'%s'" % v
-            
             if a is not None:
                 a.sort()
-                a = map( lambda v: "'%s'" % v, a )
                 v = v + ' (or ' + ", ".join( a ) + ')'
             
             allowed_values.append( v )

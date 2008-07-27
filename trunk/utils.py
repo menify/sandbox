@@ -1,6 +1,6 @@
 
 import os.path
-
+import fnmatch
 
 #//===========================================================================//
 
@@ -195,4 +195,34 @@ def     prependEnvPath( os_env, names, value, sep = os.pathsep,
     for name in toSequence( names ):
         os_env[ name ] = prependPath( os_env.get( name, '' ), value, sep )
 
+#//===========================================================================//
 
+def     findFiles( root, path, pattern, recursive = True ):
+    
+    abs_path = 1
+    
+    path = os.path.normpath( path )
+    
+    if not os.path.isabs( path ):
+        abs_path = 0
+        path = os.path.join( root, path )
+    
+    def     _walker( files, dirname, names ):
+        
+        match_files = fnmatch.filter( names, pattern )
+        match_files = [ os.path.join( dirname, f) for f in match_files ]
+        match_files = filter( os.path.isfile, match_files )
+        
+        files += match_files
+        
+        if not recursive:
+            del names[:]
+    
+    files = []
+    os.path.walk( path, _walker, files )
+    
+    if not abs_path:
+        strip_len = len(root)
+        files = [ f[ strip_len : ].lstrip( os.path.sep ) for f in files ]
+    
+    return files

@@ -2,7 +2,6 @@
 import sys
 import os.path
 import subprocess
-import fnmatch
 
 import SCons.Script
 import SCons.Tool
@@ -73,86 +72,17 @@ def     _set_scons_perfomance_settings():
     SCons.Defaults.DefaultEnvironment( tools = [] )
     SCons.Script.SetOption( 'implicit_cache', 1 )
     SCons.Script.SetOption( 'max_drift', 1 )
-    SCons.Script.SetOption( 'num_jobs', os.environ.get('NUMBER_OF_PROCESSORS', 1) )
 
 #//===========================================================================//
 
-def     _src_relative_dir( self, path ):
+def     _findFiles( env, path, pattern, recursive = True ):
     
-    rel_path = os.path.normcase( os.path.abspath( path ) )
-    cur_dir = os.path.normcase( self.Dir('.').srcnode().abspath )
-    common_prefix = os.path.commonprefix( [cur_dir, rel_path ] )
-    if common_prefix:
-        return rel_path[ len( common_prefix ): ].lstrip( os.path.sep )
-    
-    return path
-
-#//===========================================================================//
-
-import glob
-
-def     _glob( self, path, filter_function = None, absolute_paths = False ):
-    
-    build_dir = os.getcwd()
-    src_dir = self.Dir('.').srcnode().abspath
-    
-    os.chdir( src_dir )
-    
-    path = os.path.normcase( os.path.abspath( path ) )
-    
-    if not absolute_paths:
-        src_dir = os.path.normcase( src_dir )
-        common_prefix = os.path.commonprefix( [src_dir, path ] )
-        if common_prefix:
-            path = path[ len( common_prefix ): ].lstrip( os.path.sep )
-    
-    try:
-        files = glob.glob( path )
-        
-        if filter_function is not None:
-            files = filter( filter_function, files )
-    finally:
-        os.chdir( build_dir )
-    
-    return files
-
-#//===========================================================================//
-
-def     _findFiles( env, path, pattern ):
-    
-    abs = 1
-    
-    path = os.path.normpath( path )
-    
-    if not os.path.isabs( path ):
-        abs = 0
-        src_dir = env.Dir('.').srcnode().abspath
-        path = os.path.join( src_dir, path )
-    
-    files = []
-    
-    def     _walker( files, dirname, names ):
-        
-        match_files = fnmatch.filter( names, pattern )
-        match_files = [ os.path.join( dirname, f) for f in match_files ]
-        match_files = filter( os.path.isfile, match_files )
-        
-        files += match_files
-    
-    os.path.walk( path, _walker, files )
-    
-    if not abs:
-        strip_len = len(src_dir)
-        files = [ f[ strip_len : ].lstrip( os.path.sep ) for f in files ]
-    
-    return files
-    
+    root = env.Dir('.').srcnode().abspath
+    return utils.findFiles( root, path, pattern, recursive )
 
 #//===========================================================================//
 
 def     _add_aql_methods( env ):
-    env.AddMethod( _src_relative_dir, 'aqlSrcDir' )
-    env.AddMethod( _glob, 'aqlGlob' )
     env.AddMethod( _findFiles, 'aqlFindFiles' )
     env.AddMethod( _EnvOptions, 'aqlOptions' )
 
@@ -304,13 +234,9 @@ def     BuildVariant( scriptfile, options, **kw ):
     kw['variant_dir'] = os.path.normpath( str( options.build_dir ) )
     kw['exports'] = [ {'env' : env} ]
     
-    if options.lint != 'off':
-        SCons.Script.SetOption( 'num_jobs', 1 )
-    
     env.SConscript( scriptfile, **kw )
     
     if 'shell' in _COMMAND_LINE_TARGETS:
-        SCons.Script.SetOption( 'num_jobs', 1 )
         _start_shell( env, options )
     
     return env
@@ -326,19 +252,7 @@ def     Build( scriptfile, options = None, **kw ):
     if _generate_help( options ):
         return
     
-    build_variants = options.build_variants
-    builds = []
-    for v in _COMMAND_LINE_TARGETS:
-        try:
-            builds += build_variants.Convert( v )
-         
-        except logging.ErrorException:
-            pass
-    
-    if builds:
-        build_variants.Set( builds )
-    
-    for bv in build_variants.Value():
+    for bv in options.build_variants.Value():
         BuildVariant( options = options( build_variant = bv ), scriptfile = scriptfile, **kw )
 
 #//===========================================================================//

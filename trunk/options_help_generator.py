@@ -7,10 +7,7 @@ def     _print_option_help( op, names, detailed_help, prefix, help_justification
         for name in names[:-1]:
             help += prefix + name + ':\n'
     
-        name = names[-1]
-    
-    else:
-        name = max( names, key = len )
+    name = names[-1]
     
     tmp = prefix + name + ':'
     help += tmp
@@ -20,7 +17,7 @@ def     _print_option_help( op, names, detailed_help, prefix, help_justification
     
     if detailed_help:
         help += h.replace('\n', '\n' + help_justification )
-    
+        
         if help[-1] != '\n':    help += '\n'
         
         val_help = help_justification + 'Type: '
@@ -65,7 +62,10 @@ def     GenerateOptionsHelp( options, detailed_help ):
         if op.shared_data['help'] is None:
             continue
         
-        max_name_len = max( [ max_name_len ] + map(len, names) )
+        names = list(names)
+        names.sort( lambda a,b: cmp( len(a), len(b)) or cmp( a, b ) )
+        
+        max_name_len = max( [ max_name_len, len( names[-1] ) ] )
         
         sorted_options.append( (op, names) )
     
@@ -87,7 +87,7 @@ def     GenerateOptionsHelp( options, detailed_help ):
         
         result = cmp( g1, g2 )
         if result == 0:
-            result = cmp( names1[0].lower(), names2[0].lower() )
+            result = cmp( names1[-1].lower(), names2[-1].lower() )
         
         return result
     
