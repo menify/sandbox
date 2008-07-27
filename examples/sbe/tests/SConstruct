@@ -1,3 +1,4 @@
+
 import aql
 
 options = aql.BuiltinOptions()
@@ -6,6 +7,7 @@ options.build_dir.Prepend( '../' )
 options.build_dir += '/tests'
 
 execfile( 'user_options.scons' )
+execfile( 'user_config.scons' )
 
 options.update( ARGUMENTS )
 

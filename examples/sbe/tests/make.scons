@@ -17,7 +17,8 @@ for s in src_files:
     
     test_app = env.Program( test_name, s )
     
-    env.Alias( test_name, test_app )
+    env.Alias( 'build_' + test_name, test_app )
+    env.Alias( 'build', test_app )
     env.Default( test_app )
     
     test = env.UnitTest( test_app, UT_VERBOSE = 1 )
