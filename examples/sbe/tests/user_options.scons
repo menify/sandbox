@@ -1,4 +1,10 @@
 
-options.sbe_debug = aql.BoolOption( initial_value = 'on', help = 'Enable SBE debug code' )
+# Create a boolean option to control SBE debug code
+# this module is executed directly from SConstruct and in its namespace, so we can use all its variables and modules
+options.sbe_debug = aql.BoolOption( initial_value = 'on',   # by default, debug code is enabled
+                                    help = 'Enable SBE debug code' )    # this a brief help text which will be displayed for this option
 
+# Lets map a value of the option sbe_debug to defines
+# Use a conditional value for that
+# If sbe_debug == 'on' then 'SBE_DEBUG' should be added to defines
 options.If().sbe_debug['on'].defines += 'SBE_DEBUG'

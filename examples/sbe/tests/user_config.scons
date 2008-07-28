@@ -1,3 +1,17 @@
 
+# Set a initial value for our option
+# it's not really necessary because it's initial value is already set to 'on'
 sbe_debug = 'on'
+
+# This module doesn't import SConstruct's namespace, so we can't use a name from there
+# But also it's possible to use options with name 'options'
+# I.e. we can write:
+#    options.sbe_debug = 'on'
+# and this is equivalent to:
+#   sbe_debug = 'on'
+#
+# All locals variables will be used to update values of corresponding options.
+
+
+
 

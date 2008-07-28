@@ -1,14 +1,48 @@
 
+# Import the Aqualid module, all public the Aqualid's functionality avaiable through this module
 import aql
 
+# Create Aqualid's options, all builtin options will be added to this options
 options = aql.BuiltinOptions()
 
+# Change the default location of build_dir to upper level, because we want to have
+# all build results at top level folder of the project.
+# By default, build dir is 'build/<target OS>_<target CPU>_<cc name><cc ver>/<build variant>'
+# we change it to '../build/<target OS>_<target CPU>_<cc name><cc ver>/<build variant>'
 options.build_dir.Prepend( '../' )
+
+# SCons will not add 'tests' folder name to the build_dir, because SConstruct is located inside
+# the 'tests' folder.
+# Add 'tests' folder name to build_dir by ourselves.
+# we change build_dir to '../build/<target OS>_<target CPU>_<cc name><cc ver>/<build variant>/tests'
 options.build_dir += '/tests'
 
-execfile( 'user_options.scons' )
-execfile( 'user_config.scons' )
 
+# Execute a file with user defined options. We could define them right here (in SConstruct, or wherever we want)
+# But it's more practical to create user options in a separate file (like 'user_options.scons' ).
+# User's options are specific options for the current project
+execfile( 'user_options.scons' )
+
+# All Aqualid's options have an initial value (for some options it's None).
+# It's often suitable to change the initial values in the current project's configuration file.
+# Method 'update' can update the values from a configuration file or from a dictionary.
+# Configuration file is simple python script. All global variables of this script are used as values for options.
+options.update( 'user_config.scons' )
+
+# Update values of the options from the passed arguments.
+# Recommended override order: initial values -> values from configuration file -> values from command line arguments.
+# So it's recommended to update the options with values of command line arguments after updates from configuration files.
+# Aqualid updates options with values of command line arguments only if options were created inside Aqualid's 'Build' method.
+# If options were created explicitly by user, then they must be updated
+# with command line arguments explicitly too (of course if it's really needed).
 options.update( ARGUMENTS )
 
+# Start a build of our project for all build variants which are set in build_variants option.
+# It calls specified build script for each build variant and sets option build_variant to a corresponding value.
+# Method 'Build' is like to SConscript() SCons function (and it's called inside)
+# It receives a path to a SConscript file (usually main build script of a project).
+# Also it may receive Aqualid's options, or may not.
+# if options are not passed (or None) then they will be created and initialized with command line argruments automatically.
+# Also it may receive keywords which will be passed to SConscript() function.
+# By default, it sets duplicate = 0, adds scons's environment to exports and sets variant_dir = options.build_dir.
 aql.Build( 'make.scons', options )
