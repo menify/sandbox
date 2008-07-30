@@ -1,8 +1,8 @@
 
-# Import the Aqualid module, all public the Aqualid's functionality avaiable through this module
+# Import the Aqualid module, all public the Aqualid's functionality available through this module
 import aql
 
-# Create Aqualid's options, all builtin options will be added to this options
+# Create Aqualid's options, all built-in options will be added into these options
 options = aql.BuiltinOptions()
 
 # Change the default location of build_dir to upper level, because we want to have
@@ -42,7 +42,7 @@ options.update( ARGUMENTS )
 # Method 'Build' is like to SConscript() SCons function (and it's called inside)
 # It receives a path to a SConscript file (usually main build script of a project).
 # Also it may receive Aqualid's options, or may not.
-# if options are not passed (or None) then they will be created and initialized with command line argruments automatically.
+# If options are not passed (or None) then they will be created and initialized with command line arguments automatically.
 # Also it may receive keywords which will be passed to SConscript() function.
 # By default, it sets duplicate = 0, adds scons's environment to exports and sets variant_dir = options.build_dir.
 aql.Build( 'make.scons', options )
