@@ -8,7 +8,6 @@ Good knowledge and understanding of programming languages: C/C++, Python, Assemb
 Able to develop a good object oriented design, effective (for performance and consuming resources)
 and cross-platform programs.
 Good understanding of low-level memory management.
-Have an experience of programming of computer 2d/3d graphics.
 
 
 //===========================================================================//
@@ -31,7 +30,7 @@ Target OS:      embedded Linux, P2K (Motorola's proprietary platform), MS Window
 
 Static analysis tools:      Flexelint/PC-Lint, RSM (Resource Standard Metrics), Klocwork
 
-Version control systems:    Clearcase, Subversion
+Version control systems:    Clearcase, Subversion, Perforce
 
 Other: GNU tools
 
@@ -40,8 +39,9 @@ Other: GNU tools
 //      EXPERIENCE
 //---------------------------------------------------------------------------//
 
-As Motorola contractor (Oct, 2000 - present):
-    
+As employee of Rhonda Ltd. (Oct, 2000 - May, 2008):
+
+  for Motorola Inc.:
     - Adding support of POCSAG protocol into FlexStack framework FlexStack for Motorola's pagers.
     
     - Developing of DNS protocol client for Motorola's mobile phones on Legacy platform.
@@ -65,7 +65,7 @@ As Motorola contractor (Oct, 2000 - present):
     - Developing of new experimental features for MediaFinder on LinuxJava platform.
 
 
-As F-Origin contractor (Jan, 2007 - Jun, 2007):
+  for F-Origin (Jan, 2007 - Jun, 2007):
     
     - Developing a 3D application to demonstrate an effect of virtual mirror controlled by movements of a hand,
       data is received from the acceleration sensors embedded into the phone.
@@ -81,14 +81,22 @@ As F-Origin contractor (Jan, 2007 - Jun, 2007):
       For mobile phones on Linux/QT embedded platform.
 
 
+As employee of Creat Studuios (June, 2008 - present):
+    
+    - Refactoring the internal build system (it builds game engine and unit tests, and runs the unit tests)
+    - Develoing a simple C++ preprocessor on Python to extract some useful information from
+      C++ files for the build system
+    - Developing dependecies finder between modules of the game engine (it generates diagrams for all modules)
+
+
 Personal projects:
     
     - Developing a cross-platform library for runtime analysis of dynamic memory issues, like
       consumptions, memory leaks, memory corruptions & etc.
     
-    - Developing a cross-platform debugging library
+    - Developing the Soko-Ban game.
     
-    - Developing an extension to SCons tool on Python language.
+    - Developing an extension to the SCons build tool on Python language.
       To easily support several compilers and build variants at the same time (http://aqualid.googlecode.com).
 
 
@@ -99,5 +107,3 @@ Personal projects:
 1995-2000   Far Eastern State Technical University, Faculty of Informatics and Computers Technologies.
             Graduate work: "Developing of cross-platform applications"
             Graduated to engineer.
-
-
