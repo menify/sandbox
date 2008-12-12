@@ -20,6 +20,15 @@
 #endif
 
 
+namespace sbe
+{
+    template<bool> struct StaticAssertHelper;
+    template<> struct StaticAssertHelper<true> {};
+}
+
+#define SBE_STATIC_ASSERT(expr, msg)    { sbe::StaticAssertHelper<!!(expr)>  static_assert_##__LINE__##msg; static_cast<void>(static_assert_##__LINE__##msg); }
+
+
 #endif  // #ifndef SBE_UT_DEBUG_HPP_INLUCDED
 
 
