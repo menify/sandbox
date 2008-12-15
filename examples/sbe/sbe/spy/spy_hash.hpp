@@ -8,39 +8,124 @@ namespace spy{
 
 //---------------------------------------------------------------------------//
 
-template <typename T>
+template <typename T, size_t  t_table_size >
 class Hash
 {
-        PtrList** const table_;
-        size_t          size_;
-        size_t          shift_size_;
+public:
+    struct Item: public IntrusiveList<Item>
+    {};
+
+private:
+    typedef Hash<T, t_table_size>   ThisType;
     
-    public:
-        
-        struct List: public IntrusiveList<T>
-        {};
-        
-        
-        Hash( void*     heap, size_t  heap_size, size_t  shift_size );
-        inline ~Hash( void )    {}
-        
-        
-        void    push( T*    item );
-        void    pop( T*     item );
-        
-        PtrList*      get( void const *  ptr );
-        
-    private:
-        
-        inline size_t    index( void const *  ptr )     const
+    
+    T*  table_[ t_table_size ];
+    
+    //-------------------------------------------------------//
+    
+    Hash( ThisType const &   hash );                // no copy
+    Hash&   operator=( ThisType const &   hash );   // no copy
+public:
+    
+    //-------------------------------------------------------//
+    
+    inline Hash( void )
+    {
+        for (size_t  i = 0; i < this->size_; ++i)
         {
-            return (reinterpret_cast<size_t>(ptr) >> this->shift_size_) % this->size_;
+            this->table_[i] = NULL;
+        }
+    }
+    
+    //-------------------------------------------------------//
+    
+    inline ~Hash( void )
+    {}
+    
+    //-------------------------------------------------------//
+    
+    void    insertBack( T*  item )
+    {
+        T** const   p_head = this->head( item );
+        
+        if (*p_head != NULL)
+        {
+            static_cast<Item*>((*p_head))->pushBack( item );
         }
         
-        inline PtrList**    head( void const *  ptr )  { return &this->table_[ this->index( ptr ) ]; }
+        *p_head = item;
+    }
+    
+    //-------------------------------------------------------//
+    
+    void    insertFront( T*  item )
+    {
+        T** const   p_head = this->head( item );
         
-        Hash( Hash const &   hash );                    // no copy
-        Hash&   operator=( Hash const &   hash );   // no copy
+        if (*p_head != NULL)
+        {
+            static_cast<Item*>((*p_head))->pushFront( item );
+        }
+        
+        *p_head = item;
+    }
+    
+    //-------------------------------------------------------//
+    
+    void    remove( T*  item )
+    {
+        T** const     p_head = this->head( item );
+        
+        if (*p_head == item)
+        {
+            if (static_cast<Item*>(item)->single())
+            {
+                *p_head = NULL;
+                return;
+            }
+            else
+            {
+                *p_head = static_cast<Item*>(item)->next();
+            }
+        }
+        
+        static_cast<Item*>(item)->pop();
+    }
+    
+    //-------------------------------------------------------//
+    
+    T*      get( T*    match_item )
+    {
+        T* const      head_item = *this->head( ptr );
+        
+        if (head_item == NULL)
+        {
+            return NULL;
+        }
+        
+        T*  item = head_item;
+        
+        do
+        {
+            if (*item == *match_item)
+            {
+                return item;
+            }
+            
+            item = static_cast<Item*>(item)->next();
+        }
+        while( item != head_item );
+        
+        return NULL;
+    }
+    
+    //-------------------------------------------------------//
+    
+private:
+    inline T**      head( T const *  item )
+    {
+        return &this->table_[ hashKey( item ) % t_table_size ];
+    }
 };
 
 //---------------------------------------------------------------------------//

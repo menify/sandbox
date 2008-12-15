@@ -1,5 +1,5 @@
-#ifndef SBE_MANAGED_PTR_HPP_INCLUDED
-#define SBE_MANAGED_PTR_HPP_INCLUDED
+#ifndef SBE_SAFE_PTR_HPP_INCLUDED
+#define SBE_SAFE_PTR_HPP_INCLUDED
 
 #include "sbe/ut/debug.hpp"
 #include "sbe/tools/deleters.hpp"
@@ -42,10 +42,12 @@ private:
     
     inline void     link( ThisType*  safe_ptr );
     inline void     unlink( void );
-    
+
+#ifdef SBE_DEBUG
     bool            linked( ThisType const *  safe_ptr ) const;
     bool            test( void ) const;
-        
+#endif
+
 public:
     
     inline SafePtr( void )                          { this->init( NULL ); }
@@ -143,6 +145,7 @@ SBE_ASSERT( this->test() );
 
 //---------------------------------------------------------------------------//
 
+#ifdef SBE_DEBUG
 template <typename T, class TDeleter>
 bool     SafePtr<T,TDeleter>::linked( ThisType const*  safe_ptr ) const
 {
@@ -163,9 +166,11 @@ SBE_ASSERT( this->test() );
     
     return false;
 }
+#endif  // #ifdef SBE_DEBUG
 
 //---------------------------------------------------------------------------//
 
+#ifdef SBE_DEBUG
 template <typename T, class TDeleter>
 bool     SafePtr<T,TDeleter>::test( void ) const
 {
@@ -189,6 +194,7 @@ bool     SafePtr<T,TDeleter>::test( void ) const
     
     return true;
 }
+#endif  // #ifdef SBE_DEBUG
 
 //---------------------------------------------------------------------------//
 
@@ -206,4 +212,4 @@ inline std::basic_ostream< CharT, Traits>& operator<< (
 
 }   // namespace sbe
 
-#endif  //  #ifndef SBE_MANAGED_PTR_HPP_INCLUDED  //
+#endif  //  #ifndef SBE_SAFE_PTR_HPP_INCLUDED  //

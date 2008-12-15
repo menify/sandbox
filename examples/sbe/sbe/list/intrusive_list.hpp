@@ -17,15 +17,16 @@ class IntrusiveList
     IntrusiveList& operator=( ThisType const &  list );     // copy is prohibited
     
 protected:
-    inline IntrusiveList( void )     { this->init(); }
-    inline ~IntrusiveList( void )    {}
+    inline IntrusiveList( void )    { this->init(); }
+    inline ~IntrusiveList( void )   {}
+    
+    inline void     init( void )    { this->next_ = this; this->prev_ = this; }
     
 public:
     inline void     pushBack( ThisType*  item );
     inline void     pushFront( ThisType*  item );
     inline void     pop( void );
     
-    inline void         init( void )                { this->next_ = this; this->prev_ = this; }
     inline bool         single( void ) const        { return this->next_ == this; }
     inline T const *    next( void ) const          { return static_cast<T const *>(this->next_); } //lint !e1939   //Note -- Down cast detected
     inline T *          next( void )                { return static_cast<T*>(this->next_); }        //lint !e1939   //Note -- Down cast detected
@@ -44,7 +45,7 @@ public:
 template <typename T>
 inline void     IntrusiveList<T>::pushBack(
     
-    T*   item
+    ThisType*   item
 )
 {
 SBE_ASSERT( this->test() );
@@ -76,7 +77,7 @@ SBE_ASSERT( item->test() );
 template <typename T>
 inline void     IntrusiveList<T>::pushFront(
     
-    T*   item
+    ThisType*   item
 )
 {
 SBE_ASSERT( this->test() );
@@ -85,7 +86,7 @@ SBE_ASSERT( item->test() );
     ThisType* const     item_prev = item->prev_;
     ThisType* const     this_next = this->next_;
     
-    item->prev_ = this_next;
+    item->prev_ = this;
     this->next_ = item;
     
     item_prev->next_ = this_next;
