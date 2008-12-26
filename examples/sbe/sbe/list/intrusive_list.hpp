@@ -20,6 +20,7 @@ protected:
     inline IntrusiveList( void )    { this->init(); }
     inline ~IntrusiveList( void )   {}
     
+private:
     inline void     init( void )    { this->next_ = this; this->prev_ = this; }
     
 public:
@@ -60,17 +61,6 @@ SBE_ASSERT( item->test() );
     item_prev->next_ = this;
     this->prev_ = item_prev;
 }
-
-/*
-1 -> 2 -> 3
-  <-   <-
-
-4 -> 5 -> 6
-  <-   <-
-
-1*-> 5 -> 6 -> 4*-> 2 -> 3
- *<-   <-   <-  *<-   <-
-*/
 
 //---------------------------------------------------------------------------//
 
@@ -118,6 +108,11 @@ bool     IntrusiveList<T>::test( void )     const
     ThisType const *   next_item;
     ThisType const *   item = this;
     
+    if (item == NULL)
+    {
+        return false;
+    }
+    
     do
     {
         next_item = item->next_;
@@ -135,7 +130,99 @@ bool     IntrusiveList<T>::test( void )     const
 }
 #endif  // #ifdef SBE_DEBUG
 
+//---------------------------------------------------------------------------//
+
+template <class T>
+void  listPushFront( T**  phead, T*  item )
+{
+    SBE_ASSERT( phead != NULL );
+    SBE_ASSERT( item != NULL );
+    
+    T*      head = *phead;
+    
+    if (head != NULL)
+    {
+        head->pushBack( item );
+    }
+    
+    *phead = item;
+}
+
+//---------------------------------------------------------------------------//
+
+template <class T>
+void  listPushBack( T**  phead, T*  item )
+{
+    SBE_ASSERT( phead != NULL );
+    SBE_ASSERT( item != NULL );
+    
+    T*      head = *phead;
+    
+    if (head != NULL)
+    {
+        head->pushBack( item );
+    }
+    else
+    {
+        *phead = item;
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+template <class T>
+T*  listPopFront( T**   phead )
+{
+    SBE_ASSERT( phead != NULL );
+    
+    T*      item = *phead;
+    
+    if (item != NULL)
+    {
+        T*   next = item->next();
+        
+        item->pop();
+        
+        if (item != next)
+        {
+            *phead = next;
+        }
+        else
+        {
+            *phead = NULL;
+        }
+    }
+    
+    return item;
+}
+
+//---------------------------------------------------------------------------//
+
+template <class T>
+T*  listPopBack( T**   phead )
+{
+    SBE_ASSERT( phead != NULL );
+    
+    T*      head = *phead;
+    
+    if (head != NULL)
+    {
+        T*  back = head->previous();
+        
+        back->pop();
+        
+        if (head == back)
+        {
+            *phead = NULL;
+        }
+        
+        return back;
+    }
+    
+    return NULL;
+}
 
 }   // namespace spy
 
 #endif  //  #ifndef SBE_INTRUSIVE_LIST_HPP_INCLUDED  //
+    

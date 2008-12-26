@@ -101,10 +101,13 @@ public:
     
     //-------------------------------------------------------//
     
-    inline pointer      allocate( void )
+    inline pointer      allocate( size_type  num = 1 )
     {
-    SBE_ASSERT( this->test() );
-    
+        SBE_ASSERT( this->test() );
+        SBE_ASSERT( num == 1 );
+        
+        static_cast<void>(num);     // not used
+        
         Node*   node = this->nodes_list_.next;
         if (node != NULL)
         {
@@ -116,13 +119,19 @@ public:
     
     //-------------------------------------------------------//
     
-    inline void    deallocate( pointer p )
+    inline void    deallocate( pointer  p, size_type  num = 1)
     {
-        if (p == NULL) return;
-    
-    SBE_ASSERT( this->chekNode( p ) );
-    SBE_ASSERT( this->test() );
-    
+        if (p == NULL)
+        {
+            return;
+        }
+        
+        SBE_ASSERT( this->chekNode( p ) );
+        SBE_ASSERT( this->test() );
+        SBE_ASSERT( num == 1 );
+        
+        static_cast<void>(num);     // not used
+        
         Node*   node = reinterpret_cast<Node*>(p);
         node->next = this->nodes_list_.next;
         this->nodes_list_.next = node;

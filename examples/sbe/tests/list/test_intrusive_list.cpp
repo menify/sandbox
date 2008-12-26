@@ -65,6 +65,8 @@ static void     test_foolist( void )
     {
         nodes2[i].pop();
         SBE_ASSERT( nodes2[i].single() );
+        nodes2[i].pop();
+        SBE_ASSERT( nodes2[i].single() );
         SBE_ASSERT( nodes2[i].test() );
     }
     
@@ -73,9 +75,61 @@ static void     test_foolist( void )
     std::cout << "Test: 'test_foolist' - " << "PASSED" << std::endl;
 }
 
+static void test_head( void )
+{
+    FooList     nodes[10];
+    FooList*    head = NULL;
+    
+    for (size_t  i = 0; i < sizeof(nodes)/sizeof(nodes[0]); ++i)
+    {
+        listPushBack( &head, &nodes[i] );
+        SBE_ASSERT( head->previous() == &nodes[i] );
+        SBE_ASSERT( head == nodes[i].next() );
+        SBE_ASSERT( head == &nodes[0] );
+    }
+    
+    for (size_t  i = 0; i < sizeof(nodes)/sizeof(nodes[0]); ++i)
+    {
+        FooList*    next = head->next();
+        if (next == head)
+        {
+            next = NULL;
+        }
+        
+        FooList*    item = head;
+        SBE_ASSERT( item == listPopFront( &head ) );
+        SBE_ASSERT( head == next );
+    }
+    
+    SBE_ASSERT( head == NULL );
+    
+    for (size_t  i = 0; i < sizeof(nodes)/sizeof(nodes[0]); ++i)
+    {
+        FooList*    item = head;
+        
+        listPushFront( &head, &nodes[i] );
+        
+        SBE_ASSERT( (item == NULL) || (head->next() == item) );
+        SBE_ASSERT( (item == NULL) || (item->previous() == head) );
+        SBE_ASSERT( head == &nodes[i] );
+    }
+    
+    for (size_t  i = 0; i < sizeof(nodes)/sizeof(nodes[0]); ++i)
+    {
+        FooList*    back = head->previous();
+        SBE_ASSERT( back == listPopBack( &head ) );
+    }
+    
+    SBE_ASSERT( head == NULL );
+    
+    SBE_ASSERT( listPopFront( &head ) == NULL );
+    SBE_ASSERT( listPopBack( &head ) == NULL );
+}
+
 int main( void )
 {
     test_foolist();
+    test_head();
     
     return 0;
 }
