@@ -3,18 +3,19 @@
 
 #include <stddef.h>
 
-#include "sbe/list/intrusive_list.hpp"
+#include "sbe/list/list.hpp"
 
 namespace sbe{
 
 //---------------------------------------------------------------------------//
 
-class HashItem: public IntrusiveList<HashItem>
+class HashItem: public ListItem<HashItem>
 {
 protected:
-    inline HashItem( void ) : IntrusiveList<HashItem>() {}
+    inline HashItem( void ) : ListItem<HashItem>() {}
     inline ~HashItem( void ) {}
 };
+
 
 //---------------------------------------------------------------------------//
 
@@ -24,9 +25,10 @@ class Hash
 private:
     typedef Hash<T, t_table_size>   ThisType;
     typedef HashItem                Item;
+    typedef List<HashItem>          Head;
     
     
-    T*  table_[ t_table_size ];
+    Head    table_[ t_table_size ];
     
     //-------------------------------------------------------//
     
@@ -36,79 +38,33 @@ public:
     
     //-------------------------------------------------------//
     
-    inline Hash( void )
-    {
-        for (size_t  i = 0; i < t_table_size; ++i)
-        {
-            this->table_[i] = NULL;
-        }
-    }
+    inline Hash( void )     {}
+    inline ~Hash( void )    {}
     
     //-------------------------------------------------------//
     
-    inline ~Hash( void )
-    {}
-    
-    //-------------------------------------------------------//
-    
-    void    insert( T*  item )
+    inline void     insert( T*  item )
     {
         SBE_ASSERT( item != NULL );
         SBE_ASSERT( this->get( *item ) == NULL );
-        SBE_ASSERT( item->single() );
         
-        listPushFront( this->head( item ), item );
+        this->head( *item )->pushFront( item );
     }
     
     //-------------------------------------------------------//
     
-    void    remove( T*  item )
+    inline void     remove( T*  item )
     {
         SBE_ASSERT( this->get( *item ) == item );
         
-        T** const     p_head = this->head( item );
-        
-        if (*p_head == item)
-        {
-            if (static_cast<Item*>(item)->single())
-            {
-                *p_head = NULL;
-                return;
-            }
-            else
-            {
-                *p_head = static_cast<T*>(static_cast<Item*>(item)->next());
-            }
-        }
-        
-        static_cast<Item*>(item)->pop();
+        this->head( *item )->pop( item );
     }
     
     //-------------------------------------------------------//
     
-    T const *   get( T const &  match_item ) const
+    inline T const *   get( T const &  match_item ) const
     {
-        T const * const     head_item = *this->head( &match_item );
-        
-        if (head_item == NULL)
-        {
-            return NULL;
-        }
-        
-        T const*  item = head_item;
-        
-        do
-        {
-            if (*item == match_item)
-            {
-                return item;
-            }
-            
-            item = static_cast<T const*>(static_cast<Item const*>(item)->next());
-        }
-        while( item != head_item );
-        
-        return NULL;
+        return this->head( match_item )->find( match_item );
     }
     
     inline T*   get( T const&  match_item )
@@ -119,12 +75,12 @@ public:
     //-------------------------------------------------------//
     
 private:
-    inline T**    head( T*  item )
+    inline Head*    head( T const &  item )
     {
-        return &this->table_[ hashKey( item ) % t_table_size ];
+        return const_cast<Head*>( const_cast<ThisType const*>(this)->head( item ) );
     }
     
-    inline T const* const *     head( T const *  item ) const
+    inline Head const*  head( T const &  item ) const
     {
         return &this->table_[ hashKey( item ) % t_table_size ];
     }

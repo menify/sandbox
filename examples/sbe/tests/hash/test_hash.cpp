@@ -33,9 +33,9 @@ bool    operator==( FooItem const &  item1, FooItem const &  item2 )
 
 //-------------------------------------------------------//
 
-size_t      hashKey( FooItem const *  item )
+size_t      hashKey( FooItem const &  item )
 {
-    return reinterpret_cast<size_t>(item->ptr) >> 2;
+    return reinterpret_cast<size_t>(item.ptr) >> 2;
 }
 
 //---------------------------------------------------------------------------//
