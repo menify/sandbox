@@ -9,10 +9,10 @@ namespace sbe{
 
 //---------------------------------------------------------------------------//
 
-class HashItem: public ListItem<HashItem>
+class HashItem: public ListItem
 {
 protected:
-    inline HashItem( void ) : ListItem<HashItem>() {}
+    inline HashItem( void ) : ListItem() {}
     inline ~HashItem( void ) {}
 };
 

@@ -1,14 +1,18 @@
-#ifndef SBE_INTRUSIVE_LIST_HPP_INCLUDED
-#define SBE_INTRUSIVE_LIST_HPP_INCLUDED
+#ifndef SBE_LIST_HPP_INCLUDED
+#define SBE_LIST_HPP_INCLUDED
 
 #include "sbe/ut/debug.hpp"
 
 namespace sbe{
 
-template <typename T>
+template <class T>
+class List;
+
 class ListItem
 {
-    typedef ListItem<T>    ThisType;
+    template <class T>  friend class List;
+
+    typedef ListItem    ThisType;
 
     ThisType*   next_;
     ThisType*   prev_;
@@ -23,7 +27,6 @@ protected:
 private:
     inline void     init( void )    { this->next_ = this; this->prev_ = this; }
     
-public:
     inline void     pushBack( ThisType*  item )
     {
     SBE_ASSERT( !this->linked( item ) );
@@ -73,11 +76,10 @@ public:
     
     //-------------------------------------------------------//
     
-    inline bool         single( void ) const        { return this->next_ == this; }
-    inline T const *    next( void ) const          { return static_cast<T const *>(this->next_); } //lint !e1939   //Note -- Down cast detected
-    inline T *          next( void )                { return static_cast<T*>(this->next_); }        //lint !e1939   //Note -- Down cast detected
-    inline T const *    previous( void ) const      { return static_cast<T const*>(this->prev_); }  //lint !e1939   //Note -- Down cast detected
-    inline T *          previous( void )            { return static_cast<T*>(this->prev_); }        //lint !e1939   //Note -- Down cast detected
+    inline bool                 single( void ) const
+    {
+        return this->next_ == this;
+    }
     
     //-------------------------------------------------------//
     
@@ -99,35 +101,6 @@ public:
         while (it != this);
         
         return false;
-    }
-    
-    //-------------------------------------------------------//
-    
-    template <class U>
-    U const*  find( U const &  match ) const
-    {
-        SBE_ASSERT( this->test() );
-        
-        ThisType const*  it = this ;
-        
-        do
-        {
-            if (*static_cast<U const*>(it) == match)
-            {
-                return static_cast<U const*>(it);
-            }
-            
-            it = it->next_;
-        }
-        while (it != this);
-        
-        return NULL;
-    }
-    
-    template <class U>
-    inline U*  find( U const &  match )
-    {
-        return const_cast<U*>(const_cast<ThisType const *>(this)->find( match ));
     }
     
     //-------------------------------------------------------//
@@ -170,7 +143,7 @@ class List
     
     //-------------------------------------------------------//
     
-    T*  head_;
+    ListItem*   head_;
     
     //-------------------------------------------------------//
     
@@ -187,23 +160,23 @@ public:
     {
         SBE_ASSERT( (item != NULL) && item->single() );
         
-        T*  head = this->head_;
+        ListItem*   head = this->head_;
         
         if (head != NULL)
         {
             head->pushBack( item );
         }
         
-        this->head_ = item;
+        this->head_ = static_cast<ListItem*>(item);
     }
     
     //-------------------------------------------------------//
     
     inline void  pushBack( T*  item )
     {
-        SBE_ASSERT( (item != NULL) && item->single() );
+        SBE_ASSERT( (item != NULL) && static_cast<ListItem*>(item)->single() );
         
-        T*  head = this->head_;
+        ListItem*   head = this->head_;
         
         if (head != NULL)
         {
@@ -211,7 +184,7 @@ public:
         }
         else
         {
-            this->head_ = item;
+            this->head_ = static_cast<ListItem*>(item);
         }
     }
     
@@ -221,17 +194,17 @@ public:
     {
         SBE_ASSERT( item != NULL );
         SBE_ASSERT( this->head_ != NULL );
-        SBE_ASSERT( item->linked( this->head_ ) );
+        SBE_ASSERT( static_cast<ListItem*>(item)->linked( this->head_ ) );
         
-        T*  head = this->head_;
+        ListItem*   head = this->head_;
         
-        if (head != item)
+        if (head != static_cast<ListItem*>(item))
         {
-            item->pop();
+            static_cast<ListItem*>(item)->pop();
         }
         else
         {
-            T*  next = head->next();
+            T*  next = static_cast<T*>(head->next_);
             
             head->pop();
             
@@ -250,60 +223,74 @@ public:
     
     inline T*  popFront( void )
     {
-        T*  item = this->head_;
+        ListItem*   head = this->head_;
         
-        if (item != NULL)
+        if (head != NULL)
         {
-            this->pop( item );
+            this->pop( static_cast<T*>(head) );
         }
         
-        return item;
+        return static_cast<T*>(head);
     }
     
     //-------------------------------------------------------//
     
     inline T*  popBack( void )
     {
-        T*  item = this->head_;
+        ListItem*  item = this->head_;
         
         if (item != NULL)
         {
-            item = item->previous();
-            this->pop( item );
+            item = item->prev_;
+            this->pop( static_cast<T*>(item) );
         }
         
-        return item;
+        return static_cast<T*>(item);
     }
     
     //-------------------------------------------------------//
     
+private:
     template <class U>
-    inline U const*  find( U const & match ) const
+    U const*  findImpl( U const &  match, ListItem const*  item) const
     {
-        T const*    head = this->head_;
+        ListItem const*    head = this->head_;
         if (head != NULL)
         {
-            return head->find( match );
+            SBE_ASSERT( head->test() );
+            SBE_ASSERT( item != NULL );
+            
+            do
+            {
+                if (*static_cast<U const*>(item) == match)
+                {
+                    return static_cast<U const*>(item);
+                }
+                
+                item = item->next_;
+            }
+            while (item != head);
         }
         
         return NULL;
     }
     
-    template <class U>
-    inline U*  find( U const & match )
-    {
-        return const_cast<U*>(const_cast<ThisType const*>(this)->find( match ));
-    }
+public:
+    template <class U>  inline U*   find( U const &  match )                { return const_cast<U*>(const_cast<ThisType const*>(this)->findImpl( match, this->head_ )); }
+    template <class U>  inline U const*   find( U const &  match ) const    { return this->findImpl( match, this->head_ ); }
+    
+    template <class U>  inline U const*     findNext( U const &  match, U const*  item) const   { return this->findImpl( match, item ); }
+    template <class U>  inline U*           findNext( U const &  match, U*  item) const         { return const_cast<U*>(const_cast<ThisType const*>(this)->findImpl( match, item )); }
     
     //-------------------------------------------------------//
     
-    inline T*           front( void )           { return this->head_; }
-    inline T const *    front( void ) const     { return this->head_; }
-    inline T *          back( void )            { return (this->head_ != NULL) ? this->head_->previous() : NULL; }
-    inline T const *    back( void ) const      { return (this->head_ != NULL) ? this->head_->previous() : NULL; }
+    inline T*           front( void )           { return static_cast<T*>(this->head_); }
+    inline T const *    front( void ) const     { return static_cast<T*>(this->head_); }
+    inline T *          back( void )            { return (this->head_ != NULL) ? static_cast<T*>(this->head_->prev_) : NULL; }
+    inline T const *    back( void ) const      { return (this->head_ != NULL) ? static_cast<T*>(this->head_->prev_) : NULL; }
 };
 
 }   // namespace spy
 
-#endif  //  #ifndef SBE_INTRUSIVE_LIST_HPP_INCLUDED  //
+#endif  //  #ifndef SBE_LIST_HPP_INCLUDED  //
     

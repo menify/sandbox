@@ -11,11 +11,11 @@ namespace spy{
 
 //---------------------------------------------------------------------------//
 
-class  UsedItem: public ListItem<UsedItem>
+class  UsedItem: public ListItem
 {
 protected:
     inline UsedItem( void )
-        : IntrusiveList<UsedItem>()
+        : ListItem()
         {}
     
     inline ~UsedItem( void )
@@ -40,6 +40,7 @@ template <class T, size_t  t_hash_size >
 class Pool
 {
     typedef List<HashItem>      UsedList;
+    typedef Pool<T,t_hash_size> ThisType;
     
     UsedList                    used_list_;
     UsedList                    free_list_;
@@ -62,21 +63,21 @@ public:
     
     //-------------------------------------------------------//
     
-    inline T*       popFreeItem( void )
+    inline T*       popFree( void )
     {
         return static_cast<T*>(this->free_list_.popFront());
     }
     
     //-------------------------------------------------------//
     
-    inline void     pushFreeItem( UsedItem*  item )
+    inline void     pushFree( UsedItem*  item )
     {
         this->free_list_.pushBack( item );
     }
     
     //-------------------------------------------------------//
     
-    void    pushUsedItem( T*  item )
+    inline void     pushUsed( T*  item )
     {
         this->used_list_.pushBack( item );
         this->hash_.insert( item );
@@ -84,7 +85,7 @@ public:
     
     //-------------------------------------------------------//
     
-    inline void     popUsedItem( T*  item )
+    inline void     popUsed( T*  item )
     {
         this->used_list_.pop( item );
         this->hash_.remove( item );
@@ -92,7 +93,7 @@ public:
     
     //-------------------------------------------------------//
     
-    inline T*   popUsedItem( void )
+    inline T*   popUsed( void )
     {
         T*  item = static_cast<T*>(this->used_list_.popFront());
         this->hash_.remove( item );
@@ -101,6 +102,18 @@ public:
     }
     
     //-------------------------------------------------------//
+    
+    inline T const*   findUsed( T const&  item ) const
+    {
+        return this->hash_.get( item );
+    }
+    
+    //-------------------------------------------------------//
+    
+    inline T*   findUsed( T const&  item )
+    {
+        return const_cast<T*>( const_cast<ThisType const*>(this)->findUsed( item ) );
+    }
     
     private:
         Pool( Pool const &   pool );                    // no copy
