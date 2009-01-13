@@ -276,8 +276,8 @@ private:
     }
     
 public:
-    template <class U>  inline U*   find( U const &  match )                { return const_cast<U*>(const_cast<ThisType const*>(this)->findImpl( match, this->head_ )); }
-    template <class U>  inline U const*   find( U const &  match ) const    { return this->findImpl( match, this->head_ ); }
+    template <class U>  inline U*           find( U const &  match )            { return const_cast<U*>(const_cast<ThisType const*>(this)->findImpl( match, this->head_ )); }
+    template <class U>  inline U const*     find( U const &  match ) const      { return this->findImpl( match, this->head_ ); }
     
     template <class U>  inline U const*     findNext( U const &  match, U const*  item) const   { return this->findImpl( match, item ); }
     template <class U>  inline U*           findNext( U const &  match, U*  item) const         { return const_cast<U*>(const_cast<ThisType const*>(this)->findImpl( match, item )); }
