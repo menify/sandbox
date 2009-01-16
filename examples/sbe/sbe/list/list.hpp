@@ -29,8 +29,8 @@ private:
     
     inline void     pushBack( ThisType*  item )
     {
-    SBE_ASSERT( !this->linked( item ) );
-    SBE_ASSERT( item->test() );
+    SBE_SLOW_ASSERT( !this->linked( item ) );
+    SBE_SLOW_ASSERT( item->test() );
 
         ThisType* const     item_prev = item->prev_;
         ThisType* const     this_prev = this->prev_;
@@ -46,8 +46,8 @@ private:
     
     inline void     pushFront( ThisType*  item )
     {
-    SBE_ASSERT( !this->linked( item ) );
-    SBE_ASSERT( item->test() );
+    SBE_SLOW_ASSERT( !this->linked( item ) );
+    SBE_SLOW_ASSERT( item->test() );
 
         ThisType* const     item_prev = item->prev_;
         ThisType* const     this_next = this->next_;
@@ -63,7 +63,7 @@ private:
     
     inline void     pop( void )
     {
-    SBE_ASSERT( this->test() );
+    SBE_SLOW_ASSERT( this->test() );
         
         ThisType* const     prev_item = this->prev_;
         ThisType* const     next_item = this->next_;
@@ -85,7 +85,7 @@ private:
     
     bool    linked( ThisType*  item )    const
     {
-        SBE_ASSERT( this->test() );
+        SBE_SLOW_ASSERT( this->test() );
         
         ThisType const*  it = this ;
         
@@ -194,7 +194,7 @@ public:
     {
         SBE_ASSERT( item != NULL );
         SBE_ASSERT( this->head_ != NULL );
-        SBE_ASSERT( static_cast<ListItem*>(item)->linked( this->head_ ) );
+        SBE_SLOW_ASSERT( static_cast<ListItem*>(item)->linked( this->head_ ) );
         
         ListItem*   head = this->head_;
         
@@ -257,7 +257,7 @@ private:
         ListItem const*    head = this->head_;
         if (head != NULL)
         {
-            SBE_ASSERT( head->test() );
+            SBE_SLOW_ASSERT( head->test() );
             SBE_ASSERT( item != NULL );
             
             do

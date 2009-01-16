@@ -103,7 +103,7 @@ public:
     
     inline pointer      allocate( size_type  num = 1 )
     {
-        SBE_ASSERT( this->test() );
+        SBE_SLOW_ASSERT( this->test() );
         SBE_ASSERT( num == 1 );
         
         static_cast<void>(num);     // not used
@@ -127,7 +127,7 @@ public:
         }
         
         SBE_ASSERT( this->chekNode( p ) );
-        SBE_ASSERT( this->test() );
+        SBE_SLOW_ASSERT( this->test() );
         SBE_ASSERT( num == 1 );
         
         static_cast<void>(num);     // not used
