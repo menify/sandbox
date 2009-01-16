@@ -1,7 +1,7 @@
 #ifndef SBE_SAFE_PTR_HPP_INCLUDED
 #define SBE_SAFE_PTR_HPP_INCLUDED
 
-#include "sbe/ut/debug.hpp"
+#include "sbe/debug/debug.hpp"
 #include "sbe/tools/deleters.hpp"
 
 namespace sbe{

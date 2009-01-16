@@ -1,7 +1,7 @@
 #ifndef SBE_LIST_HPP_INCLUDED
 #define SBE_LIST_HPP_INCLUDED
 
-#include "sbe/ut/debug.hpp"
+#include "sbe/debug/debug.hpp"
 
 namespace sbe{
 

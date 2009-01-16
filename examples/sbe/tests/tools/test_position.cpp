@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "sbe/ut/debug.hpp"
+#include "sbe/debug/debug.hpp"
 #include "sbe/tools/position.hpp"
 
 typedef sbe::PositionImpl<size_t>   Position;

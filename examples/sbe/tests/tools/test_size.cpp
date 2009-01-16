@@ -4,7 +4,7 @@
 #include <memory>
 #include <iostream>
 
-#include "sbe/ut/debug.hpp"
+#include "sbe/debug/debug.hpp"
 #include "sbe/tools/size.hpp"
 
 #include "sbe/tools/auto_ptr.hpp"

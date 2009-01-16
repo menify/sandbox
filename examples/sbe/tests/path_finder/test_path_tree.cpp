@@ -6,7 +6,7 @@
 #include <list>
 #include <deque>
 
-#include "sbe/ut/debug.hpp"
+#include "sbe/debug/debug.hpp"
 #include "sbe/tools/position.hpp"
 #include "sbe/path_finder/path_tree.hpp"
 

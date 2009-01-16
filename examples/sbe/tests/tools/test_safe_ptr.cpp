@@ -6,7 +6,7 @@
 #include <iostream>
 #include <memory>
 
-#include "sbe/ut/debug.hpp"
+#include "sbe/debug/debug.hpp"
 #include "sbe/tools/safe_ptr.hpp"
 
 using sbe::SafePtr;

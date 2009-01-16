@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #include "sbe/compile_time/static_algorithm.hpp"
-#include "sbe/ut/debug.hpp"
+#include "sbe/debug/debug.hpp"
 
 
 namespace sbe{
