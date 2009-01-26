@@ -5,35 +5,39 @@
 
 namespace sbe{
 
-template <class T>
-class List;
+template <class T>  class List;
 
 class ListItem
 {
     template <class T>  friend class List;
 
-    typedef ListItem    ThisType;
-
-    ThisType*   next_;
-    ThisType*   prev_;
+    ListItem*   next_;
+    ListItem*   prev_;
     
-    ListItem( ThisType const &  list );                // copy is prohibited
-    ListItem& operator=( ThisType const &  list );     // copy is prohibited
+    ListItem( ListItem const &  list );                // copy is prohibited
+    ListItem& operator=( ListItem const &  list );     // copy is prohibited
     
 protected:
-    inline ListItem( void )    { this->init(); }
-    inline ~ListItem( void )   {}
+    inline ListItem( void )
+#ifdef SBE_DEBUG
+    : next_ (NULL)
+    , prev_ (NULL)
+#endif
+    {}
+    
+    inline ~ListItem( void )    {}
     
 private:
-    inline void     init( void )    { this->next_ = this; this->prev_ = this; }
+#ifdef SBE_DEBUG
+    inline void     init( void )        { this->next_ = NULL; this->prev_ = NULL; }
+    inline bool     single( void )      { SBE_ASSERT( this->test() ); return this->next_ == NULL; }
+    inline bool     test( void )        { return ((this->next_ == NULL) && (this->prev_ == NULL)) || ((this->next_ != NULL) && (this->prev_ != NULL)); }
+#endif
     
-    inline void     pushBack( ThisType*  item )
+    inline void     pushBack( ListItem*  item )
     {
-    SBE_SLOW_ASSERT( !this->linked( item ) );
-    SBE_SLOW_ASSERT( item->test() );
-
-        ThisType* const     item_prev = item->prev_;
-        ThisType* const     this_prev = this->prev_;
+        ListItem* const     item_prev = item->prev_;
+        ListItem* const     this_prev = this->prev_;
         
         item->prev_ = this_prev;
         this_prev->next_ = item;
@@ -44,94 +48,18 @@ private:
     
     //-------------------------------------------------------//
     
-    inline void     pushFront( ThisType*  item )
+    inline void     pop()
     {
-    SBE_SLOW_ASSERT( !this->linked( item ) );
-    SBE_SLOW_ASSERT( item->test() );
-
-        ThisType* const     item_prev = item->prev_;
-        ThisType* const     this_next = this->next_;
-        
-        item->prev_ = this;
-        this->next_ = item;
-        
-        item_prev->next_ = this_next;
-        this_next->prev_ = item_prev;
-    }
-    
-    //-------------------------------------------------------//
-    
-    inline void     pop( void )
-    {
-    SBE_SLOW_ASSERT( this->test() );
-        
-        ThisType* const     prev_item = this->prev_;
-        ThisType* const     next_item = this->next_;
+        ListItem* const     prev_item = this->prev_;
+        ListItem* const     next_item = this->next_;
         
         prev_item->next_ = next_item;
         next_item->prev_ = prev_item;
         
+    #ifdef SBE_DEBUG
         this->init();
+    #endif
     }
-    
-    //-------------------------------------------------------//
-    
-    inline bool                 single( void ) const
-    {
-        return this->next_ == this;
-    }
-    
-    //-------------------------------------------------------//
-    
-    bool    linked( ThisType*  item )    const
-    {
-        SBE_SLOW_ASSERT( this->test() );
-        
-        ThisType const*  it = this ;
-        
-        do
-        {
-            if (it == item)
-            {
-                return true;
-            }
-            
-            it = it->next_;
-        }
-        while (it != this);
-        
-        return false;
-    }
-    
-    //-------------------------------------------------------//
-    
-#ifdef SBE_DEBUG
-    bool    test( void )    const
-    {
-        ThisType const *   next_item;
-        ThisType const *   item = this;
-        
-        if (item == NULL)
-        {
-            return false;
-        }
-        
-        do
-        {
-            next_item = item->next_;
-            
-            if (next_item->prev_ != item)
-            {
-                return false;
-            }
-            
-            item = next_item;
-        }
-        while (next_item != this);
-        
-        return true;
-    }
-#endif
 };
 
 //===========================================================================//
@@ -158,7 +86,8 @@ public:
     
     inline void     pushFront( T*  item )
     {
-        SBE_ASSERT( (item != NULL) && item->single() );
+        SBE_ASSERT( (item != NULL) && static_cast<ListItem*>(item)->single() );
+        SBE_SLOW_ASSERT( this->test() );
         
         ListItem*   head = this->head_;
         
@@ -175,6 +104,7 @@ public:
     inline void  pushBack( T*  item )
     {
         SBE_ASSERT( (item != NULL) && static_cast<ListItem*>(item)->single() );
+        SBE_SLOW_ASSERT( this->test() );
         
         ListItem*   head = this->head_;
         
@@ -194,7 +124,7 @@ public:
     {
         SBE_ASSERT( item != NULL );
         SBE_ASSERT( this->head_ != NULL );
-        SBE_SLOW_ASSERT( static_cast<ListItem*>(item)->linked( this->head_ ) );
+        SBE_SLOW_ASSERT( this->linked( item ) );
         
         ListItem*   head = this->head_;
         
@@ -204,7 +134,7 @@ public:
         }
         else
         {
-            T*  next = static_cast<T*>(head->next_);
+            ListItem*   next = head->next_;
             
             head->pop();
             
@@ -251,6 +181,58 @@ public:
     //-------------------------------------------------------//
     
 private:
+    bool    linked( ListItem*  item )    const
+    {
+        SBE_SLOW_ASSERT( this->test() );
+        
+        ListItem const*  head = this->head_;
+        if (head != NULL)
+        {
+            ListItem const*  it = head;
+            
+            do
+            {
+                if (it == item)
+                {
+                    return true;
+                }
+                
+                it = it->next_;
+            }
+            while (it != head);
+        }
+        
+        return false;
+    }
+    
+    //-------------------------------------------------------//
+    
+#ifdef SBE_DEBUG
+    bool    test( void )    const
+    {
+        ListItem const *   next_item;
+        ListItem const *   item = this->head_;
+        
+        if (item != NULL)
+        {
+            do
+            {
+                next_item = item->next_;
+                
+                if (next_item->prev_ != item)
+                {
+                    return false;
+                }
+                
+                item = next_item;
+            }
+            while (next_item != this->head_);
+        }
+        
+        return true;
+    }
+#endif
+    
     template <class U>
     U const*  findImpl( U const &  match, ListItem const*  item) const
     {
