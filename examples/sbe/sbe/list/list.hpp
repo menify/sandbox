@@ -34,21 +34,24 @@ private:
     inline bool     test( void )        { return ((this->next_ == NULL) && (this->prev_ == NULL)) || ((this->next_ != NULL) && (this->prev_ != NULL)); }
 #endif
     
-    inline void     pushBack( ListItem*  item )
+    inline void     initHead( void )    { this->next_ = this; this->prev_ = this; }
+    
+    //-------------------------------------------------------//
+    
+    inline void     pushBackItem( ListItem*  item )
     {
-        ListItem* const     item_prev = item->prev_;
         ListItem* const     this_prev = this->prev_;
         
         item->prev_ = this_prev;
-        this_prev->next_ = item;
+        item->next_ = this;
         
-        item_prev->next_ = this;
-        this->prev_ = item_prev;
+        this_prev->next_ = item;
+        this->prev_ = item;
     }
     
     //-------------------------------------------------------//
     
-    inline void     pop()
+    inline void     popItem()
     {
         ListItem* const     prev_item = this->prev_;
         ListItem* const     next_item = this->next_;
@@ -84,43 +87,48 @@ public:
     
     //-------------------------------------------------------//
     
-    inline void     pushFront( T*  item )
+    inline void     pushFront( ListItem*  item )
     {
-        SBE_ASSERT( (item != NULL) && static_cast<ListItem*>(item)->single() );
+        SBE_ASSERT( (item != NULL) && item->single() );
         SBE_SLOW_ASSERT( this->test() );
         
         ListItem*   head = this->head_;
         
         if (head != NULL)
         {
-            head->pushBack( item );
-        }
-        
-        this->head_ = static_cast<ListItem*>(item);
-    }
-    
-    //-------------------------------------------------------//
-    
-    inline void  pushBack( T*  item )
-    {
-        SBE_ASSERT( (item != NULL) && static_cast<ListItem*>(item)->single() );
-        SBE_SLOW_ASSERT( this->test() );
-        
-        ListItem*   head = this->head_;
-        
-        if (head != NULL)
-        {
-            head->pushBack( item );
+            head->pushBackItem( item );
         }
         else
         {
-            this->head_ = static_cast<ListItem*>(item);
+            item->initHead();
+        }
+        
+        this->head_ = item;
+    }
+    
+    //-------------------------------------------------------//
+    
+    inline void  pushBack( ListItem*  item )
+    {
+        SBE_ASSERT( (item != NULL) && item->single() );
+        SBE_SLOW_ASSERT( this->test() );
+        
+        ListItem*   head = this->head_;
+        
+        if (head != NULL)
+        {
+            head->pushBackItem( item );
+        }
+        else
+        {
+            item->initHead();
+            this->head_ = item;
         }
     }
     
     //-------------------------------------------------------//
     
-    void  pop( T*  item )
+    void  pop( ListItem*  item )
     {
         SBE_ASSERT( item != NULL );
         SBE_ASSERT( this->head_ != NULL );
@@ -128,15 +136,15 @@ public:
         
         ListItem*   head = this->head_;
         
-        if (head != static_cast<ListItem*>(item))
+        if (head != item)
         {
-            static_cast<ListItem*>(item)->pop();
+            item->popItem();
         }
         else
         {
             ListItem*   next = head->next_;
             
-            head->pop();
+            head->popItem();
             
             if (head != next)
             {
