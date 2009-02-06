@@ -29,7 +29,7 @@ protected:
     
 private:
 #ifdef SBE_DEBUG
-    inline void     init( void )        { this->next_ = NULL; this->prev_ = NULL; }
+    inline void     initSingle( void )  { this->next_ = NULL; this->prev_ = NULL; }
     inline bool     single( void )      { SBE_ASSERT( this->test() ); return this->next_ == NULL; }
     inline bool     test( void )        { return ((this->next_ == NULL) && (this->prev_ == NULL)) || ((this->next_ != NULL) && (this->prev_ != NULL)); }
 #endif
@@ -60,7 +60,7 @@ private:
         next_item->prev_ = prev_item;
         
     #ifdef SBE_DEBUG
-        this->init();
+        this->initSingle();
     #endif
     }
 };
