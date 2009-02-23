@@ -39,7 +39,7 @@ protected:
 template <class T, size_t  t_hash_size >
 class Pool
 {
-    typedef List<HashItem>      UsedList;
+    typedef List<UsedItem>      UsedList;
     typedef Pool<T,t_hash_size> ThisType;
     
     UsedList                    used_list_;
@@ -63,21 +63,35 @@ public:
     
     //-------------------------------------------------------//
     
-    inline T*       popFree( void )
+    inline T*       removeFreed( T*  item )
     {
-        return static_cast<T*>(this->free_list_.popFront());
+        this->free_list_.pop( item );
     }
     
     //-------------------------------------------------------//
     
-    inline void     pushFree( UsedItem*  item )
+    inline void     addFreed( T*  item )
     {
         this->free_list_.pushBack( item );
     }
     
     //-------------------------------------------------------//
     
-    inline void     pushUsed( T*  item )
+    inline T*   oldestFreed( void )
+    {
+        return this->free_list_.front();
+    }
+    
+    //-------------------------------------------------------//
+    
+    inline T*   oldestUsed( void )
+    {
+        return this->used_list_.front();
+    }
+    
+    //-------------------------------------------------------//
+    
+    inline void     addUsed( T*  item )
     {
         this->used_list_.pushBack( item );
         this->hash_.insert( item );
@@ -85,20 +99,10 @@ public:
     
     //-------------------------------------------------------//
     
-    inline void     popUsed( T*  item )
+    inline void     removeUsed( T*  item )
     {
         this->used_list_.pop( item );
         this->hash_.remove( item );
-    }
-    
-    //-------------------------------------------------------//
-    
-    inline T*   popUsed( void )
-    {
-        T*  item = static_cast<T*>(this->used_list_.popFront());
-        this->hash_.remove( item );
-        
-        return item;
     }
     
     //-------------------------------------------------------//

@@ -206,10 +206,6 @@ void    test_safe_ptr_api( void )
     SBE_ASSERT( p2 >= &*p2 );
     SBE_ASSERT( &*p2 >= p2 );
     
-    std::cout << "foo: " << foo << std::endl;
-    std::cout << "p1: " << p1 << std::endl;
-    std::cout << "p2: " << p2 << std::endl;
-    
     //-------------------------------------------------------//
     
     SafePtr<char>   owner1( new char );

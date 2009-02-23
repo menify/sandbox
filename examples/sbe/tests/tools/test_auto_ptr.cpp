@@ -176,10 +176,6 @@ void    test_auto_ptr_api( void )
     SBE_ASSERT( p2 >= &*p2 );
     SBE_ASSERT( &*p2 >= p2 );
     
-    std::cout << "foo: " << foo << std::endl;
-    std::cout << "p1: " << p1 << std::endl;
-    std::cout << "p2: " << p2 << std::endl;
-    
     //-------------------------------------------------------//
     
     AutoPtr<char>   owner1( new char );
@@ -263,15 +259,15 @@ int main( void )
 {
     std::srand( static_cast<unsigned int>( std::clock() ) );
     
-    SBE_ASSERT( s_allocations == 0 );
+    size_t allocations = s_allocations;
     
     test_auto_ptr_api();
     
-    SBE_ASSERT( s_allocations == 0 );
+    SBE_ASSERT( s_allocations == allocations );
     
     test_auto_ptr_deleters();
     
-    SBE_ASSERT( s_allocations == 0 );
+    SBE_ASSERT( s_allocations == allocations );
     
     return 0;
 }
