@@ -119,8 +119,17 @@ static void     test_mva()
     for (size_t  i = 0; i < sizeof(values) / sizeof(values[0]); ++i)
     {
         avg.append( values[i] );
-        std::cout << i << ") avg: " << avg.value() << " == " << avg5_values[i] << std::endl;
         SBE_ASSERT( avg.value() == avg5_values[i] );
+    }
+    
+    avg.reset();
+    
+    static size_t const  avg5_values2[]   = {1,1,2,2,3,3,4,3,3,3};
+    
+    for (size_t  i = 0; i < sizeof(values) / sizeof(values[0]); ++i)
+    {
+        avg.append( values[i] );
+        SBE_ASSERT( avg.value() == avg5_values2[i] );
     }
 }
 
