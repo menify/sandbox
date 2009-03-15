@@ -54,7 +54,12 @@ public:
     
     void    setSize(size_t  size)
     {
-        SBE_ASSERT((size > 0) && (size <= maxSize));
+        if (size > maxSize) {
+            size = maxSize;
+        
+        } else if (size == 0) {
+            size = 1;
+        }
         
         for (; _actualSize > size; --_actualSize) {
             _avg -= _values[_start];
@@ -85,7 +90,7 @@ private:
 
 static void     test_mva()
 {
-    MovingAverage<size_t,5>    avg(4);
+    MovingAverage<size_t,32>    avg(4);
     
     static size_t const  values[]       = {1,2,3,4,5,5,4,1,3,5};
     static size_t const  avg4_values[]  = {1,1,2,2,3,4,4,3,3,3};
