@@ -278,6 +278,89 @@ public:
     inline T const *    front( void ) const     { return static_cast<T*>(this->head_); }
     inline T *          back( void )            { return (this->head_ != NULL) ? static_cast<T*>(this->head_->prev_) : NULL; }
     inline T const *    back( void ) const      { return (this->head_ != NULL) ? static_cast<T*>(this->head_->prev_) : NULL; }
+    
+    inline Iterator     begin( void )           { return Iterator(this->head_); }
+    inline Iterator     end( void )             { return Iterator(); }
+
+
+    class Iterator
+    {
+        T*      first_;
+        T*      current_;
+    public:
+        inline  ~Iterator( void ) {}
+        
+        inline Iterator()           : first_(NULL), current_(NULL) {}
+        inline Iterator( T*  item ) : first_(item), current_(item) {}
+        
+        inline Iterator( Iterator const & it )  : first_(it.first_), current_(it.current_) {}
+        
+        //-------------------------------------------------------//
+        
+        Iterator&    operator=( Iterator const & it)
+        {
+            this->first_ = it.first_;
+            this->current_ = it.current_;
+            return *this;
+        }
+        
+        //-------------------------------------------------------//
+        
+        Iterator&   operator++( void )
+        {
+            T*  current = this->current_;
+            
+            SBE_ASSERT( current != NULL );
+            
+            current = current->next_;
+            if (current == this->first_)
+            {
+                current = NULL;
+            }
+            
+            this->current_ = current;
+        }
+        
+        //-------------------------------------------------------//
+        
+        Iterator&   operator--( void )
+        {
+            T*  current = this->current_;
+            
+            SBE_ASSERT( current != this->first_ );
+            
+            if (current == NULL)
+            {
+                current = this->first_->prev_;
+            }
+            
+            this->current_ = current;
+        }
+        
+        //-------------------------------------------------------//
+        
+        Iterator   operator++( int )
+        {
+            Iterator    it( *this );
+            ++(*this);
+            return it;
+        }
+        
+        Iterator   operator--( int )
+        {
+            Iterator    it( *this );
+            --(*this);
+            return it;
+        }
+        
+        //-------------------------------------------------------//
+        
+        
+        inline bool     valid( void ) const         { return this->list_ != NULL; }
+        
+        inline PtrData &     operator*( void )      { return *this->list_; }
+        inline PtrData *     operator->( void )     { return this->list_; }
+    };
 };
 
 }   // namespace spy
