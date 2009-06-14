@@ -211,7 +211,6 @@ def     findFiles( root, path, pattern, recursive = True ):
         
         match_files = fnmatch.filter( names, pattern )
         match_files = [ os.path.join( dirname, f) for f in match_files ]
-        match_files = filter( os.path.isfile, match_files )
         
         files += match_files
         
@@ -225,4 +224,5 @@ def     findFiles( root, path, pattern, recursive = True ):
         strip_len = len(root)
         files = [ f[ strip_len : ].lstrip( os.path.sep ) for f in files ]
     
+    files = map( os.path.normpath, files )
     return files

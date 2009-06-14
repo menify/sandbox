@@ -337,16 +337,20 @@ def     _add_gxx( env, gxx_path ):
 
 def     _add_link( env ):
     
-    def smart_link( source, target, env, for_signature,
-                    toSequence = aql.utils.toSequence,
-                    splitext = os.path.splitext,
-                    _cxx_suffixes = _cxx_suffixes ):
+    def iscplusplus( source, _cxx_suffixes = _cxx_suffixes ):
+        if source.suffix in _cxx_suffixes:
+            return True
         
-        for s in toSequence( source ):
-            if s.sources:
-                ext = splitext( str(s.sources[0]) )[1]
-                if _cxx_suffixes.has_key( ext ):
-                    return '$CXX'
+        for s in source.sources:
+            if iscplusplus(s):
+                return True
+        
+        return False
+    
+    def smart_link( source, target, env, for_signature ):
+        for s in source:
+            if iscplusplus( s ):
+                return '$CXX'
         
         return '$CC'
     

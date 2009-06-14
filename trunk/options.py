@@ -1341,7 +1341,7 @@ class   PathOption (OptionBase):
             if env is not None:
                 return env.Dir( str(val) ).srcnode()
         
-        return normcase( abspath( val ) )
+        return normcase( abspath( str(val) ) )
     
     #//-------------------------------------------------------//
     

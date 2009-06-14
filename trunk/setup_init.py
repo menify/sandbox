@@ -82,7 +82,6 @@ def     _load_setup_modules( options,
 #//===========================================================================//
 
 def     Init( options, os_env,
-              ResetSetup = setup.ResetSetup,
               SiteSetup = setup.SiteSetup ):
     
     _load_setup_modules( options )

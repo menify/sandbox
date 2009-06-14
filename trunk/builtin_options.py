@@ -24,7 +24,9 @@ def     _add_build_options( options ):
     options.setup = _StrOption( separator = ',', is_list = 1,
                                 help = "Setup options", group = "Builds setup" )
     
-    options.build_dir = _StrOption( initial_value = 'build/', help = "The building directory prefix.", group = "Builds setup" )
+    options.build_dir = _StrOption( initial_value = 'build', separator = '/', is_list = 1, help = "The building directory prefix.", group = "Builds setup" )
+    options.build_path = _PathOption()
+    options.build_path = options.build_dir
     
     options.prefix = _StrOption( help = "The building target prefix.",
                                  is_list = 1, separator = '', unique = 0, group = "Builds setup" )
@@ -93,7 +95,7 @@ def     _add_platform_options( options ):
 
 def     _set_target( options ):
     
-    # build_dir = build/<target OS>_<target CPU>_<cc name><cc ver>/<build variant>
+    # <target OS>_<target CPU>_<cc name><cc ver>
     
     if_ = options.If()
     
@@ -131,6 +133,12 @@ def     _set_target( options ):
     cc_name_nzero = if_.cc_name.ne('')
     cc_name_nzero.target += '-'
     cc_name_nzero.target += options.cc_ver
+    
+    #//-------------------------------------------------------//
+    # profiler
+    
+    cc_name_nzero.profiling['true'].target += '_'
+    if_.profiling['true'].target += 'prof'
 
 #//===========================================================================//
 
@@ -141,10 +149,7 @@ def     _set_build_dir( options ):
     bd_if = options.If()
     
     options.build_dir += options.target
-    options.build_dir += '/'
     options.build_dir += options.build_variant
-    
-    bd_if.profiling['true'].build_dir += '_prof'
 
 #//===========================================================================//
 

@@ -92,7 +92,9 @@ def     _add_hook_to_builder_get_prefix():
     
     def     _get_prefix(self, env, sources=[], builder_get_prefix = SCons.Builder.BuilderBase.get_prefix ):
         prefix = builder_get_prefix( self, env, sources )
-        return prefix + str(_EnvOptions( env ).prefix)
+        
+        options = _EnvOptions( env )
+        return str(options.build_path) + '/' + prefix + str(options.prefix)
     
     SCons.Builder.BuilderBase.get_prefix = _get_prefix
 
@@ -231,8 +233,7 @@ def     BuildVariant( scriptfile, options, **kw ):
     
     env = Env( options, **kw )
     
-    kw['variant_dir'] = os.path.normpath( str( options.build_dir ) )
-    kw['exports'] = [ {'env' : env} ]
+    kw.setdefault('exports', {}).setdefault('env', env )
     
     env.SConscript( scriptfile, **kw )
     

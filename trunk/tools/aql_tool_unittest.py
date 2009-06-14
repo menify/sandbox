@@ -9,7 +9,10 @@ def     _ut_action( target, source, env ):
     test_program = source[0].abspath
     result = 0
     
-    verbose = env.has_key('UT_VERBOSE')
+    try:
+        verbose = env['UT_VERBOSE']
+    except KeyError:
+        verbose = False
     
     output = open( target[0].abspath, 'w' )
     try:
