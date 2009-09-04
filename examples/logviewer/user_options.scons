@@ -1,0 +1,9 @@
+
+options.debug_level = aql.EnumOption( name = 'debug_level',
+                                      initial_value = 'slow',
+                                      allowed_values = ['off', 'fast', 'slow'],
+                                      help = 'Application debug level' )
+
+
+options.If().debug_level.one_of(['fast', 'slow']).defines += 'DEBUG_CHECKS'
+options.If().debug_level['slow'].defines += 'SLOW_DEBUG_CHECKS'

@@ -1,0 +1,10 @@
+
+import aql
+
+options = aql.BuiltinOptions()
+
+execfile( 'user_options.scons' )
+options.update( 'user_config.scons' )
+options.update( ARGUMENTS )
+
+aql.Build( 'make.scons', options )
