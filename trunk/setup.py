@@ -30,6 +30,10 @@ def     ResetSetup( site_setup = _site_setup,
 def     AddSiteSetup( setup_function, _site_setup = _site_setup, toList = utils.toList ):
     _site_setup.append( setup_function )
 
+def     siteSetup( setup_function ):
+    AddSiteSetup( setup_function )
+    return setup_function
+
 def     SiteSetup( options, os_env ):
     
     global _site_setup
@@ -61,6 +65,13 @@ def     UserSetup( options, os_env, user_setup = _user_setup ):
 def     AddToolSetup( tool_name, setup_function, tools_setup = _tools_setup, toList = utils.toList ):
     tools_setup.setdefault( tool_name, [] ).append( setup_function )
 
+def     toolSetup( tool_name ):
+    def     addToolSetup( setup_function ):
+        AddToolSetup( tool_name, setup_function )
+        return setup_function
+    
+    return addToolSetup
+
 #//===========================================================================//
 
 def     _tool_setup( tool_name, env, tools_setup = _tools_setup ):
@@ -78,7 +89,7 @@ def     _tool_setup( tool_name, env, tools_setup = _tools_setup ):
     
     if __debug__:
         if not setup_functions:
-            _Info( "Setup tool: No setup for tool: " + tool_name )
+            #~ _Info( "Setup tool: No setup for tool: " + tool_name )
             return
     
     for f in setup_functions:
@@ -92,6 +103,13 @@ def     _tool_setup( tool_name, env, tools_setup = _tools_setup ):
 
 def     AddToolPostSetup( tool_name, setup_function, tools_post_setup = _tools_post_setup ):
     tools_post_setup.setdefault( tool_name, [] ).append( setup_function )
+
+def     toolPostSetup( tool_name ):
+    def     addToolPostSetup( setup_function ):
+        AddToolPostSetup( tool_name, setup_function )
+        return setup_function
+    
+    return addToolPostSetup
 
 #//===========================================================================//
 
@@ -108,7 +126,7 @@ def     _tool_post_setup( tool_name, env, tools_post_setup = _tools_post_setup )
     
     if __debug__:
         if not setup_functions:
-            _Info( "Tool post setup: No setup for tool: " + tool_name )
+            #~ _Info( "Tool post setup: No setup for tool: " + tool_name )
             return
     
     for f in setup_functions:

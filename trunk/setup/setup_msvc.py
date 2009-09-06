@@ -1,65 +1,12 @@
-
-import re
-import subprocess
-
-import aql.setup
-
-def     _get_msvc_version( env, options ):
-    os_env = {}
-    for k,v in env['ENV'].iteritems():
-        os_env[k] = str(v)
-    
-    cc_ver = None
-    target_machine = None
-    
-    output = subprocess.Popen( 'link.exe /logo', shell=True, stdout=subprocess.PIPE, env = os_env ).stdout.readline().strip()
-    match = re.search(r'Microsoft \(R\) Incremental Linker Version (?P<version>[0-9]+\.[0-9]+)', output )
-    if match:
-        cc_ver = match.group('version')
-    
-    output = subprocess.Popen( 'cl.exe /logo', shell=True, stderr=subprocess.PIPE, env = os_env ).stderr.readline().strip()
-    match = re.search(r'Compiler Version [0-9.]+ for (?P<machine>.+)', output )
-    if match:
-        target_machine = match.group('machine')
-    
-    if not cc_ver:
-        return
-    
-    target_os = 'windows'
-    target_os_release = ''
-    target_os_version = ''
-    
-    if not target_machine:
-        target_machine = 'i386'
-    
-    target_cpu = ''
-    
-    options.target_os = target_os
-    options.target_os_release = target_os_release
-    options.target_os_version = target_os_version
-    options.target_machine = target_machine
-    options.target_cpu = target_cpu
-    
-    options.cc_name = 'msvc'
-    options.cc_ver = cc_ver
-
+import aql.utils
+from aql.setup import toolPostSetup
 
 #//---------------------------------------------------------------------------//
 
-def     setup_msvc( options, os_env, env ):
-    
-    if (options.cc_name != 'msvc') or (options.target_os != 'windows'):
-        return 0
-    
-    if options.cc_ver == '9':
-        aql.utils.getShellScriptEnv( os_env, "%VS90COMNTOOLS%vsvars32.bat" )
-        return 1
-    
-    return 0
+@toolPostSetup('aql_tool_msvc')
+def     _setup_flags( options, os_env, env ):
 
-def     setup_msvc_aql_flags( options, os_env, env ):
-
-    if_ = options.If()
+    if_ = options.If().cc_name['msvc']
     
     if_.debug_symbols['true'].ccflags += '/Z7'
     if_.debug_symbols['true'].linkflags += '/DEBUG'
@@ -107,11 +54,3 @@ def     setup_msvc_aql_flags( options, os_env, env ):
     if_.warnings_as_errors['on'].ccflags += '/WX'
     
     if_.linkflags += '/INCREMENTAL:NO'
-    
-    _get_msvc_version(env = env, options = options )
-
-
-#//===========================================================================//
-
-aql.setup.AddToolSetup( 'msvc', setup_msvc )
-aql.setup.AddToolPostSetup( 'msvc', setup_msvc_aql_flags )

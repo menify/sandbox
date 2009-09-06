@@ -30,7 +30,9 @@ import SCons.Util
 
 import aql.utils
 import aql.options
+import aql.logging
 
+_Error = aql.logging.Error
 _PrependEnvPath = aql.utils.prependEnvPath
 _EnvOptions = aql.options.EnvOptions
 
@@ -43,58 +45,6 @@ if SCons.Util.case_sensitive_suffixes('.c', '.C'):
 
 
 #//===========================================================================//
-
-def     _setup_flags( options ):
-    
-    if_ = options.If()
-    
-    if_.target_os['windows'].user_interface['console'].linkflags += '-Wl,--subsystem,console'
-    if_.target_os['windows'].user_interface['gui'].linkflags += '-Wl,--subsystem,windows'
-    
-    if_.debug_symbols['true'].ccflags += '-g'
-    if_.debug_symbols['false'].linkflags += '-Wl,--strip-all'
-    
-    if_.link_runtime['static'].linkflags += '-static-libgcc'
-    if_.link_runtime['shared'].linkflags += '-shared-libgcc'
-    
-    if_.target_os['windows'].runtime_threading['multi'].ccflags += '-mthreads'
-    if_.target_os.ne('windows').runtime_threading['multi'].ccflags += '-pthreads'
-    
-    if_.optimization['speed'].occflags += '-O3 -ffast-math'
-    if_.optimization['size'].occflags += '-Os -ffast-math'
-    if_.optimization['off'].occflags += '-O0'
-    
-    if_.inlining['off'].occflags += '-fno-inline'
-    if_.inlining['on'].occflags += '-finline -Wno-inline'
-    if_.inlining['full'].occflags += '-finline-functions -Wno-inline'
-    
-    if_.rtti['true'].cxxflags += '-frtti'
-    if_.rtti['false'].cxxflags += '-fno-rtti'
-    
-    if_.exception_handling['true'].cxxflags += '-fexceptions'
-    if_.exception_handling['false'].cxxflags += '-fno-exceptions'
-    
-    if_.keep_asm['false'].ccflags += '-pipe'
-    if_.keep_asm['true'].ccflags += '-fverbose-asm -save-temps'
-    if_.keep_asm['true'].target_machine['x86'].ccflags += '-masm=intel'
-    
-    
-    if_.warning_level[0].ccflags += '-w'
-    if_.warning_level[2].ccflags += '-Wall'
-    if_.warning_level[3].ccflags += '-Wall -Wextra -Wfloat-equal -Wundef -Wshadow -Wredundant-decls'
-    if_.warning_level[4].ccflags += '-Wall -Wextra -Wfloat-equal -Wundef -Wshadow -Wredundant-decls'
-    #~ if_.warning_level[4].cxxflags += '-Weffc++'
-    
-    if_.warning_level[4].cc_ver.ge(4).ccflags += '-Wfatal-errors'
-    
-    if_.warnings_as_errors['on'].ccflags += '-Werror'
-    
-    if_profiling_true = if_.profiling['true']
-    if_profiling_true.ccflags += '-pg'
-    if_profiling_true.linkflags += '-pg'
-    if_profiling_true.linkflags -= '-Wl,--strip-all'
-
-#//---------------------------------------------------------------------------//
 
 def     _add_libs( env ):
     env['_LIBFLAGS'] = '--start-group ' + env['_LIBFLAGS'] + ' --end-group'
@@ -465,7 +415,7 @@ def     generate( env ):
     options = _EnvOptions(env)
     
     if not _try_gcc( env, options, check_existence_only = 0 ):
-        return
+        _Error( "GCC has not been found (requested ver: %s, target: %s)" % (options.cc_ver, [str(options.target_os), str(options.target_machine) ] ) )
     
     #//-------------------------------------------------------//
     
@@ -510,8 +460,6 @@ def     generate( env ):
     env['SHCXXCOM']     = "${TEMPFILE('" + env['SHCXXCOM']  + "')}"
     env['CCCOM']        = "${TEMPFILE('" + env['CCCOM']     + "')}"
     env['SHCCCOM']      = "${TEMPFILE('" + env['SHCCCOM']   + "')}"
-    
-    _setup_flags( options )
 
 
 #//---------------------------------------------------------------------------//
