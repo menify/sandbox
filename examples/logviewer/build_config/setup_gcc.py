@@ -3,16 +3,12 @@ import os
 
 import aql.local_host
 import aql.utils
-import aql.setup
-
-if aql.local_host.os == 'cygwin':
-    _drive = '/cygdrive/c'
-else:
-    _drive = 'c:'
+from aql.setup import toolSetup, toolPostSetup
 
 #//===========================================================================//
 
-def     setup_gcc( options, os_env, env ):
+@toolSetup('aql_tool_gcc')
+def     _setup_gcc( options, os_env, env ):
     
     if options.cc_name != 'gcc':
         return False
@@ -20,6 +16,10 @@ def     setup_gcc( options, os_env, env ):
     #//-------------------------------------------------------//
     
     if options.target_os == 'windows':
+        if aql.local_host.os == 'cygwin':
+            _drive = '/cygdrive/c'
+        else:
+            _drive = 'c:'
         
         cc_path = _drive
 
@@ -43,9 +43,10 @@ def     setup_gcc( options, os_env, env ):
 
 #//===========================================================================//
 
+@toolPostSetup('aql_tool_gcc')
 def     _setup_flags( options, os_env, env ):
     
-    if_ = options.If()
+    if_ = options.If().cc_name['gcc']
     
     if_.target_os['windows'].user_interface['console'].linkflags += '-Wl,--subsystem,console'
     if_.target_os['windows'].user_interface['gui'].linkflags += '-Wl,--subsystem,windows'
@@ -92,8 +93,3 @@ def     _setup_flags( options, os_env, env ):
     if_profiling_true.ccflags += '-pg'
     if_profiling_true.linkflags += '-pg'
     if_profiling_true.linkflags -= '-Wl,--strip-all'
-
-#//===========================================================================//
-
-aql.setup.AddToolSetup( 'aql_tool_gcc', setup_gcc )
-aql.setup.AddToolPostSetup( 'aql_tool_gcc', _setup_flags )
