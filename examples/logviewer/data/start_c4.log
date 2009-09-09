@@ -1,0 +1,34 @@
+Sun May  3 06:31:39 2009: start_c4.pl:  ENTRY -- module: LOG action: WAIT
+Sun May  3 06:31:39 2009: start_c4.pl:  ENTRY -- module: LOG action: SPAWN
+2009-05-03::06:31:39.511 p:12881 t:0x2B7CD00E2C00 c4_get_shm_id: shmget /EMC/C4Core/platform/c4_system_region_file size 504 create 0 ERROR 22009-05-03::06:31:39.511 p:12881 t:0x2B7CD00E2C00 c4_attach_sys_region: Unable to get shm id for /EMC/C4Core/platform/c4_system_region_fileSun May  3 06:31:45 2009: start_c4.pl:  EXIT -- module: LOG action: WAIT -- time: 6 seconds
+Sun May  3 06:31:45 UTC 2009: Upstart: c4-logDaemon: post-start completed
+Sun May  3 06:31:45 UTC 2009: Upstart: c4-csx-display-cli: pre-start
+Starting High-Availability servicesSun May  3 06:40:26 UTC 2009: Upstart: c4-heartbeat: post-start completed
+Sun May  3 06:40:26 UTC 2009: Upstart: c4-boot: incr init counter
+heartbeat[16189]: 2009/05/03_06:40:27 info: Version 2 support: respawn
+heartbeat[16189]: 2009/05/03_06:40:27 info: Enabling logging daemon 
+heartbeat[16189]: 2009/05/03_06:40:27 info: logfile and debug file are those specified in logd config file (default /etc/logd.cf)
+heartbeat: baudrate setting must precede media statementsheartbeat[16189]: 2009/05/03_06:40:27 notice: Current node [spa] added to configuration.
+heartbeat[16189]: 2009/05/03_06:40:27 info: **************************
+heartbeat[16189]: 2009/05/03_06:40:27 info: Configuration validated. Starting heartbeat 2.1.3
+..done
+Sun May  3 06:40:27 2009 Waiting 30 seconds for heartbeat to start...
+Sun May  3 06:40:27 UTC 2009: Upstart: c4-boot: WARNING: failed to set init counter with sptool -c -s 0x12
+Sun May  3 06:40:27 UTC 2009: Upstart: c4-boot: clear platform counter
+Sun May 3 06:41:41 UTC 2009 C4_init Agent: Start Phase I emit c4-init
+Run MMFS LUNs module.  Create XLUs, add to SGs...
+#:U:( 0:1):00002b79a6aedbc0:18095:0004207222-681:Note   :: Checking MMFS luns for XLUs and SGs
+#:U:( 0:1):00002b79a6aedbc0:18095:0004207223-136:Note   :: Enumerate LUNS...
+#:U:( 0:1):00002b79a6aedbc0:18095:0004207223-550:Note   :: LUN enum succeeded.  RESULTS:
+#:U:( 0:1):00002b79a6aedbc0:18095:0004207223-550:Note   :: Found MMFS LUN: 2046 -- hasXLU: 0
+slot_2: [05/03/2009 06:56:16] checking DART...
+slot_2: [05/03/2009 06:56:16] DART is pingable...Checking for TCP connectivity.
+slot_2: [05/03/2009 06:56:22] DART accepts TCP connections on 5082.
+slot_2: [05/03/2009 06:56:22] Checking to see if a diskmark is needed...
+slot_2: [05/03/2009 06:56:23] Populating shared memory region.
+Writing superblocks and filesystem accounting information: Sun May 3 06:42:21 UTC 2009 C4_init Agent: monitor success (phase1 inprogress)
+Sun May 3 06:42:36 UTC 2009 C4_init Agent: monitor success (phase1 inprogress)
+[05/03/2009 06:49:26] Match disk sizes...
+set correct size in NAS DB
+Disks size was set at correct value
+[05/03/2009 06:49:28] Checking disk types...

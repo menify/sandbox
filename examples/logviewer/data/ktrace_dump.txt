@@ -1,0 +1,7 @@
+DATE: 2009/05/03
+06:34:32.644          0         5F17D940 elog:IOM0 P0       0x990                        (IO Port Faulted) 0xfffffffe
+06:34:32.664      20098         5F17D940 elog:IOM 0       0xb35                   (IO Port Data Summary) 0x01020102
+06:34:32.664        402         5F17D940 elog:IOM 1       0xb35                   (IO Port Data Summary) 0x01020102
+06:34:32.665        556         5F17D940 elog:IOM 2       0xb35                   (IO Port Data Summary) 0x01020102
+06:34:32.666       1091         5F17D940 elog:IOM 3       0xb35                   (IO Port Data Summary) 0x01020102
+06:34:32.667        896         5F17D940 elog:IOM 4       0xb35                   (IO Port Data Summary) 0x01020102
