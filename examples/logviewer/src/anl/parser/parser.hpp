@@ -1,9 +1,12 @@
 #ifndef ANL_PARSER_HPP_INCLUDED
 #define ANL_PARSER_HPP_INCLUDED
 
-#include "anl/parser/log_message.hpp"
+#include <string>
 
-namespace anl { namespace parser {
+#include "anl/log_message.hpp"
+
+namespace anl { namespace parser
+{
 
 typedef std::string   FilePath;
 
@@ -15,15 +18,10 @@ protected:
   
 public:
   virtual bool          open( FilePath const &  filepath ) = 0;
-  virtual bool          close( void ) = 0;
+  virtual void          close( void ) = 0;
   
-  virtual ParserBase&   operator >>( LogMessage const &  msg ) = 0;
+  virtual ParserBase&   operator >>( LogMessage&  msg ) = 0;
   virtual bool          eof( void ) const = 0;
-  
-//-------------------------------------------------------//
-// protected data
-protected:
-  
 };
 
 
