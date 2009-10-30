@@ -588,39 +588,50 @@ vars.VarEnumList( name = 'ccflags'  )
 vars.VarEnumUniqueList( name = 'ccflags' )
 
 
-class  VarHelpText (object):
+class  HelpText( object ):
   __slots__ = ( 'text', 'group' )
   
   def   __init__( self ):
     self.text = ''
     self.group = 'User'
   
-  def   shortText( self, var ):
+  def   shortHelp( self, var ):
     return "Short descrition"
   
-  def   text( self, var ):
+  def   help( self, var ):
     return "Detailed descrition"
 
 #//-------------------------------------------------------//
 
-class   Validator (object):
+class   Validator( object ):
     """
-    Validates a converted raw value.
+    Validates a converted simple value.
     """
-    def   __call__(self, value )
+    def   __call__( self, value )
         return True
+    
+    def   shortHelp( self, var ):
+        return ""
+    
+    def   help( self, var ):
+        return ""
 
 #//-------------------------------------------------------//
 
-
 class   Converter (object):
-    def   __call__(self, value )
+    """
+    Converts a value into base value (string, int, bool, node)
+    """
+    def   __call__(self, value)
         return value
+
+#//-------------------------------------------------------//
 
 class   VarInt (OptionBase):
     
     def     __init__( self, **kw ):
         self.help = None
+        self.
         
         
         kw['min'] = int( kw.get( 'min', -(sys.maxint - 1) ) )
