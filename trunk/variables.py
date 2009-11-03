@@ -627,6 +627,39 @@ class   Converter (object):
 
 #//-------------------------------------------------------//
 
+class   ConverterStr (object):
+    """
+    Converts a value into a string applying user's converter and validator
+    """
+    
+    __slots__ = ( 'converter', 'validator' )
+    
+    def   __init__( self, comparator = None, converter = None, validator = None ):
+        self.user_converter = user_converter
+        self.user_validator = user_validator
+        
+    def   __call__(self, value)
+        if value is not None:
+            value = str(value)
+         else:
+             value = ''
+        
+        if self.user_converter is not None:
+            value = self.user_converter( value )
+        
+        if self.user_validator is not None:
+            value = self.user_converter( value )
+        
+        return value
+        
+    def   cmp(self, value1, value2 ):
+        if 
+    
+    def   str(self, value):
+        return self(value)
+
+#//-------------------------------------------------------//
+
 class   VarInt (OptionBase):
     
     def     __init__( self, **kw ):
