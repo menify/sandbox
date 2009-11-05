@@ -7,30 +7,28 @@ class   Converter:
     
     #//-------------------------------------------------------//
     
-    def   __init__(self, base_type, comparator = None, converter = None, validator = None )
+    def   __init__(self, base_type, compare_func, convert_func )
         
-        class BaseType (base_type):
-            pass
+        assert base_type
+        assert convert_func
+        assert compare_func
+        
+        class BaseType (base_type): pass
         
         self.base_type = BaseType
-        self.comparator = comparator
-        self.converter = converter
+        self.compare_func = compare_func
+        self.convert_func = convert_func
         self.validator = validator
     
     #//-------------------------------------------------------//
     
-    def   convert( self, value):
-        raise TypeError("Abstract method. Should be implemented in child classes")
-    
-    #//-------------------------------------------------------//
-    
-    def   validate( self, value, isinstance = isinstance ):
-        try:
-            value = self.convert( value )
-        except:
-            return False
+    def   convert( self, value, isinstance = isinstance ):
+        if isinstance( value, self.base_type ):
+            return value
         
-        return (self.validator is None) or self.validator( value )
+        value = self.convert_func( value )
+        
+        return self.base_type( value )
     
     #//-------------------------------------------------------//
     
@@ -38,10 +36,7 @@ class   Converter:
         value1 = self.convert( value1 )
         value2 = self.convert( value2 )
         
-        if self.comparator is not None:
-            return self.comparator( value1, value2 )
-        
-        return cmp(value1, value2)
+        return self.compare_func( value1, value2 )
     
     #//-------------------------------------------------------//
     
@@ -56,35 +51,131 @@ class   Converter:
 
 #//===========================================================================//
 
-class   ConverterString:
+class   ConverterString (Converter):
     """
-    Converts a value into base value (string, int, bool, node)
+    Converts a value into a string value
     """
-    
-    class __ConvertedValue (str):
-        pass
     
     #//-------------------------------------------------------//
     
-    def   convert( self, value, isinstance = isinstance ):
-        if isinstance( value, __ConvertedValue ):
-            return value
-      
-        if value is not None:
-            value = str(value)
+    def     __init__(self, compare_func = None, convert_func = None )
+        if compare_func is None:
+            compare_func = cmp
+        
+        def     _convert( value ):
+            if value is not None:
+                value = str(value)
+            else:
+                value = str()
+        
+        if convert_func is None:
+            convert_func = _strConverter
         else:
-            value = str()
-      
-        if self.converter is not None:
-            value = self.converter( value )
-      
-        converted_value = __ConvertedValue( value )
-      
-        if not self.validate( converted_value ):
-            TypeError("")
+            convert_func = lambda value, convert_func = convert_func, _convert = _convert: convert_func( _convert(value) )
+        
+        Converter.__init__( self, str, compare_func, convert_func )
     
     #//-------------------------------------------------------//
     
     def   toString( self, value ):
         return self.convert( value )
+    
+    def   typeHelp( self, value ):
+        return "String"
+    
+    def   valuesHelp( self, value ):
+        return "String"
+
+
+class   ConverterEnum (Converter):
+    """
+    Converts a value into a string value
+    """
+    
+    #//-------------------------------------------------------//
+    
+    class __Value (object):
+        __slots__ = ('value', 'aliases', 'compare_func')
+        
+        #//-------------------------------------------------------//
+        
+        def     __init__(self, value, compare_func ):
+            self.value = value
+            self.aliases = []
+            self.compare_func = compare_func
+        
+        #//-------------------------------------------------------//
+        
+        def     get(self):
+            return self.value
+        
+        #//-------------------------------------------------------//
+        
+        def     __eq__(self, other):
+            cmp_func = self.compare_func
+            
+            for value in [self.value] + self.aliases:
+                result = cmp_func( value, other )
+                if result == 0:
+                    return True
+            
+            return False
+        
+        #//-------------------------------------------------------//
+        
+        def     __ne__(self, other):
+            return not self.__eq__(other)
+        
+        #//-------------------------------------------------------//
+        
+        def     __cmp__(self, other):
+            if self == other:
+                return 0
+            return self.compare_func( self.value, other )
+        
+        #//-------------------------------------------------------//
+        
+        def     addAlias( self, alias ):
+            if self != other:
+                self.aliases.append( alias )
+    
+    #//-------------------------------------------------------//
+    
+    def     __init__(self, type_converter )
+        
+        self.type_converter = type_converter
+        self.allowed_values = {}
+        
+        def     _convert( value ):
+            
+        
+        convert_func = 
+        
+        
+        Converter.__init__( self, type_converter.base_type, type_converter.compare_func, convert_func )
+        
+        if comparator is None:
+            comparator = cmp
+        
+        def     _strConverter( value ):
+            if value is not None:
+                value = str(value)
+            else:
+                value = str()
+        
+        if converter is None:
+            converter = _strConverter
+        else:
+            converter = lambda value, converter = converter, _strConverter = _strConverter: converter( _strConverter(value) )
+    
+    #//-------------------------------------------------------//
+    
+    def   toString( self, value ):
+        return self.convert( value )
+    
+    def   typeHelp( self, value ):
+        return "String"
+    
+    def   valuesHelp( self, value ):
+        return "String"
 
