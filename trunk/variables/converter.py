@@ -1,4 +1,16 @@
 
+def     createBaseType( base_type, converter ):
+    class BaseType (base_type):
+        
+        __converter = converter
+        
+        def     __cmp__(base_self, other):
+            return BaseType.__converter.compare(base_self, other)
+        
+        def     __str__(self):
+            return BaseType.__converter.toString( self )
+    
+    return BaseType
 
 class   Converter:
     """
@@ -13,12 +25,9 @@ class   Converter:
         assert convert_func
         assert compare_func
         
-        class BaseType (base_type): pass
-        
-        self.base_type = BaseType
+        self.base_type = createBaseType( base_type, self )
         self.compare_func = compare_func
         self.convert_func = convert_func
-        self.validator = validator
     
     #//-------------------------------------------------------//
     
@@ -36,12 +45,15 @@ class   Converter:
         value1 = self.convert( value1 )
         value2 = self.convert( value2 )
         
+        value1 = value1.__class__.__bases__[0]( value1 )    # cast to base type to avoid recursion
+        value2 = value2.__class__.__bases__[0]( value2 )    # cast to base type to avoid recursion
+        
         return self.compare_func( value1, value2 )
     
     #//-------------------------------------------------------//
     
     def   toString( self, value ):
-        raise TypeError("Abstract method. Should be implemented in child classes")
+        raise TypeError("Abstract method. Should be implemented in child classes")4
     
     def   typeHelp( self, value ):
         raise TypeError("Abstract method. Should be implemented in child classes")
@@ -50,6 +62,9 @@ class   Converter:
         raise TypeError("Abstract method. Should be implemented in child classes")
 
 #//===========================================================================//
+
+base_type( value )
+
 
 class   ConverterString (Converter):
     """
