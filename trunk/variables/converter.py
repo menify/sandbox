@@ -1,16 +1,61 @@
 
-def     createBaseType( base_type, converter ):
-    class BaseType (base_type):
+def     createValueType( base_type, convert_func, compare_func ):
+    
+    if convert_func is None:
+        def     _convert( value ):
+            if value is not None:
+                value = base_type(value)
+            else:
+                value = base_type()
+        convert_func = _convert
+    
+    if compare_func is None:
+        compare_func = base_type.__cmp__
+    
+    class ValueType (base_type):
         
-        __converter = converter
+        __convert_func = convert_func
+        __compare_func = compare_func
+        __str_func = str_func
         
-        def     __cmp__(base_self, other):
-            return BaseType.__converter.compare(base_self, other)
+        def     __new__( cls, value ):
+            if isinstance( value, ValueType ):
+                return value    # already converted type
+            
+            return super(ValueType, cls).__new__(cls, value)
+        
+        #//-------------------------------------------------------//
+        
+        def     __init__( self, value = None ):
+            if self is value:
+                return self     # no init needed for itself
+            
+            base_type = self.__class__.__bases__[0]
+            
+            value = self.__convert_func( value )
+            assert isinstance( value, base_type )
+            
+            base_type.__init__( self, value )
+        
+        #//-------------------------------------------------------//
+        
+        def     __cmp__(self, other):
+            other = self.__class__( other )
+            
+            base_type = self.__class__.__bases__[0]
+            
+            value1 = base_type( self )      # cast to base type to avoid recursion
+            value2 = base_type( other )     # cast to base type to avoid recursion
+            
+            return self.__compare_func( value1, value2 )
+        
+        #//-------------------------------------------------------//
         
         def     __str__(self):
-            return BaseType.__converter.toString( self )
+            base_type = self.__class__.__bases__[0]
+            return base_type.__str__( self )
     
-    return BaseType
+    return ValueType
 
 class   Converter:
     """
