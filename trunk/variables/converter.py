@@ -46,9 +46,9 @@ return ValueType
 
 
 
-def     createValueType( base_type, convert_func, compare_func ):
+def     createValueType( base_type, converter, comparator ):
     
-    if convert_func is None:
+    if converter is None:
         def     _convert( value ):
             if value is not None:
                 value = base_type(value)
@@ -61,12 +61,11 @@ def     createValueType( base_type, convert_func, compare_func ):
     
     class ValueType (base_type):
         
-        __convert_func = convert_func
-        __compare_func = compare_func
-        __str_func = str_func
+        converter = converter
+        comparator = comparator
         
         def     __new__( cls, value ):
-            if isinstance( value, ValueType ):
+            if isinstance( value, cls ):
                 return value    # already converted type
             
             return super(ValueType, cls).__new__(cls, value)
@@ -77,9 +76,11 @@ def     createValueType( base_type, convert_func, compare_func ):
             if self is value:
                 return self     # no init needed for itself
             
-            base_type = self.__class__.__bases__[0]
+            cls = self.__class__
             
-            value = self.__convert_func( value )
+            base_type = cls.__bases__[0]
+            
+            value = cls.converter( value )
             assert isinstance( value, base_type )
             
             base_type.__init__( self, value )
