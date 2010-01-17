@@ -393,6 +393,10 @@ def     _add_lint_options( options ):
     options.lint_flags += options.lint_passes_flag
     options.lint_flags += options.lint_warning_level_flag
     
+    #TODO:
+    #options.lint_flags += '-passes(' + options.lint_passes + ')'
+    #options.lint_flags += '-w' + options.warning_level
+    
     options.If().warnings_as_errors['off'].lint_flags += '-zero'
 
 #//===========================================================================//
