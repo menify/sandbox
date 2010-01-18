@@ -1,11 +1,12 @@
 @echo off
 
-call D:\bin\development\compilers\env.cmd tools
+rem call D:\bin\development\compilers\env.cmd tools
 
-set PATH=%PATH%;%WORKPATH%\settings\scite\lua
-set PATH=%PATH%;D:\bin\tools\gnu_tools
+set PATH=%PATH%;%~dp0
+set PATH=%PATH%;C:\bin\ctags
+set PATH=%PATH%;C:\Python26
 
-set USERPROFILE=%WORKPATH%\settings\scite
-set HOME=%WORKPATH%\settings\scite
+set USERPROFILE=%~dp0
+set HOME=%~dp0
 
-start /b %WORKBIN%\development\editors\wscite\SciTE.exe %1 %2 %3 %4 %5 %6 %7 %8 %9
+start /b C:\bin\wscite\SciTE.exe %1 %2 %3 %4 %5 %6 %7 %8 %9

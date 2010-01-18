@@ -288,10 +288,10 @@ local default_path
 local tmpfile
 if GTK then
 	default_path = props['SciteUserHome']
-	tmpfile = '/tmp/.scite-temp-files'
+	tmpfile = '/tmp/.scite-temp-file'
 else
-	default_path = props['SciteDefaultHome']
-	tmpfile = 's:\\temp\\scite_temp1'
+	default_path = props['SciteUserHome']
+	tmpfile = props['ext.lua.temp_directory']..'.scite-temp-file'
 end
 
 function scite_Files(mask)
