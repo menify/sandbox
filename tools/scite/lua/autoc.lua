@@ -37,6 +37,7 @@ function handleChar()
         local len = pos - startPos
         if len >= MIN_PREFIX_LEN then
             local prefix = normalize( editor:textrange(startPos, pos) )
+            if string.find( prefix, "%w" ) == nil then return end
             local menuItems = {}
             for name, normname in pairs(names) do
                 if prefix ~= normname and string.sub(normname, 1, len) == prefix then
