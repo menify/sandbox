@@ -1,3 +1,256 @@
+
+import re
+
+#13.10.3077
+#8.00v
+#4.1.1
+#1.6
+#8.42n
+#5.5.1
+
+class   Version (str):
+    def     __new__(cls, version = None, _ver_re = re.compile(r'[0-9]+[a-zA-Z]*(\.[0-9]+[a-zA-Z]*)*') ):
+        
+        if isinstance(version, Version):
+            return version
+        
+        if version is None:
+            ver_str = ''
+        else:
+            ver_str = str(version)
+        
+        match = _ver_re.search( ver_str )
+        if match:
+            ver_str = match.group()
+            ver = re.findall(r'[0-9]+|[a-zA-Z]+', ver_str )
+        else:
+            ver_str = ''
+            ver = []
+        
+        self = super(Version, cls).__new__(cls, ver_str )
+        self.ver = ver
+        
+        print "Version.__new__:", id(self)
+        
+        return self
+    
+    #//-------------------------------------------------------//
+    
+    def     __cmp__( self, other ):
+        
+        ver1 = self.ver
+        len1 = len( ver1 )
+        
+        ver2 = Version( other ).ver
+        len2 = len( ver2 )
+        
+        min_len = min( len1, len2 )
+        if min_len == 0:
+            return len1 - len2
+        
+        for i in xrange( 0, min_len ):
+            
+            v1 = ver1[i]
+            v2 = ver2[i]
+            
+            if (v1.isdigit()) and (v2.isdigit()):
+                v1 = int(v1)
+                v2 = int(v2)
+            
+            if v1 < v2:
+                return -1
+            if v1 > v2:
+                return 1
+        
+        return 0
+    
+    #//-------------------------------------------------------//
+    
+    def __lt__( self, other):       return self.__cmp__(other) < 0
+    def __le__( self, other):       return self.__cmp__(other) <= 0
+    def __eq__( self, other):       return self.__cmp__(other) == 0
+    def __ne__( self, other):       return self.__cmp__(other) != 0
+    def __gt__( self, other):       return self.__cmp__(other) > 0
+    def __ge__( self, other):       return self.__cmp__(other) >= 0
+
+
+#//---------------------------------------------------------------------------//
+
+
+class   ConverterEnum (object):
+    
+    __slots__ = ('values_map')
+    
+    def     __init__( self ):
+        self.values_map = {}
+    
+    def     __call__( self, value ):
+        
+        try:
+            while True:
+                value = self.values_dict[ value ]
+                if value is None:
+                    break;
+        except:
+            raise TypeError("Invalid value: %s " % value )
+        
+        
+        mapped_values = []
+        
+        for v in toSequence( values ):
+            
+            try:
+                v = str(v).lower()
+                alias = values_dict[ v ]
+            
+            except (AttributeError, KeyError):
+                
+                if self.shared_data['all_key'] == v:
+                    alias = self.AllowedValues()
+                
+                else:
+                    return None
+            
+            if alias is None:
+                mapped_values.append( v )
+            else:
+                mapped_values += alias
+        
+        return mapped_values
+    
+    #//=======================================================//
+    
+    def     _convert_value( self, val ):
+        
+        values = self.__map_values( val )
+        
+        if not values:
+            _Error( "Invalid value: '%s', type: %s" % (val, type(val)) )
+        
+        if len( values ) == 1:
+            return values[0]
+        
+        return values
+    
+    #//=======================================================//
+    
+    def     AddValues( self, values, toSequence = utils.toSequence ):
+        values_dict = self.shared_data['values_dict']
+        
+        for v in toSequence( values ):
+            
+            try:
+                v = v.lower()
+            except AttributeError:
+                _Error( "Invalid value: '%s', type: %s" % (val, type(val)) )
+            
+            if self.__map_values( v ):
+                _Error( "Can't change an existing value: %s" % (v) )
+            
+            values_dict[ v ] = None
+    
+    #//=======================================================//
+    
+    def     AddAlias( self, alias, values, isSequence = utils.isSequence ):
+        
+        if self.__map_values( alias ):
+            _Error( "Can't change an existing value: %s" % (alias) )
+        
+        mapped_values = self.__map_values( values )
+        if not mapped_values:
+            _Error( "Invalid value(s): %s" % (values) )
+        
+        if (not self.shared_data['is_list']) and (len( mapped_values ) > 1):
+            _Error( "Can't add an alias to list of values: %s of none-list option" % (mapped_values) )
+        
+        self.shared_data['values_dict'][ alias ] = mapped_values
+    
+    #//=======================================================//
+    
+    def     AddAliases( self, aliases,
+                        isDict = utils.isDict ):
+        
+        if not aliases:
+            return
+        
+        if __debug__:
+            if not isDict( aliases ):
+                _Error( "Aliases must be a dictionary" )
+        
+        for a,v in aliases.iteritems():
+            self.AddAlias( a, v )
+    
+    #//=======================================================//
+    
+    def     AllowedValues( self ):
+        
+        allowed_values = []
+        
+        for a,v in self.shared_data['values_dict'].iteritems():
+            if v is None:
+                allowed_values.append( a )
+        
+        return allowed_values
+    
+    #//=======================================================//
+    
+    def     Aliases( self ):
+        
+        aliases = {}
+        
+        for a,v in self.shared_data['values_dict'].iteritems():
+            
+            if v is not None:
+                if len(v) == 1:
+                    tmp = aliases.get( v[0] )
+                    if tmp:
+                        aliases[ v[0] ] = tmp + [ a ]
+                    else:
+                        aliases[ v[0] ] = [ a ]
+            else:
+                aliases.setdefault( a )
+        
+        return aliases
+    
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesStr( self ):
+        
+        allowed_values = []
+        
+        aliases = self.Aliases()
+        values = aliases.keys()
+        values.sort()
+        
+        for v in values:
+            
+            a = aliases[v]
+            
+            if a is not None:
+                a.sort()
+                v = v + ' (or ' + ", ".join( a ) + ')'
+            
+            allowed_values.append( v )
+        
+        allowed_values = map( lambda v: '- ' + v, allowed_values )
+        allowed_values_str = '\n'.join( allowed_values )
+        
+        if len(allowed_values) > 1:
+            allowed_values_str = '\n' + allowed_values_str
+        
+        return allowed_values_str
+    
+    #//-------------------------------------------------------//
+    
+    def     AllowedValuesHelp( self ):
+        if self.shared_data['is_list']:
+            return 'List of values: ' + self.AllowedValuesStr()
+        
+        return 'A value: ' + self.AllowedValuesStr()
+
+
+#//---------------------------------------------------------------------------//
+
 def     createValueType( base_type, converter = None, comparator = None ):
     
     if converter is None:
@@ -14,6 +267,8 @@ def     createValueType( base_type, converter = None, comparator = None ):
     if comparator is None:
         comparator = base_type.__cmp__
     
+    #//=======================================================//
+    
     class ValueType (base_type):
         
         def     __new__( cls, value = None ):
@@ -23,13 +278,10 @@ def     createValueType( base_type, converter = None, comparator = None ):
             value = converter( value )
             assert isinstance( value, base_type )
             
-            return super(ValueType, cls).__new__(cls, value)
+            self = base_type.__new__(cls, value )
+            return self
         
         #//-------------------------------------------------------//
-        
-        def   __init__(self, value = None ):
-            print "__init__:", self, id(self)
-            pass
         
         def     __cmp__(self, other):
             other = self.__class__( other )
@@ -72,19 +324,25 @@ if __name__ == "__main__":
         print "cmp:", a, b
         return cmp( a[0], b[0] )
     
-    ValStr = createValueType( str, comparator = _cmp )
-    ValInt = createValueType( int, comparator = lambda a, b: 0 )
-    ValInt = createValueType( ValInt, converter = lambda a : 1 )
+    print Version
     
-    #~ print "v: '" + ValStr( None ) + "'"
-    #~ print "v: '" + ValStr( "ABC" ) + "'"
-    #~ print "v: '" + ValStr( "bEE" ) + "'"
-    #~ print ValStr( "aBC" ) == ValStr( "abc" )
-    #~ print ValStr( "bde" ) == ValStr( "b00" )
+    ValVer = createValueType( Version )
+    print ValVer("12.1")
+    print ValVer("12.1") == ValVer("12.11")
+    
+    ValStr = createValueType( str, comparator = _cmp )
+    ValInt = createValueType( int, comparator = lambda a, b: cmp(a,b) )
+    ValInt = createValueType( ValInt, converter = lambda a, vt = ValInt : vt(a + (a & 1)) )
+    
+    print "v: '" + ValStr( None ) + "'"
+    print "v: '" + ValStr( "ABC" ) + "'"
+    print "v: '" + ValStr( "bEE" ) + "'"
+    print ValStr( "aBC" ) == ValStr( "abc" )
+    print ValStr( "bde" ) == ValStr( "b00" )
     print ValStr( "ccc" ) == ValStr( "Ccc" )
-    print ValInt( 5 )
+    print ValInt( 4 )
     print ValInt( 7 )
-    print ValInt( 5 ) == ValInt( 7 )
+    print ValInt( 4 ) == ValInt( 3 )
     
 #~ class   ConverterString (Converter):
     #~ """

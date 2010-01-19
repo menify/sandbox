@@ -1,4 +1,3 @@
-
 import re
 
 #13.10.3077
@@ -8,34 +7,38 @@ import re
 #8.42n
 #5.5.1
 
-def     _parse_version( version ):
-    match = re.search(r'[0-9]+[a-zA-Z]*(\.[0-9]+[a-zA-Z]*)*', str( version ) )
-    
-    if match:
-        ver_str = match.group()
-        ver = re.findall(r'[0-9]+|[a-zA-Z]+', ver_str )
-    else:
-        ver_str = ""
-        ver = []
-    
-    return [ ver_str, ver ]
-
-#//---------------------------------------------------------------------------//
-
-class   Version:
-    
-    def     __init__( self, version ):
+class   Version (str):
+    def     __new__(cls, version = None, _ver_re = re.compile(r'[0-9]+[a-zA-Z]*(\.[0-9]+[a-zA-Z]*)*') ):
         
-        self.ver_str, self.ver = _parse_version( version )
+        if isinstance(version, Version):
+            return version
+        
+        if version is None:
+            ver_str = ''
+        else:
+            ver_str = str(version)
+        
+        match = _ver_re.search( ver_str )
+        if match:
+            ver_str = match.group()
+            ver = re.findall(r'[0-9]+|[a-zA-Z]+', ver_str )
+        else:
+            ver_str = ''
+            ver = []
+        
+        self = super(Version, cls).__new__(cls, ver_str )
+        self.__version = ver
+        
+        return self
     
     #//-------------------------------------------------------//
     
     def     __cmp__( self, other ):
         
-        ver1 = self.ver
+        ver1 = self.__version
         len1 = len( ver1 )
         
-        ver2 = _parse_version( str(other) )[1]
+        ver2 = Version( other ).__version
         len2 = len( ver2 )
         
         min_len = min( len1, len2 )
@@ -60,6 +63,9 @@ class   Version:
     
     #//-------------------------------------------------------//
     
-    def     __str__( self ):
-        
-        return self.ver_str
+    def __lt__( self, other):       return self.__cmp__(other) < 0
+    def __le__( self, other):       return self.__cmp__(other) <= 0
+    def __eq__( self, other):       return self.__cmp__(other) == 0
+    def __ne__( self, other):       return self.__cmp__(other) != 0
+    def __gt__( self, other):       return self.__cmp__(other) > 0
+    def __ge__( self, other):       return self.__cmp__(other) >= 0
