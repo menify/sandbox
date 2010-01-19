@@ -23,9 +23,13 @@ def     createValueType( base_type, converter = None, comparator = None ):
             value = converter( value )
             assert isinstance( value, base_type )
             
-            return super(cls, cls).__new__(cls, value)
+            return super(ValueType, cls).__new__(cls, value)
         
         #//-------------------------------------------------------//
+        
+        def   __init__(self, value = None ):
+            print "__init__:", self, id(self)
+            pass
         
         def     __cmp__(self, other):
             other = self.__class__( other )
@@ -50,7 +54,7 @@ def     createValueType( base_type, converter = None, comparator = None ):
         def     getConverter():
             return converter
         
-        //-------------------------------------------------------//
+        #//-------------------------------------------------------//
         
         @staticmethod
         def     getComparator():
@@ -69,15 +73,19 @@ if __name__ == "__main__":
         return cmp( a[0], b[0] )
     
     ValStr = createValueType( str, comparator = _cmp )
+    ValInt = createValueType( int, comparator = lambda a, b: 0 )
+    ValInt = createValueType( ValInt, converter = lambda a : 1 )
     
     #~ print "v: '" + ValStr( None ) + "'"
-    print "v: '" + ValStr( "ABC" ) + "'"
-    print "v: '" + ValStr( "bEE" ) + "'"
-    print ValStr( "aBC" ) == ValStr( "abc" )
-    print ValStr( "bde" ) == ValStr( "b00" )
+    #~ print "v: '" + ValStr( "ABC" ) + "'"
+    #~ print "v: '" + ValStr( "bEE" ) + "'"
+    #~ print ValStr( "aBC" ) == ValStr( "abc" )
+    #~ print ValStr( "bde" ) == ValStr( "b00" )
     print ValStr( "ccc" ) == ValStr( "Ccc" )
-
-
+    print ValInt( 5 )
+    print ValInt( 7 )
+    print ValInt( 5 ) == ValInt( 7 )
+    
 #~ class   ConverterString (Converter):
     #~ """
     #~ Converts a value into a string value
