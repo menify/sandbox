@@ -14,7 +14,7 @@ local function initMarkStyles()
     if not isMarkStylesInitialized then
         editor.IndicStyle[MARKER_STYLE_NUMER] = INDIC_ROUNDBOX
         editor.IndicFore[MARKER_STYLE_NUMER] = 255
-        editor.IndicAlpha[MARKER_STYLE_NUMER] = 30
+        editor.IndicAlpha[MARKER_STYLE_NUMER] = 90
         isMarkStylesInitialized = true
     end
 end
