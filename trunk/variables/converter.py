@@ -272,13 +272,13 @@ def     createValueType( base_type, converter = None, comparator = None ):
     class ValueType (base_type):
         
         def     __new__( cls, value = None ):
-            if isinstance( value, cls ):
+            if isinstance( value, ValueType ):
                 return value    # already converted type
             
             value = converter( value )
             assert isinstance( value, base_type )
             
-            self = base_type.__new__(cls, value )
+            self = super(ValueType, cls).__new__(cls, value )
             return self
         
         #//-------------------------------------------------------//
@@ -313,6 +313,64 @@ def     createValueType( base_type, converter = None, comparator = None ):
             return comparator
     
     return ValueType
+
+def     createValueListType( value_type ):
+    
+    #//=======================================================//
+    
+    class ValueListType (list):
+        
+        def     __new__( cls, value_list = None ):
+            if isinstance( value_list, ValueListType ):
+                return value_list    # already converted type
+            
+            self = super(ValueListType, cls).__new__( cls )
+            
+            if (value_list is not None) and ( not isinstance( value, (list, tuple) )):
+                raise TypeError( "'%s' object is not iterable" % type(value_list) )
+                
+              self[:] = map( value_type, value_list )
+            
+            return self
+        
+        #//-------------------------------------------------------//
+        
+        def     __cmp__(self, other):
+            other = self.__class__( other )
+            
+            return super(self.__class__, self).__cmp__( self, other )
+        
+        #//-------------------------------------------------------//
+        
+        def __lt__( self, other):       return self.__cmp__(other) < 0
+        def __le__( self, other):       return self.__cmp__(other) <= 0
+        def __eq__( self, other):       return self.__cmp__(other) == 0
+        def __ne__( self, other):       return self.__cmp__(other) != 0
+        def __gt__( self, other):       return self.__cmp__(other) > 0
+        def __ge__( self, other):       return self.__cmp__(other) >= 0
+      
+      #//-------------------------------------------------------//
+      
+      def   __add__(self, other ):
+          return super(self.__class__, self).__add__( self, self.__class__(other) )
+          
+      def   __iadd__(self, other ):
+          return super(self.__class__, self).__iadd__( self, self.__class__(other) )
+          
+      def   __setitem__(self, position, value ):
+          return super(self.__class__, self).__setitem__( self, position, value_type( value ) )
+      
+      def   append( self, value ):
+          return super(self.__class__, self).append( self, value_type( value ) )
+      
+      def   extend( self, value ):
+          return super(self.__class__, self).extend( self, value_type( value ) )
+      
+      def   insert( self, position, value ):
+          return super(self.__class__, self).insert( self, position, value_type( value ) )
+          
+      
+    return ValueListType
 
 #//===========================================================================//
 
