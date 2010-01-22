@@ -41,7 +41,7 @@ class   Version (str):
     
     #//-------------------------------------------------------//
     
-    def   __cmp__( self, other ):     return cmp( self.ver, Version( other ).ver )
+    def   __cmp__( self, other ):     return cmp( self.__version, Version( other ).__version )
     def   __lt__( self, other):       return self.__cmp__(other) < 0
     def   __le__( self, other):       return self.__cmp__(other) <= 0
     def   __eq__( self, other):       return self.__cmp__(other) == 0
@@ -56,30 +56,80 @@ class TypeTraitsBase (object):
     def   __init__(self, value_type):
         self.value_type = value_type
     
+    #//-------------------------------------------------------//
+    
     def   convert( self, value ):
+        print "TypeTraitsBase.convert"
         if value is not None:
             return self.value_type(value)
         
         return self.value_type()
     
+    #//-------------------------------------------------------//
+    
     def   compare( self, value1, value2 ):
+        assert isinstance( value1, self.value_type )
+        assert isinstance( value2, self.value_type )
         
-        value_type = self.value_type
-        
-        value1 = value_type( self )      # cast to base type to avoid recursion
-        value2 = value_type( other )     # cast to base type to avoid recursion
-        
-        return comparator( value1, value2 )
+        return cmp( value1, value2 )
+    
+    #//-------------------------------------------------------//
+    
+    def   hash( self, value ):
+        assert isinstance( value, self.value_type )
+        return hash( value )
+    
+    #//-------------------------------------------------------//
+    
+    def     getValueType(self):
+        return self.value_type;
 
+#//---------------------------------------------------------------------------//
+
+class IgnoreCaseStrTraits (TypeTraitsBase):
+    
+    def   compare( self, value1, value2 ):
+        assert issubclass( self.value_type, str )
+        assert isinstance( value1, self.value_type )
+        assert isinstance( value2, self.value_type )
+        
+        return cmp( value1.lower(), value2.lower() )
+    
+    #//-------------------------------------------------------//
+    
+    def   hash( self, value ):
+        assert issubclass( self.value_type, str )
+        assert isinstance( value, self.value_type )
+        
+        return hash( value.lower() )
+
+#//---------------------------------------------------------------------------//
+
+class LowerCaseStrTraits (TypeTraitsBase):
+    def   convert( self, value ):
+        assert issubclass( self.value_type, str )
+        
+        print "LowerCaseStrTraits.convert"
+        return super(LowerCaseStrTraits, self).convert( value ).lower()
+
+#//---------------------------------------------------------------------------//
+
+class CapitalStrTraits (TypeTraitsBase):
+    def   convert( self, value ):
+        assert issubclass( self.value_type, str )
+        
+        print "CapitalStrTraits.convert"
+        value = super(CapitalStrTraits, self).convert( value )
+        return value[:1].upper() + value[1:].lower()
 
 #//---------------------------------------------------------------------------//
 
 
-class   ConverterEnum (object):
-    
-    __slots__ = ('values', 'aliases', 'value_type')
+class   EnumTypeTraits (TypeTraitsBase):
     
     def     __init__( self, value_type ):
+        super(EnumTypeTraits, self).__init__( value_type )
+        
         self.values = []
         self.aliases = {}
         self.value_type = value_type
@@ -90,11 +140,9 @@ class   ConverterEnum (object):
         
         value = self.value_type( value )
         
-        print "values:", self.values
         if value in self.values:
             return value
-        print "aliases:", self.aliases
-        print "value:", type(value)
+        
         for k,v in self.aliases.iteritems():
             print type(k), type(v)
         
@@ -102,9 +150,10 @@ class   ConverterEnum (object):
     
     #//-------------------------------------------------------//
     
-    def     __call__( self, value ):
+    def     convert( self, value ):
+        print "EnumTypeTraits.convert"
         
-        value = self.value_type( value )
+        value = super(EnumTypeTraits, self).convert( value )
         
         value = self.__mapValue( value )
         if value is None:
@@ -151,25 +200,16 @@ class   ConverterEnum (object):
 
 #//---------------------------------------------------------------------------//
 
-def     createValueType( base_type, converter = None, comparator = None ):
-    
-    if converter is None:
-        def     _convert( value ):
-            if value is not None:
-                value = base_type(value)
-            else:
-                value = base_type()
-            
-            print "value:", value
-            
-            return value
-            
-        converter = _convert
-    
-    if comparator is None:
-        comparator = base_type.__cmp__
+def     createValueTraits( base_type, *traits ):
+    return type('ValueTraits', traits, {} )( base_type )
+
+#//---------------------------------------------------------------------------//
+
+def     createValueType( value_type_traits ):
     
     #//=======================================================//
+    
+    base_type = value_type_traits.getValueType()
     
     class ValueType (base_type):
         
@@ -177,7 +217,7 @@ def     createValueType( base_type, converter = None, comparator = None ):
             if isinstance( value, ValueType ):
                 return value    # already converted type
             
-            value = converter( value )
+            value = value_type_traits.convert( value )
             assert isinstance( value, base_type )
             
             self = super(ValueType, cls).__new__(cls, value )
@@ -186,12 +226,11 @@ def     createValueType( base_type, converter = None, comparator = None ):
         #//-------------------------------------------------------//
         
         def     __cmp__(self, other):
-            other = self.__class__( other )
-            
-            value1 = base_type( self )      # cast to base type to avoid recursion
-            value2 = base_type( other )     # cast to base type to avoid recursion
-            
-            return comparator( value1, value2 )
+            other = ValueType( other )
+            return value_type_traits.compare( base_type( self ), base_type( other ) )     # cast to base type to avoid recursion
+        
+        def     __hash__(self ):
+            return value_type_traits.hash( base_type( self ) )          # cast to base type to avoid recursion
         
         #//-------------------------------------------------------//
         
@@ -201,18 +240,6 @@ def     createValueType( base_type, converter = None, comparator = None ):
         def __ne__( self, other):       return self.__cmp__(other) != 0
         def __gt__( self, other):       return self.__cmp__(other) > 0
         def __ge__( self, other):       return self.__cmp__(other) >= 0
-        
-        #//-------------------------------------------------------//
-        
-        @staticmethod
-        def     getConverter():
-            return converter
-        
-        #//-------------------------------------------------------//
-        
-        @staticmethod
-        def     getComparator():
-            return comparator
     
     return ValueType
 
@@ -238,9 +265,9 @@ def     createValueListType( value_type ):
         #//-------------------------------------------------------//
         
         def     __cmp__(self, other):
-            other = self.__class__( other )
+            other = ValueListType( other )
             
-            return super(self.__class__, self).__cmp__( self, other )
+            return super(ValueListType, self).__cmp__( self, other )
         
         #//-------------------------------------------------------//
         
@@ -254,22 +281,22 @@ def     createValueListType( value_type ):
         #//-------------------------------------------------------//
         
         def   __add__(self, other ):
-          return super(self.__class__, self).__add__( self, self.__class__(other) )
+          return super(ValueListType, self).__add__( self, ValueListType(other) )
         
         def   __iadd__(self, other ):
-          return super(self.__class__, self).__iadd__( self, self.__class__(other) )
+          return super(ValueListType, self).__iadd__( self, ValueListType(other) )
         
         def   __setitem__(self, position, value ):
-          return super(self.__class__, self).__setitem__( self, position, value_type( value ) )
+          return super(ValueListType, self).__setitem__( self, position, value_type( value ) )
         
         def   append( self, value ):
-          return super(self.__class__, self).append( self, value_type( value ) )
+          return super(ValueListType, self).append( self, value_type( value ) )
         
         def   extend( self, value ):
-          return super(self.__class__, self).extend( self, value_type( value ) )
+          return super(ValueListType, self).extend( self, value_type( value ) )
         
         def   insert( self, position, value ):
-          return super(self.__class__, self).insert( self, position, value_type( value ) )
+          return super(ValueListType, self).insert( self, position, value_type( value ) )
     
     return ValueListType
 
@@ -278,6 +305,18 @@ def     createValueListType( value_type ):
 if __name__ == "__main__":
     
     import string
+    
+    str_traits = createValueTraits( str, CapitalStrTraits, IgnoreCaseStrTraits )
+    name_type = createValueType( str_traits )
+    
+    enum_traits = createValueTraits( name_type, EnumTypeTraits )
+    enum_traits.addValue("Tom")
+    enum_traits.addValue("Ben")
+    enum_traits.addAlias("tom", "Tommy")
+    
+    known_names_type = createValueType( enum_traits )
+    print known_names_type("tommy")
+    
     
     def     _cmp( a, b ):
         return cmp( a.lower()[0], b.lower()[0] )

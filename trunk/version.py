@@ -40,7 +40,7 @@ class   Version (str):
     
     #//-------------------------------------------------------//
     
-    def   __cmp__( self, other ):     return cmp( self.ver, Version( other ).ver )
+    def   __cmp__( self, other ):     return cmp( self.__version, Version( other ).__version )
     def   __lt__( self, other):       return self.__cmp__(other) < 0
     def   __le__( self, other):       return self.__cmp__(other) <= 0
     def   __eq__( self, other):       return self.__cmp__(other) == 0
