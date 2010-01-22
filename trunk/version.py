@@ -21,51 +21,29 @@ class   Version (str):
         match = _ver_re.search( ver_str )
         if match:
             ver_str = match.group()
-            ver = re.findall(r'[0-9]+|[a-zA-Z]+', ver_str )
+            ver_list = re.findall(r'[0-9]+|[a-zA-Z]+', ver_str )
         else:
             ver_str = ''
-            ver = []
+            ver_list = []
         
         self = super(Version, cls).__new__(cls, ver_str )
-        self.__version = ver
+        conv_ver_list = []
+        
+        for v in ver_list:
+            if v.isdigit():
+                v = int(v)
+            conv_ver_list.append( v )
+        
+        self.__version = conv_ver_list
         
         return self
     
     #//-------------------------------------------------------//
     
-    def     __cmp__( self, other ):
-        
-        ver1 = self.__version
-        len1 = len( ver1 )
-        
-        ver2 = Version( other ).__version
-        len2 = len( ver2 )
-        
-        min_len = min( len1, len2 )
-        if min_len == 0:
-            return len1 - len2
-        
-        for i in xrange( 0, min_len ):
-            
-            v1 = ver1[i]
-            v2 = ver2[i]
-            
-            if (v1.isdigit()) and (v2.isdigit()):
-                v1 = int(v1)
-                v2 = int(v2)
-            
-            if v1 < v2:
-                return -1
-            if v1 > v2:
-                return 1
-        
-        return 0
-    
-    #//-------------------------------------------------------//
-    
-    def __lt__( self, other):       return self.__cmp__(other) < 0
-    def __le__( self, other):       return self.__cmp__(other) <= 0
-    def __eq__( self, other):       return self.__cmp__(other) == 0
-    def __ne__( self, other):       return self.__cmp__(other) != 0
-    def __gt__( self, other):       return self.__cmp__(other) > 0
-    def __ge__( self, other):       return self.__cmp__(other) >= 0
+    def   __cmp__( self, other ):     return cmp( self.ver, Version( other ).ver )
+    def   __lt__( self, other):       return self.__cmp__(other) < 0
+    def   __le__( self, other):       return self.__cmp__(other) <= 0
+    def   __eq__( self, other):       return self.__cmp__(other) == 0
+    def   __ne__( self, other):       return self.__cmp__(other) != 0
+    def   __gt__( self, other):       return self.__cmp__(other) > 0
+    def   __ge__( self, other):       return self.__cmp__(other) >= 0

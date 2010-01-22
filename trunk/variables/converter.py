@@ -22,56 +22,54 @@ class   Version (str):
         match = _ver_re.search( ver_str )
         if match:
             ver_str = match.group()
-            ver = re.findall(r'[0-9]+|[a-zA-Z]+', ver_str )
+            ver_list = re.findall(r'[0-9]+|[a-zA-Z]+', ver_str )
         else:
             ver_str = ''
-            ver = []
+            ver_list = []
         
         self = super(Version, cls).__new__(cls, ver_str )
-        self.ver = ver
+        conv_ver_list = []
         
-        print "Version.__new__:", id(self)
+        for v in ver_list:
+            if v.isdigit():
+                v = int(v)
+            conv_ver_list.append( v )
+        
+        self.__version = conv_ver_list
         
         return self
     
     #//-------------------------------------------------------//
     
-    def     __cmp__( self, other ):
-        
-        ver1 = self.ver
-        len1 = len( ver1 )
-        
-        ver2 = Version( other ).ver
-        len2 = len( ver2 )
-        
-        min_len = min( len1, len2 )
-        if min_len == 0:
-            return len1 - len2
-        
-        for i in xrange( 0, min_len ):
-            
-            v1 = ver1[i]
-            v2 = ver2[i]
-            
-            if (v1.isdigit()) and (v2.isdigit()):
-                v1 = int(v1)
-                v2 = int(v2)
-            
-            if v1 < v2:
-                return -1
-            if v1 > v2:
-                return 1
-        
-        return 0
+    def   __cmp__( self, other ):     return cmp( self.ver, Version( other ).ver )
+    def   __lt__( self, other):       return self.__cmp__(other) < 0
+    def   __le__( self, other):       return self.__cmp__(other) <= 0
+    def   __eq__( self, other):       return self.__cmp__(other) == 0
+    def   __ne__( self, other):       return self.__cmp__(other) != 0
+    def   __gt__( self, other):       return self.__cmp__(other) > 0
+    def   __ge__( self, other):       return self.__cmp__(other) >= 0
+
+
+#//---------------------------------------------------------------------------//
+
+class TypeTraitsBase (object):
+    def   __init__(self, value_type):
+        self.value_type = value_type
     
-    #//-------------------------------------------------------//
+    def   convert( self, value ):
+        if value is not None:
+            return self.value_type(value)
+        
+        return self.value_type()
     
-    def __lt__( self, other):       return self.__cmp__(other) < 0
-    def __le__( self, other):       return self.__cmp__(other) <= 0
-    def __eq__( self, other):       return self.__cmp__(other) == 0
-    def __ne__( self, other):       return self.__cmp__(other) != 0
-    def __gt__( self, other):       return self.__cmp__(other) > 0
-    def __ge__( self, other):       return self.__cmp__(other) >= 0
+    def   compare( self, value1, value2 ):
+        
+        value_type = self.value_type
+        
+        value1 = value_type( self )      # cast to base type to avoid recursion
+        value2 = value_type( other )     # cast to base type to avoid recursion
+        
+        return comparator( value1, value2 )
 
 
 #//---------------------------------------------------------------------------//
@@ -79,175 +77,77 @@ class   Version (str):
 
 class   ConverterEnum (object):
     
-    __slots__ = ('values_map')
+    __slots__ = ('values', 'aliases', 'value_type')
     
-    def     __init__( self ):
-        self.values_map = {}
+    def     __init__( self, value_type ):
+        self.values = []
+        self.aliases = {}
+        self.value_type = value_type
+    
+    #//-------------------------------------------------------//
+    
+    def   __mapValue(self, value ):
+        
+        value = self.value_type( value )
+        
+        print "values:", self.values
+        if value in self.values:
+            return value
+        print "aliases:", self.aliases
+        print "value:", type(value)
+        for k,v in self.aliases.iteritems():
+            print type(k), type(v)
+        
+        return self.aliases.get( value )
+    
+    #//-------------------------------------------------------//
     
     def     __call__( self, value ):
         
-        try:
-            while True:
-                value = self.values_dict[ value ]
-                if value is None:
-                    break;
-        except:
+        value = self.value_type( value )
+        
+        value = self.__mapValue( value )
+        if value is None:
             raise TypeError("Invalid value: %s " % value )
         
-        
-        mapped_values = []
-        
-        for v in toSequence( values ):
-            
-            try:
-                v = str(v).lower()
-                alias = values_dict[ v ]
-            
-            except (AttributeError, KeyError):
-                
-                if self.shared_data['all_key'] == v:
-                    alias = self.AllowedValues()
-                
-                else:
-                    return None
-            
-            if alias is None:
-                mapped_values.append( v )
-            else:
-                mapped_values += alias
-        
-        return mapped_values
-    
-    #//=======================================================//
-    
-    def     _convert_value( self, val ):
-        
-        values = self.__map_values( val )
-        
-        if not values:
-            _Error( "Invalid value: '%s', type: %s" % (val, type(val)) )
-        
-        if len( values ) == 1:
-            return values[0]
-        
-        return values
-    
-    #//=======================================================//
-    
-    def     AddValues( self, values, toSequence = utils.toSequence ):
-        values_dict = self.shared_data['values_dict']
-        
-        for v in toSequence( values ):
-            
-            try:
-                v = v.lower()
-            except AttributeError:
-                _Error( "Invalid value: '%s', type: %s" % (val, type(val)) )
-            
-            if self.__map_values( v ):
-                _Error( "Can't change an existing value: %s" % (v) )
-            
-            values_dict[ v ] = None
-    
-    #//=======================================================//
-    
-    def     AddAlias( self, alias, values, isSequence = utils.isSequence ):
-        
-        if self.__map_values( alias ):
-            _Error( "Can't change an existing value: %s" % (alias) )
-        
-        mapped_values = self.__map_values( values )
-        if not mapped_values:
-            _Error( "Invalid value(s): %s" % (values) )
-        
-        if (not self.shared_data['is_list']) and (len( mapped_values ) > 1):
-            _Error( "Can't add an alias to list of values: %s of none-list option" % (mapped_values) )
-        
-        self.shared_data['values_dict'][ alias ] = mapped_values
-    
-    #//=======================================================//
-    
-    def     AddAliases( self, aliases,
-                        isDict = utils.isDict ):
-        
-        if not aliases:
-            return
-        
-        if __debug__:
-            if not isDict( aliases ):
-                _Error( "Aliases must be a dictionary" )
-        
-        for a,v in aliases.iteritems():
-            self.AddAlias( a, v )
-    
-    #//=======================================================//
-    
-    def     AllowedValues( self ):
-        
-        allowed_values = []
-        
-        for a,v in self.shared_data['values_dict'].iteritems():
-            if v is None:
-                allowed_values.append( a )
-        
-        return allowed_values
-    
-    #//=======================================================//
-    
-    def     Aliases( self ):
-        
-        aliases = {}
-        
-        for a,v in self.shared_data['values_dict'].iteritems():
-            
-            if v is not None:
-                if len(v) == 1:
-                    tmp = aliases.get( v[0] )
-                    if tmp:
-                        aliases[ v[0] ] = tmp + [ a ]
-                    else:
-                        aliases[ v[0] ] = [ a ]
-            else:
-                aliases.setdefault( a )
-        
-        return aliases
+        return value
     
     #//-------------------------------------------------------//
     
-    def     AllowedValuesStr( self ):
+    def   addValue( self, value ):
         
-        allowed_values = []
+        value = self.value_type( value )
         
-        aliases = self.Aliases()
-        values = aliases.keys()
-        values.sort()
+        if self.__mapValue( value ) is not None:
+            raise TypeError("Value '%s' is already added " % value )
         
-        for v in values:
-            
-            a = aliases[v]
-            
-            if a is not None:
-                a.sort()
-                v = v + ' (or ' + ", ".join( a ) + ')'
-            
-            allowed_values.append( v )
-        
-        allowed_values = map( lambda v: '- ' + v, allowed_values )
-        allowed_values_str = '\n'.join( allowed_values )
-        
-        if len(allowed_values) > 1:
-            allowed_values_str = '\n' + allowed_values_str
-        
-        return allowed_values_str
+        self.values.append( value )
     
     #//-------------------------------------------------------//
     
-    def     AllowedValuesHelp( self ):
-        if self.shared_data['is_list']:
-            return 'List of values: ' + self.AllowedValuesStr()
+    def   addAlias( self, value, alias ):
         
-        return 'A value: ' + self.AllowedValuesStr()
-
+        value = self.__mapValue( value )
+        if value is None:
+            raise TypeError("Value '%s' is not valid" % value )
+        
+        alias = self.value_type( alias )
+        
+        alias_value = self.__mapValue( alias )
+        if alias_value is not None:
+            raise TypeError("Alias '%s' is already added" % alias )
+        
+        self.aliases[ alias ] = value
+    
+    #//-------------------------------------------------------//
+    
+    def   getValues( self ):
+        return tuple( self.values )
+    
+    #//-------------------------------------------------------//
+    
+    def   getAliases( self ):
+        return dict(self.aliases)
 
 #//---------------------------------------------------------------------------//
 
@@ -259,6 +159,8 @@ def     createValueType( base_type, converter = None, comparator = None ):
                 value = base_type(value)
             else:
                 value = base_type()
+            
+            print "value:", value
             
             return value
             
@@ -329,7 +231,7 @@ def     createValueListType( value_type ):
             if (value_list is not None) and ( not isinstance( value, (list, tuple) )):
                 raise TypeError( "'%s' object is not iterable" % type(value_list) )
                 
-              self[:] = map( value_type, value_list )
+            self[:] = map( value_type, value_list )
             
             return self
         
@@ -348,28 +250,27 @@ def     createValueListType( value_type ):
         def __ne__( self, other):       return self.__cmp__(other) != 0
         def __gt__( self, other):       return self.__cmp__(other) > 0
         def __ge__( self, other):       return self.__cmp__(other) >= 0
-      
-      #//-------------------------------------------------------//
-      
-      def   __add__(self, other ):
+        
+        #//-------------------------------------------------------//
+        
+        def   __add__(self, other ):
           return super(self.__class__, self).__add__( self, self.__class__(other) )
-          
-      def   __iadd__(self, other ):
+        
+        def   __iadd__(self, other ):
           return super(self.__class__, self).__iadd__( self, self.__class__(other) )
-          
-      def   __setitem__(self, position, value ):
+        
+        def   __setitem__(self, position, value ):
           return super(self.__class__, self).__setitem__( self, position, value_type( value ) )
-      
-      def   append( self, value ):
+        
+        def   append( self, value ):
           return super(self.__class__, self).append( self, value_type( value ) )
-      
-      def   extend( self, value ):
+        
+        def   extend( self, value ):
           return super(self.__class__, self).extend( self, value_type( value ) )
-      
-      def   insert( self, position, value ):
+        
+        def   insert( self, position, value ):
           return super(self.__class__, self).insert( self, position, value_type( value ) )
-          
-      
+    
     return ValueListType
 
 #//===========================================================================//
@@ -379,8 +280,7 @@ if __name__ == "__main__":
     import string
     
     def     _cmp( a, b ):
-        print "cmp:", a, b
-        return cmp( a[0], b[0] )
+        return cmp( a.lower()[0], b.lower()[0] )
     
     print Version
     
@@ -401,6 +301,17 @@ if __name__ == "__main__":
     print ValInt( 4 )
     print ValInt( 7 )
     print ValInt( 4 ) == ValInt( 3 )
+    
+    enum_conv = ConverterEnum( ValStr )
+    enum_conv.addValue( 'abc' )
+    #~ enum_conv.addValue( 'Abc' )
+    enum_conv.addValue( 'bde' )
+    enum_conv.addAlias( 'ABC', 'dba' )
+    
+    print enum_conv('DBA')
+    
+    ValEnumStr = createValueType( ValStr, enum_conv )
+    
     
 #~ class   ConverterString (Converter):
     #~ """
