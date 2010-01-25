@@ -163,6 +163,16 @@ class   EnumTypeTraits (TypeTraitsBase):
     
     #//-------------------------------------------------------//
     
+    def   compare( self, value1, value2 ):
+        return cmp( value1, value2 )
+    
+    #//-------------------------------------------------------//
+    
+    def   hash( self, value ):
+        return hash( value )
+    
+    #//-------------------------------------------------------//
+    
     def   addValue( self, value ):
         
         value = self.value_type( value )
