@@ -211,65 +211,60 @@ class   EnumTypeTraits (TypeTraitsBase):
 
 class   BoolTypeTraits (TypeTraitsBase):
     
-    #//-------------------------------------------------------//
-    
-    __str_to_bool = {
-               'y': True,
-               'yes': True,
-               't': True,
-               '1': True,
-               'true': True,
-               'on': True,
-               'enabled' : True
-               
-               }
-    
-    #//-------------------------------------------------------//
-    
-    __invert_false = {
-               'n': 'yes',
-               'no': 'yes',
-               'f': 'true',
-               '0': 'true',
-               'false': 'true',
-               'off': 'on',
-               'disabled' : 'enabled',
-               'none' : 'true'
-             }
-    
-    #//-------------------------------------------------------//
-    
-    __invert_bool = __invert_true.copy()
-    __invert_bool.update( __invert_false )
-    
-    #//-------------------------------------------------------//
-    
     def     __init__( self, value_type ):
         super(EnumTypeTraits, self).__init__( value_type )
         
         self.value_type = int # don't care about value_type it's always 'int'
+        self.style = { True: 'true', False: 'false' }
+        self.aliases = 
+            {
+                'y': True,
+                'yes': True,
+                't': True,
+                '1': True,
+                'true': True,
+                'on': True,
+                'enabled' : True
+                'enable' : True
+                'n': False,
+                'no': False,
+                'f': False,
+                '0': False,
+                'false': False,
+                'off': False,
+                'disabled' : False,
+                'disable' : False,
+                'none' : False
+            }
     
     #//-------------------------------------------------------//
     
     def     convert( self, value ):
-        value = super(EnumTypeTraits, self).convert( value )
+        if isinstance(value, bool):
+            return int(value)
         
-        if type(value) is bool:
-            value = int(value)
-        
-        if type(value) is int:
-            value = int(not not value)
+        elif isinstance(value, int):
+            return int(not not value)
         
         else:
-            value_str = str(value).lower()
-            if invert_true.has_key( value_str ):
-                value = int(True)
-            elif invert_false.has_key( value_str ):
-                value = int(False)
-            else:
-                raise TypeError("Invalid value: %s " % value )
+            if (isinstance(value, str)):
+                value = str(value).lower()
+            
+            value_bool = self.aliases.get( value )
+            if value_bool is None:
+                value_bool = bool(value_str)
         
-        return value
+        return int(value_bool)
+    
+    def   addAlias( self, alias, value ):
+        assert isinstance(value, bool)
+        
+        
+    def   setStyle( self, style ):
+        
+    
+    def   toString( self, value ):
+        
     
     #//-------------------------------------------------------//
     
