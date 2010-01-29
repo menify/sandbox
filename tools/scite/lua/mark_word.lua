@@ -149,7 +149,8 @@ end
 -- //---------------------------------------------------------------------------//
 
 function clearAllOccurrences()
-    markUnmakrAll( false )
+    marked_words = {}
+    clearMarkerCounters()
     clearIndicators()
 end
 
