@@ -32,22 +32,21 @@ class AvlTree (object):
     
     def     __rebalance( self, path ):
         
-        child_balance = 0
         prev_step = None
         
         for step in path:
-            child_balance = step.direction + node.balance + child_balance
-            if child_balance == 0:
+            balance = step.direction + node.balance
+            if balance == 0:
                 node.balance = 0
                 break   # no rebalance needed
             
-            if child_balance == -1 or child_balance == 1:
-                node.balance = child_balance
+            if balance in (1, -1):
+                node.balance = balance
                 prev_step = step
             
             else:
                 if prev_step.direction == step.direction:
-                    
+                     
     
     #//-------------------------------------------------------//
     
