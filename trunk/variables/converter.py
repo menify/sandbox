@@ -258,6 +258,7 @@ class   BoolTypeTraits (TypeTraitsBase):
     
     def   addAlias( self, alias, value ):
         assert isinstance(value, bool)
+        self.aliases[ value ] = 
         
         
     def   setStyle( self, style ):
