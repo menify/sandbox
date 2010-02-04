@@ -40,13 +40,80 @@ class AvlTree (object):
                 node.balance = 0
                 break   # no rebalance needed
             
-            if balance in (1, -1):
+            elif balance in (1, -1):
                 node.balance = balance
                 prev_step = step
             
             else:
-                if prev_step.direction == step.direction:
-                     
+                self.__rotate( node, prev_step.direction, step.direction )
+    
+    #//-------------------------------------------------------//
+    
+    def   __rotate(self, node, direction, next_direction ):
+        if direction == next_direction:
+            if direction == -1:
+                self.__rotateLeftLeft( node )
+            else:
+                self.__rotateRightRight( node )
+        else:
+            if direction == -1:
+                self.__rotateLeftRight( node )
+            else:
+                self.__rotateRightLeft( node )
+    
+    #//-------------------------------------------------------//
+    
+    def   __rotateLeftLeft( self, node ):
+        left_node = node.left
+        left_right_node = left_node.right
+        
+        left_node.top = node.top
+        left_node.right = node
+        left_node.balance = 0
+        
+        node.balance = 0
+        node.left = left_right_node
+        node.top = left_node
+        
+        left_right_node.top = node
+    
+    #//-------------------------------------------------------//
+    
+    def   __rotateLeftRight( self, node ):
+        left_node = node.left
+        left_right_node = left_node.right
+        
+        left_right_node.top = node.top
+        left_right_node.right = node
+        left_right_node.left = left_node
+        left_right_node.balance = 0
+        
+        
+        left_node.right = left_right_node.left
+        node.left = left_right_node.right
+        
+        left_node.top
+        
+        
+        node.balance = 0
+        node.left = left_right_node
+        left_right_node.top = node
+        
+        left_node.right = node
+        left_node.balance = 0
+    
+    #//-------------------------------------------------------//
+    
+    def   __rotateRightRight( self, node ):
+        right_node = node.right
+        right_left_node = right_node.left
+        
+        node.balance = 0
+        node.right = right_left_node
+        right_left_node.top = node
+        
+        right_node.left = node
+        right_node.balance = 0
     
     #//-------------------------------------------------------//
     
