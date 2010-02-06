@@ -30,24 +30,30 @@ class AvlTree (object):
     
     #//-------------------------------------------------------//
     
-    def     __rebalance( self, path ):
+    def     __rebalance( self, node ):
+        assert node is not None
         
-        prev_step = None
-        
-        for step in path:
-            node = step.node
-            balance = step.direction + node.balance
-            if balance == 0:
-                node.balance = 0
-                break   # no rebalance needed
-            
-            elif balance in (1, -1):
-                node.balance = balance
-                prev_step = step
-            
-            else:
-                self.__rotate( node, prev_step.direction, step.direction )
+        while True:
+            top = node.top
+            if top is None:
                 break
+            
+            if top.left is node:
+                direction = -1
+            else:
+                direction = 1
+            
+            balance = direction + top.balance
+            top.balance = balance
+            if balance is 0:
+                break   # rebalance is not needed anymore
+            
+            elif (balance is not -1) and (balance is not 1):
+                self.__rotate( top, direction, node_direction )
+                break
+            
+            node = top
+            node_direction = direction
     
     #//-------------------------------------------------------//
     
@@ -84,7 +90,10 @@ class AvlTree (object):
         if node_top is None:
             self.head = left_node
         else:
-            
+            if node_top.left is node:
+                node_top.left = left_node
+            else:
+                node_top.right = left_node
     
     #//-------------------------------------------------------//
     
@@ -141,27 +150,25 @@ class AvlTree (object):
             self.head = AvlTree.Node( value )
             return
         
-        path = deque()
-        
         while True:
             head_value = head.value
             
             if value < head_value:
-                path.appendleft( AvlTree.Step( head, -1 ) )
                 head_left = head.left
                 if head_left is None:
-                    head.left = AvlTree.Node( value, head )
-                    self.__rebalance( path )
+                    node = AvlTree.Node( value, head )
+                    head.left = node
+                    self.__rebalance( node )
                     return
                 else:
                     head = head_left
             
             elif head_value < value:
-                path.appendleft( Step( head, 1 ) )
                 head_right = head.right
                 if head_right is None:
-                    head.right = AvlTree.Node( value, head )
-                    self.__rebalance( path )
+                    node = AvlTree.Node( value, head )
+                    head.right = node
+                    self.__rebalance( node )
                     return
                 else:
                     head = head_right
@@ -179,20 +186,20 @@ class AvlTree (object):
         indent += 2
         if node.left is not None:
             self.dump( node.left, indent )
-        #~ else:
-            #~ print " " * indent + str(None)
+        else:
+            print " " * indent + str(None)
         
         if node.right is not None:
             self.dump( node.right, indent )
-        #~ else:
-            #~ print " " * indent + str(None)
+        else:
+            print " " * indent + str(None)
 
 if __name__ == "__main__":
     tree = AvlTree()
     
-    tree.insert(10)
-    tree.insert(9)
-    tree.insert(8)
-    tree.insert(7)
-    tree.insert(6)
-    tree.dump()
+    tree.insert(10); tree.dump()
+    tree.insert(9); tree.dump()
+    tree.insert(8); tree.dump()
+    tree.insert(7); tree.dump()
+    tree.insert(6); tree.dump()
+    tree.insert(5); tree.dump()
