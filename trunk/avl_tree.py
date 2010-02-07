@@ -66,22 +66,18 @@ class AvlTree (object):
                 break   # rebalance is not needed anymore
             
             elif (balance is not -1) and (balance is not 1):
-                self.__rotate( top, direction, node_direction )
+                self.__rotate( top, direction )
                 break
             
             node = top
-            node_direction = direction
     
     #//-------------------------------------------------------//
     
-    def   __rotate(self, node, direction, next_direction ):
-        if direction is next_direction:
+    def   __rotate(self, node, direction ):
+        if direction is node[direction].balance:
             self.__rotateDirect( node, direction )
         else:
-            if direction is -1:
-                self.__rotateLeftRight( node )
-            else:
-                self.__rotateRightLeft( node )
+            self.__rotateIndirect( node, direction )
     
     #//-------------------------------------------------------//
     
@@ -111,63 +107,40 @@ class AvlTree (object):
     
     #//-------------------------------------------------------//
     
-    def   __rotateIndirect( self, node, direction, next_direction ):
-        left = node[direction]
+    def   __rotateIndirect( self, node, direction ):
+        neg_direction = -direction
+        
         node_top = node.top
+        left = node[direction]
         
-        top = left[-direction]
+        top = left[neg_direction]
         top_left = top[direction]
-        top_right = top[-direction]
+        top_right = top[neg_direction]
         
-        dir_node.top = node_top
-        dir_node[-direction] = node
-        dir_node.balance = 0
+        top[direction] = left
+        top[neg_direction] = node
+        top.balance = 0
         
-        node.balance = 0
-        node[direction] = dir_moved_node
-        node.top = dir_node
-        
-        if dir_moved_node is not None:
-          dir_moved_node.top = node
+        left.top = top
+        left[neg_direction] = top_right
+        node[direction] = top_right
+        if top.balance is neg_direction:
+            left.balance = direction
+            node.balance = 0
+        elif top.balance is direction:
+            node.balance = neg_direction
+            left.balance = 0
+        else:
+            node.balance = 0
+            left.balance = 0
         
         if node_top is None:
-            self.head = dir_node
+            self.head = top
         else:
             if node_top.left is node:
-                node_top.left = dir_node
+                node_top.left = top
             else:
-                node_top.right = dir_node
-    
-    #//-------------------------------------------------------//
-    
-    def   __rotateLeftRight( self, node ):
-        assert not "Not implemented"
-        #~ left_node = node.left
-        #~ left_right_node = left_node.right
-        
-        #~ left_right_node.top = node.top
-        #~ left_right_node.right = node
-        #~ left_right_node.left = left_node
-        #~ left_right_node.balance = 0
-        
-        
-        #~ left_node.right = left_right_node.left
-        #~ node.left = left_right_node.right
-        
-        #~ left_node.top
-        
-        
-        #~ node.balance = 0
-        #~ node.left = left_right_node
-        #~ left_right_node.top = node
-        
-        #~ left_node.right = node
-        #~ left_node.balance = 0
-    
-    #//-------------------------------------------------------//
-    
-    def   __rotateRightLeft( self, node ):
-        assert not "Not implemented"
+                node_top.right = top
     
     #//-------------------------------------------------------//
     
@@ -282,5 +255,12 @@ if __name__ == "__main__":
     tree_depth = int(math.log(count - 1, 2))
     for i in xrange(0, 10, 1):
         assert tree.depth( i ) <= tree_depth
+    
+    tree = AvlTree();
+    tree.insert( 12 );
+    tree.insert( 0 );
+    tree.insert( 6 ); tree.dump()
+    tree.insert( 3 ); tree.dump()
+    tree.insert( 1 ); tree.dump()
     
     print "Tests passed"
