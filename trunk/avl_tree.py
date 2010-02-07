@@ -13,17 +13,34 @@ class AvlTree (object):
             self.right = None
             self.value = value
             self.balance = 0
-    
-    class Step (object):
-        __slots__ = ( 'node', 'direction' )
-        def     __init__( self, node, direction ):
-            assert isinstance( node, AvlTree.Node )
-            assert direction in (-1, 1)
+        
+        #//-------------------------------------------------------//
+        
+        def __getitem__(self, direction ):
+            if __debug__:
+                if (direction is not 1) and (direction is not -1):
+                    raise IndexError('Invalid direction: %s' % direction )
             
-            self.node = node
-            self.direction = direction
+            if direction is -1:
+                return self.left
+            
+            return self.right
+        
+        #//-------------------------------------------------------//
+        
+        def __setitem__(self, direction, node ):
+            if __debug__:
+                if (direction is not 1) and (direction is not -1):
+                    raise IndexError( 'Invalid direction: %s' % direction )
+                
+                assert (node is None) or (type( node ) is type(self))
+            
+            if direction is -1:
+                self.left = node
+            else:
+                self.right = node
     
-    #//-------------------------------------------------------//
+    #//=======================================================//
     
     def     __init__( self ):
         self.head = None
@@ -58,42 +75,68 @@ class AvlTree (object):
     #//-------------------------------------------------------//
     
     def   __rotate(self, node, direction, next_direction ):
-        if direction == next_direction:
-            if direction == -1:
-                self.__rotateLeftLeft( node )
-            else:
-                self.__rotateRightRight( node )
+        if direction is next_direction:
+            self.__rotateDirect( node, direction )
         else:
-            if direction == -1:
+            if direction is -1:
                 self.__rotateLeftRight( node )
             else:
                 self.__rotateRightLeft( node )
     
     #//-------------------------------------------------------//
     
-    def   __rotateLeftLeft( self, node ):
-        left_node = node.left
-        left_right_node = left_node.right
+    def   __rotateDirect( self, node, direction ):
+        top = node[direction]
+        left = top[-direction]
         node_top = node.top
         
-        left_node.top = node_top
-        left_node.right = node
-        left_node.balance = 0
+        top.top = node_top
+        top[-direction] = node
+        top.balance = 0
         
         node.balance = 0
-        node.left = left_right_node
-        node.top = left_node
+        node[direction] = left
+        node.top = top
         
-        if left_right_node is not None:
-          left_right_node.top = node
+        if left is not None:
+          left.top = node
         
         if node_top is None:
-            self.head = left_node
+            self.head = top
         else:
             if node_top.left is node:
-                node_top.left = left_node
+                node_top.left = top
             else:
-                node_top.right = left_node
+                node_top.right = top
+    
+    #//-------------------------------------------------------//
+    
+    def   __rotateIndirect( self, node, direction, next_direction ):
+        left = node[direction]
+        node_top = node.top
+        
+        top = left[-direction]
+        top_left = top[direction]
+        top_right = top[-direction]
+        
+        dir_node.top = node_top
+        dir_node[-direction] = node
+        dir_node.balance = 0
+        
+        node.balance = 0
+        node[direction] = dir_moved_node
+        node.top = dir_node
+        
+        if dir_moved_node is not None:
+          dir_moved_node.top = node
+        
+        if node_top is None:
+            self.head = dir_node
+        else:
+            if node_top.left is node:
+                node_top.left = dir_node
+            else:
+                node_top.right = dir_node
     
     #//-------------------------------------------------------//
     
@@ -121,24 +164,37 @@ class AvlTree (object):
         #~ left_node.right = node
         #~ left_node.balance = 0
     
-    #~ #//-------------------------------------------------------//
-    
-    def   __rotateRightRight( self, node ):
-        assert not "Not implemented"
-        #~ right_node = node.right
-        #~ right_left_node = right_node.left
-        
-        #~ node.balance = 0
-        #~ node.right = right_left_node
-        #~ right_left_node.top = node
-        
-        #~ right_node.left = node
-        #~ right_node.balance = 0
-    
     #//-------------------------------------------------------//
     
     def   __rotateRightLeft( self, node ):
         assert not "Not implemented"
+    
+    #//-------------------------------------------------------//
+    
+    def     depth( self, value ):
+        
+        head = self.head
+        depth = 0
+        
+        if head is None:
+            return -1
+        
+        while True:
+            if value < head.value:
+                if head.left is not None:
+                    head = head.left
+                else:
+                    return -1
+            
+            elif head.value < value:
+                if head.right is not None:
+                    head = head.right
+                else:
+                    return -1
+            else:
+                return depth
+            
+            depth += 1
     
     #//-------------------------------------------------------//
     
@@ -195,11 +251,36 @@ class AvlTree (object):
             print " " * indent + str(None)
 
 if __name__ == "__main__":
-    tree = AvlTree()
     
-    tree.insert(10); tree.dump()
-    tree.insert(9); tree.dump()
-    tree.insert(8); tree.dump()
-    tree.insert(7); tree.dump()
-    tree.insert(6); tree.dump()
-    tree.insert(5); tree.dump()
+    import math
+    import RBTree
+    
+    #//=======================================================//
+    
+    tree = AvlTree();
+    
+    count = 1
+    for i in xrange(10, -1, -1):
+        tree.insert(i);
+        depth = int(math.log(count, 2))
+        assert tree.depth( i ) == depth
+        count += 1
+    
+    tree_depth = int(math.log(count - 1, 2))
+    for i in xrange(10, -1, -1):
+        assert tree.depth( i ) <= tree_depth
+    
+    tree = AvlTree();
+    count = 1
+    
+    for i in xrange(0, 10, 1):
+        tree.insert(i);
+        depth = int(math.log(count, 2))
+        assert tree.depth( i ) == depth
+        count += 1
+    
+    tree_depth = int(math.log(count - 1, 2))
+    for i in xrange(0, 10, 1):
+        assert tree.depth( i ) <= tree_depth
+    
+    print "Tests passed"
