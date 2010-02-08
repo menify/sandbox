@@ -16,6 +16,37 @@ class AvlTree (object):
         
         #//-------------------------------------------------------//
         
+        def attach( self, direction, node ):
+            self[direction] = node
+            if node is not None:
+                node.top = self
+        
+        #//-------------------------------------------------------//
+        
+        def detach( self, node ):
+            assert (node is self.left) or (node is self.right)
+            
+            if self.left is node:
+                self.left = None
+            else:
+                self.right = None
+            
+            if node is not None:
+                node.top = None
+        
+        #//-------------------------------------------------------//
+        
+        def replace( self, old_node, new_node ):
+            if self.left is old_node:
+                self.left = new_node
+            else:
+                self.right = new_node
+            
+            if new_node is not None:
+                new_node.top = self
+        
+        #//-------------------------------------------------------//
+        
         def __getitem__(self, direction ):
             if __debug__:
                 if (direction is not 1) and (direction is not -1):
@@ -39,6 +70,11 @@ class AvlTree (object):
                 self.left = node
             else:
                 self.right = node
+        
+        #//-------------------------------------------------------//
+        
+        def   __str__(self):
+            return str(self.value)
     
     #//=======================================================//
     
@@ -82,48 +118,42 @@ class AvlTree (object):
     #//-------------------------------------------------------//
     
     def   __rotateDirect( self, node, direction ):
+        print "__rotateDirect"
         top = node[direction]
-        left = top[-direction]
+        right = top[-direction]
         node_top = node.top
         
-        top.top = node_top
-        top[-direction] = node
-        top.balance = 0
-        
+        node.replace( top, right )
         node.balance = 0
-        node[direction] = left
-        node.top = top
         
-        if left is not None:
-          left.top = node
+        top.replace( right, node )
+        top.balance = 0
         
         if node_top is None:
             self.head = top
+            top.top = None
         else:
-            if node_top.left is node:
-                node_top.left = top
-            else:
-                node_top.right = top
+            node_top.replace( node, top )
     
     #//-------------------------------------------------------//
     
     def   __rotateIndirect( self, node, direction ):
+        print "__rotateIndirect:", node, direction
         neg_direction = -direction
         
         node_top = node.top
         left = node[direction]
-        
+        print "left.value:", left, left.left, left.right
         top = left[neg_direction]
+        print "top.value:", top
         top_left = top[direction]
         top_right = top[neg_direction]
+        print "top_left:", top_left
+        print "top_right:", top_right
         
-        top[direction] = left
-        top[neg_direction] = node
-        top.balance = 0
+        left.replace( top, top_left )
+        node.replace( left, top_right )
         
-        left.top = top
-        left[neg_direction] = top_right
-        node[direction] = top_right
         if top.balance is neg_direction:
             left.balance = direction
             node.balance = 0
@@ -134,13 +164,15 @@ class AvlTree (object):
             node.balance = 0
             left.balance = 0
         
+        top.replace( top_left, left )
+        top.replace( top_right, node )
+        top.balance = 0
+        
         if node_top is None:
             self.head = top
+            top.top = None
         else:
-            if node_top.left is node:
-                node_top.left = top
-            else:
-                node_top.right = top
+            node_top.replace( node, top )
     
     #//-------------------------------------------------------//
     
@@ -262,5 +294,6 @@ if __name__ == "__main__":
     tree.insert( 6 ); tree.dump()
     tree.insert( 3 ); tree.dump()
     tree.insert( 1 ); tree.dump()
+    tree.insert( 2 ); tree.dump()
     
     print "Tests passed"
