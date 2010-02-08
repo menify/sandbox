@@ -118,15 +118,14 @@ class AvlTree (object):
     #//-------------------------------------------------------//
     
     def   __rotateDirect( self, node, direction ):
-        print "__rotateDirect"
         top = node[direction]
         right = top[-direction]
         node_top = node.top
         
-        node.replace( top, right )
+        node.attach( direction, right )
         node.balance = 0
         
-        top.replace( right, node )
+        top.attach( -direction, node )
         top.balance = 0
         
         if node_top is None:
@@ -138,21 +137,16 @@ class AvlTree (object):
     #//-------------------------------------------------------//
     
     def   __rotateIndirect( self, node, direction ):
-        print "__rotateIndirect:", node, direction
         neg_direction = -direction
         
         node_top = node.top
         left = node[direction]
-        print "left.value:", left, left.left, left.right
         top = left[neg_direction]
-        print "top.value:", top
         top_left = top[direction]
         top_right = top[neg_direction]
-        print "top_left:", top_left
-        print "top_right:", top_right
         
-        left.replace( top, top_left )
-        node.replace( left, top_right )
+        left.attach( neg_direction, top_left )
+        node.attach( direction, top_right )
         
         if top.balance is neg_direction:
             left.balance = direction
@@ -164,8 +158,8 @@ class AvlTree (object):
             node.balance = 0
             left.balance = 0
         
-        top.replace( top_left, left )
-        top.replace( top_right, node )
+        top.attach( direction, left )
+        top.attach( neg_direction, node )
         top.balance = 0
         
         if node_top is None:
@@ -271,7 +265,7 @@ if __name__ == "__main__":
         assert tree.depth( i ) == depth
         count += 1
     
-    tree_depth = int(math.log(count - 1, 2))
+    tree_depth = int(math.log(count - 1, 2)) + 1
     for i in xrange(10, -1, -1):
         assert tree.depth( i ) <= tree_depth
     
@@ -288,12 +282,28 @@ if __name__ == "__main__":
     for i in xrange(0, 10, 1):
         assert tree.depth( i ) <= tree_depth
     
+    #//-------------------------------------------------------//
+    import random
+    
+    random.seed(0)
+    random_numbers = range(0,100)
+    random.shuffle( random_numbers )
+    
     tree = AvlTree();
-    tree.insert( 12 );
-    tree.insert( 0 );
-    tree.insert( 6 ); tree.dump()
-    tree.insert( 3 ); tree.dump()
-    tree.insert( 1 ); tree.dump()
-    tree.insert( 2 ); tree.dump()
+    count = 1
+    for n in random_numbers:
+        print "inserting:", n
+        tree.insert( n )
+        depth = int(math.log(count, 2)) + 1
+        print "tree.depth( n ):", tree.depth( n )
+        print "depth:", depth
+        if tree.depth( n ) > depth:
+            tree.dump()
+            assert not "tree.depth( n ) > depth"
+        count += 1
+    
+    tree_depth = int(math.log(count - 1, 2)) + 1
+    for n in random_numbers:
+        assert tree.depth( n ) <= tree_depth
     
     print "Tests passed"

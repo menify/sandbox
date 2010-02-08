@@ -303,3 +303,17 @@ class AVLTree(object):
 
     def iterreversed(self):
         return iteratereversed(self.tree)
+
+if __name__ == "__main__":
+    tree = AVLTree()
+    
+    import random
+    
+    random.seed(0)
+    random_numbers = range(0,100)
+    random.shuffle( random_numbers )
+    
+    for n in random_numbers:
+        tree.insert( n )
+    
+    print lookup( tree.tree, 0 )
