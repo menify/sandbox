@@ -16,13 +16,6 @@ class AvlTree (object):
         
         #//-------------------------------------------------------//
         
-        def attach( self, direction, node ):
-            self[direction] = node
-            if node is not None:
-                node.top = self
-        
-        #//-------------------------------------------------------//
-        
         def detach( self, node ):
             assert (node is self.left) or (node is self.right)
             
@@ -48,10 +41,6 @@ class AvlTree (object):
         #//-------------------------------------------------------//
         
         def __getitem__(self, direction ):
-            if __debug__:
-                if (direction is not 1) and (direction is not -1):
-                    raise IndexError('Invalid direction: %s' % direction )
-            
             if direction is -1:
                 return self.left
             
@@ -60,16 +49,13 @@ class AvlTree (object):
         #//-------------------------------------------------------//
         
         def __setitem__(self, direction, node ):
-            if __debug__:
-                if (direction is not 1) and (direction is not -1):
-                    raise IndexError( 'Invalid direction: %s' % direction )
-                
-                assert (node is None) or (type( node ) is type(self))
-            
             if direction is -1:
                 self.left = node
             else:
                 self.right = node
+            
+            if node is not None:
+                node.top = self
         
         #//-------------------------------------------------------//
         
@@ -122,10 +108,10 @@ class AvlTree (object):
         right = top[-direction]
         node_top = node.top
         
-        node.attach( direction, right )
+        node[direction] = right
         node.balance = 0
         
-        top.attach( -direction, node )
+        top[ -direction ] = node
         top.balance = 0
         
         if node_top is None:
@@ -145,8 +131,8 @@ class AvlTree (object):
         top_left = top[direction]
         top_right = top[neg_direction]
         
-        left.attach( neg_direction, top_left )
-        node.attach( direction, top_right )
+        left[ neg_direction ] = top_left
+        node[ direction ]=  top_right
         
         if top.balance is neg_direction:
             left.balance = direction
@@ -158,8 +144,8 @@ class AvlTree (object):
             node.balance = 0
             left.balance = 0
         
-        top.attach( direction, left )
-        top.attach( neg_direction, node )
+        top[ direction ] = left
+        top[ neg_direction ] = node
         top.balance = 0
         
         if node_top is None:
@@ -326,8 +312,8 @@ if __name__ == "__main__":
     tree = AvlTree()
     
     random.seed(0)
-    random_numbers = range(50, 0, -1)
-    #~ random.shuffle( random_numbers )
+    random_numbers = range(50000, 49000, -1)
+    random.shuffle( random_numbers )
     
     class Foo (object):
         __slots__ = ( 'key', 'value' )
@@ -348,8 +334,10 @@ if __name__ == "__main__":
     
     import time
     now_time = time.clock()
-    for n in foo_random_numbers:
-        tree.insert( n )
+    for i in xrange(0,1000):
+        tree = AvlTree()
+        for n in random_numbers:
+            tree.insert( n )
     print "AvlTree time:", time.clock() - now_time
     
     #~ now_time = time.clock()
@@ -357,33 +345,38 @@ if __name__ == "__main__":
         #~ gpl_tree.insert( Foo(n) )
     #~ print "GPL AVLTree time:", time.clock() - now_time
     
-    rb_tree = RBTree.RBTree()
     now_time = time.clock()
-    for n in random_numbers:
-        rb_tree.insertNode( n, n )
+    for i in xrange(0,1000):
+        rb_tree = RBTree.RBTree()
+        for n in random_numbers:
+            rb_tree.insertNode( n, n )
     print "RBTree time:", time.clock() - now_time
     
     #~ tree.insert( 10001 )
     import bisect
-    bi_list = []
     now_time = time.clock()
-    for n in foo_random_numbers:
-        bisect.insort( bi_list, n )
+    for i in xrange(0,1000):
+        bi_list = []
+        for n in foo_random_numbers:
+            bisect.insort( bi_list, n )
     print "bisect time:", time.clock() - now_time
     
     now_time = time.clock()
-    for n in foo_random_numbers:
-      bisect.bisect_left( bi_list, n )
+    for i in xrange(0,1000):
+        for n in foo_random_numbers:
+          bisect.bisect_left( bi_list, n )
     print "bisect find time:", time.clock() - now_time
     
     now_time = time.clock()
-    for n in foo_random_numbers:
-        tree.find( n )
+    for i in xrange(0,1000):
+        for n in random_numbers:
+            tree.find( n )
     print "AvlTree find time:", time.clock() - now_time
     
     now_time = time.clock()
-    for n in random_numbers:
-        rb_tree.findNode( n )
+    for i in xrange(0,1000):
+        for n in random_numbers:
+            rb_tree.findNode( n )
     print "RBTree find time:", time.clock() - now_time
     
     #~ print cmpAvlTrees( tree.head, gpl_tree.tree )
