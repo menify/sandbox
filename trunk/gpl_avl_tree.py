@@ -247,13 +247,26 @@ def lookup(tree, value):
         return False
     else:
         l, v, r, b = tree
+        print "value:", value
+        print "l, v, r, b:", l, v, r, b
         if value < v:
-            return lookup(l, v)
+            return lookup(l, value)
         elif value > v:
-            return lookup(r, v)
+            return lookup(r, value)
         else:
             return tree
 
+def dump( node, indent = 0 ):
+        if node is None:
+            print " " * indent + str(None)
+            return
+        
+        left, value, right, balance = node
+        
+        print " " * indent + str(value) + '(' + str(balance) + ')'
+        indent += 2
+        dump( left, indent )
+        dump( right, indent )
 
 def iterate(tree):
     """Iterate over an AVL tree, starting with the lowest-ordered
@@ -310,10 +323,10 @@ if __name__ == "__main__":
     import random
     
     random.seed(0)
-    random_numbers = range(0,100)
+    random_numbers = range(0,5)
     random.shuffle( random_numbers )
     
     for n in random_numbers:
         tree.insert( n )
     
-    print lookup( tree.tree, 0 )
+    dump( tree.tree )

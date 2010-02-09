@@ -170,30 +170,31 @@ class AvlTree (object):
     
     #//-------------------------------------------------------//
     
+    def     find( self, value ):
+        head = self.head
+        
+        while head is not None:
+            if value < head.value:
+                head = head.left
+            elif head.value < value:
+                head = head.right
+            else:
+                return head
+        
+        return None
+    
+    #//-------------------------------------------------------//
+    
     def     depth( self, value ):
         
-        head = self.head
-        depth = 0
+        node = self.find( value )
+        depth = -1
         
-        if head is None:
-            return -1
-        
-        while True:
-            if value < head.value:
-                if head.left is not None:
-                    head = head.left
-                else:
-                    return -1
-            
-            elif head.value < value:
-                if head.right is not None:
-                    head = head.right
-                else:
-                    return -1
-            else:
-                return depth
-            
+        while node is not None:
             depth += 1
+            node = node.top
+        
+        return depth
     
     #//-------------------------------------------------------//
     
@@ -292,11 +293,8 @@ if __name__ == "__main__":
     tree = AvlTree();
     count = 1
     for n in random_numbers:
-        print "inserting:", n
         tree.insert( n )
         depth = int(math.log(count, 2)) + 1
-        print "tree.depth( n ):", tree.depth( n )
-        print "depth:", depth
         if tree.depth( n ) > depth:
             tree.dump()
             assert not "tree.depth( n ) > depth"
@@ -305,5 +303,89 @@ if __name__ == "__main__":
     tree_depth = int(math.log(count - 1, 2)) + 1
     for n in random_numbers:
         assert tree.depth( n ) <= tree_depth
+    
+    #//-------------------------------------------------------//
+    import gpl_avl_tree
+    
+    def   cmpAvlTrees( node, gpl_node ):
+        if (node is None) and (gpl_node is None):
+            return True
+        
+        if (node is None) or (gpl_node is None):
+            return False
+        
+        gpl_left, gpl_value, gpl_right, gpl_balance = gpl_node
+        
+        if node.value != gpl_value:
+            return False
+        
+        return cmpAvlTrees( node.left, gpl_left ) and \
+               cmpAvlTrees( node.right, gpl_right )
+    
+    gpl_tree = gpl_avl_tree.AVLTree()
+    tree = AvlTree()
+    
+    random.seed(0)
+    random_numbers = range(50, 0, -1)
+    #~ random.shuffle( random_numbers )
+    
+    class Foo (object):
+        __slots__ = ( 'key', 'value' )
+        def     __init__(self, n ):
+            self.key = n
+            self.value = n
+        
+        def __cmp__(self, other, isinstance = isinstance, cmp = cmp, int = int ):
+            if isinstance(other, int):
+                return cmp(self.key, other)
+            
+            return cmp(self.key, other.key)
+        
+        def __lt__(self, other ):
+            return self.key < other.key
+    
+    foo_random_numbers = map(Foo, random_numbers)
+    
+    import time
+    now_time = time.clock()
+    for n in foo_random_numbers:
+        tree.insert( n )
+    print "AvlTree time:", time.clock() - now_time
+    
+    #~ now_time = time.clock()
+    #~ for n in random_numbers:
+        #~ gpl_tree.insert( Foo(n) )
+    #~ print "GPL AVLTree time:", time.clock() - now_time
+    
+    rb_tree = RBTree.RBTree()
+    now_time = time.clock()
+    for n in random_numbers:
+        rb_tree.insertNode( n, n )
+    print "RBTree time:", time.clock() - now_time
+    
+    #~ tree.insert( 10001 )
+    import bisect
+    bi_list = []
+    now_time = time.clock()
+    for n in foo_random_numbers:
+        bisect.insort( bi_list, n )
+    print "bisect time:", time.clock() - now_time
+    
+    now_time = time.clock()
+    for n in foo_random_numbers:
+      bisect.bisect_left( bi_list, n )
+    print "bisect find time:", time.clock() - now_time
+    
+    now_time = time.clock()
+    for n in foo_random_numbers:
+        tree.find( n )
+    print "AvlTree find time:", time.clock() - now_time
+    
+    now_time = time.clock()
+    for n in random_numbers:
+        rb_tree.findNode( n )
+    print "RBTree find time:", time.clock() - now_time
+    
+    #~ print cmpAvlTrees( tree.head, gpl_tree.tree )
     
     print "Tests passed"
