@@ -2,26 +2,23 @@ from bisect import bisect_left, insort
 
 class BisectionMap(object):
     
-    __slots__ = ( 'key_values', 'key_type' )
+    class Node (object):
+        __slots__ = ('key', 'value')
+        def     __init__(self, key, value ):
+            self.key = key
+            self.value = value
+        
+        def   __lt__( self, other ):
+          return self.key < other.key
     
-    def   KeyValue( self, key, value ):
-      if self.key_type is None:
-        class _KeyValue (type(key)):
-            __slots__ = ('key_value')
-            def     __new__(cls, key, value ):
-                self = super(_KeyValue, cls).__new__( cls, key )
-                self.key_value = value
-                return self
-            
-        self.key_type = _KeyValue
-      
-      return self.key_type( key, value )
+    #//-------------------------------------------------------//
+    
+    __slots__ = ( 'nodes')
     
     #//-------------------------------------------------------//
     
     def __init__(self, dict = {} ):
-        self.key_type = None
-        self.key_values = []
+        self.nodes = []
         
         for key, value in dict.iteritems():
             self[ key ] = value
@@ -29,7 +26,7 @@ class BisectionMap(object):
     #//-------------------------------------------------------//
     
     def __str__(self):
-        return '{'+ ', '.join( map(lambda key_value: repr(key_value) + ': ' + repr(key_value.key_value), self.key_values) ) + '}'
+        return '{'+ ', '.join( map(lambda node: repr(node.key) + ': ' + repr(node.value), self.nodes) ) + '}'
     
     #//-------------------------------------------------------//
     
@@ -39,12 +36,13 @@ class BisectionMap(object):
     #//-------------------------------------------------------//
     
     def __getitem__(self, key, bisect_left = bisect_left ):
-        key_values = self.key_values
-        pos = bisect_left( key_values, key )
+        nodes = self.nodes
+        key = BisectionMap.Node( key, None )
+        pos = bisect_left( nodes, key )
         try:
-            value_key = key_values[pos]
-            if not (key < value_key):
-                return value_key.key_value
+            node = nodes[pos]
+            if not (key < node):
+                return node.value
                 
         except IndexError:
             pass
@@ -54,29 +52,30 @@ class BisectionMap(object):
     #//-------------------------------------------------------//
     
     def __setitem__(self, key, value, bisect_left = bisect_left ):
-        key_values = self.key_values
+        nodes = self.nodes
         
-        key_value = self.KeyValue( key, value )
+        node = BisectionMap.Node( key, value )
         
-        pos = bisect_left( key_values, key_value )
+        pos = bisect_left( nodes, node )
         try:
-            if not (key_value < key_values[pos]):
-                key_values[pos] = key_value
+            if not (node < nodes[pos]):
+                nodes[pos] = node
                 return
         
         except IndexError:
             pass
         
-        key_values.insert( pos, key_value )
+        nodes.insert( pos, node )
     
     #//-------------------------------------------------------//
     
     def __delitem__(self, key):
-        key_values = self.key_values
-        pos = bisect_left( key_values, key )
+        nodes = self.nodes
+        key = BisectionMap.Node( key, None )
+        pos = bisect_left( nodes, key )
         try:
-            if not( key < key_values[pos]):
-              del key_values[pos]
+            if not( key < nodes[pos]):
+              del nodes[pos]
         
         except IndexError:
             pass
@@ -86,10 +85,11 @@ class BisectionMap(object):
     #//-------------------------------------------------------//
     
     def __contains__(self, key):
-        key_values = self.key_values
-        pos = bisect_left( key_values, key )
+        nodes = self.nodes
+        key = BisectionMap.Node( key, None )
+        pos = bisect_left( nodes, key )
         try:
-            if not( key < key_values[pos]):
+            if not( key < nodes[pos]):
               return True
         
         except IndexError:
@@ -113,19 +113,18 @@ class BisectionMap(object):
     #//-------------------------------------------------------//
     
     def setdefault(self, key, value = None ):
-        key_values = self.key_values
-        pos = bisect_left( key_values, key )
+        nodes = self.nodes
+        node = BisectionMap.Node( key, value )
+        pos = bisect_left( nodes, node )
         try:
-            value_key = key_values[pos]
-            if not(key < value_key):
-                return value_key.key_value
+            if not (node < nodes[pos]):
+                return nodes[pos].value
             
         except IndexError:
             pass
         
-        key_value = self.KeyValue( key, value )
-        key_values.insert( pos, key_value )
-        return key_value
+        nodes.insert( pos, node )
+        return value
     
     #//-------------------------------------------------------//
     
@@ -145,20 +144,20 @@ class BisectionMap(object):
     #//-------------------------------------------------------//
     
     def itervalues(self):
-        for kv in self.key_values:
-            yield kv.key_value
+        for node in self.nodes:
+            yield node.value
     
     #//-------------------------------------------------------//
     
     def iterkeys(self):
-        for kv in self.key_values:
-            yield kv
+        for node in self.nodes:
+            yield node.key
     
     #//-------------------------------------------------------//
     
     def iteritems(self):
-        for kv in self.key_values:
-            yield ( kv, kv.key_value )
+        for node in self.nodes:
+            yield ( node.key, node.value )
     
     #//-------------------------------------------------------//
     
@@ -168,15 +167,13 @@ class BisectionMap(object):
     #//-------------------------------------------------------//
 
     def clear(self):
-        self.key_values = []
-        self.key_type = None
+        self.nodes = []
     
     #//-------------------------------------------------------//
     
     def copy(self):
         clone = BisectionMap()
-        clone.key_values = list(self.key_values)
-        clone.key_type = self.key_type
+        clone.nodes = list(self.nodes)
         
         return clone
     
@@ -185,40 +182,3 @@ class BisectionMap(object):
     def update(self, other):
         for key in other.iterkeys():
             self[key] = other[key]
-
-if __name__ == "__main__":
-    
-    import random
-    import time
-    loop_count = 1000
-    
-    random.seed()
-    random_numbers = range(0,10)
-    random.shuffle( random_numbers )
-    random_numbers += random_numbers
-    
-    now_time = time.clock()
-    for i in xrange(0, loop_count):
-        bi_map = BisectionMap()
-        for n in random_numbers:
-            bi_map[n] = -2 * n
-        
-        for n in random_numbers:
-            v = bi_map[n]
-    print "BisectionMap time:", time.clock() - now_time
-    
-    print bi_map.values()
-    print bi_map.keys()
-    print bi_map.items()
-    print repr(bi_map)
-    print repr(dict(bi_map))
-    
-    now_time = time.clock()
-    for i in xrange(0, loop_count):
-        hash_map = dict()
-        for n in random_numbers:
-            hash_map[n] = -2 * n
-        
-        for n in random_numbers:
-            v = hash_map[n]
-    print "dict time:", time.clock() - now_time

@@ -1,16 +1,18 @@
-from collections import deque
+from bisect import bisect_left, insort
+
 
 class AvlMap (object):
     
     class Node (object):
-        __slots__ = ( 'top', 'left', 'right', 'value', 'balance' )
+        __slots__ = ( 'top', 'left', 'right', 'key', 'value', 'balance' )
         
-        def __init__( self, value, top = None ):
+        def __init__( self, key, value, top = None ):
             assert (top is None) or (type( top ) is type(self))
             
             self.top = top
             self.left = None
             self.right = None
+            self.key = key
             self.value = value
             self.balance = 0
         
@@ -64,8 +66,13 @@ class AvlMap (object):
     
     #//=======================================================//
     
-    def     __init__( self ):
+    __slots__ = ('head')
+    
+    def __init__(self, dict = {} ):
         self.head = None
+        
+        for key, value in dict.iteritems():
+            self[ key ] = value
     
     #//-------------------------------------------------------//
     
@@ -156,13 +163,14 @@ class AvlMap (object):
     
     #//-------------------------------------------------------//
     
-    def     find( self, value ):
+    def     __find( self, key ):
         head = self.head
         
         while head is not None:
-            if value < head.value:
+            result = cmp( key, head.key )
+            if result < 0:
                 head = head.left
-            elif head.value < value:
+            elif result > 0:
                 head = head.right
             else:
                 return head
@@ -171,214 +179,92 @@ class AvlMap (object):
     
     #//-------------------------------------------------------//
     
-    def     depth( self, value ):
-        
-        node = self.find( value )
-        depth = -1
-        
-        while node is not None:
-            depth += 1
-            node = node.top
-        
-        return depth
-    
-    #//-------------------------------------------------------//
-    
-    def     insert( self, value ):
+    def     __insert( self, key, value ):
         
         head = self.head
         
         if head is None:
-            self.head = AvlTree.Node( value )
+            self.head = AvlMap.Node( key, value )
             return
         
         while True:
-            head_value = head.value
-            
-            if value < head_value:
+            result = cmp( key, head.key )
+            if result < 0:
                 head_left = head.left
                 if head_left is None:
-                    node = AvlTree.Node( value, head )
+                    node = AvlMap.Node( key, value, head )
                     head.left = node
                     self.__rebalance( node )
                     return
                 else:
                     head = head_left
             
-            elif head_value < value:
+            elif result > 0:
                 head_right = head.right
                 if head_right is None:
-                    node = AvlTree.Node( value, head )
+                    node = AvlMap.Node( key, value, head )
                     head.right = node
                     self.__rebalance( node )
                     return
                 else:
                     head = head_right
             else:
+                head.value = value
                 return
     
     #//-------------------------------------------------------//
     
-    def dump( self, node = None, indent = 0 ):
-        
-        if node is None:
-            node = self.head
-        
-        print " " * indent + str(node.value) + '(' + str(node.balance) + ')'
-        indent += 2
-        if node.left is not None:
-            self.dump( node.left, indent )
-        else:
-            print " " * indent + str(None)
-        
-        if node.right is not None:
-            self.dump( node.right, indent )
-        else:
-            print " " * indent + str(None)
-
-if __name__ == "__main__":
-    
-    import math
-    import RBTree
-    
-    #//=======================================================//
-    
-    tree = AvlTree();
-    
-    count = 1
-    for i in xrange(10, -1, -1):
-        tree.insert(i);
-        depth = int(math.log(count, 2))
-        assert tree.depth( i ) == depth
-        count += 1
-    
-    tree_depth = int(math.log(count - 1, 2)) + 1
-    for i in xrange(10, -1, -1):
-        assert tree.depth( i ) <= tree_depth
-    
-    tree = AvlTree();
-    count = 1
-    
-    for i in xrange(0, 10, 1):
-        tree.insert(i);
-        depth = int(math.log(count, 2))
-        assert tree.depth( i ) == depth
-        count += 1
-    
-    tree_depth = int(math.log(count - 1, 2))
-    for i in xrange(0, 10, 1):
-        assert tree.depth( i ) <= tree_depth
+    def __str__(self):
+        return "<AvlMap object>"
     
     #//-------------------------------------------------------//
-    import random
     
-    random.seed(0)
-    random_numbers = range(0,100)
-    random.shuffle( random_numbers )
-    
-    tree = AvlTree();
-    count = 1
-    for n in random_numbers:
-        tree.insert( n )
-        depth = int(math.log(count, 2)) + 1
-        if tree.depth( n ) > depth:
-            tree.dump()
-            assert not "tree.depth( n ) > depth"
-        count += 1
-    
-    tree_depth = int(math.log(count - 1, 2)) + 1
-    for n in random_numbers:
-        assert tree.depth( n ) <= tree_depth
+    def __repr__(self):
+        return "<AvlMap object>"
     
     #//-------------------------------------------------------//
-    import gpl_avl_tree
     
-    def   cmpAvlTrees( node, gpl_node ):
-        if (node is None) and (gpl_node is None):
-            return True
+    def __getitem__(self, key ):
+        node = self.__find(key)
+        if node is not None:
+            return node.value
         
-        if (node is None) or (gpl_node is None):
-            return False
+        raise KeyError(str(key))
+    
+    #//-------------------------------------------------------//
+    
+    def __setitem__(self, key, value ):
+        self.__insert( key, value )
+    
+    #//-------------------------------------------------------//
+    
+    def __delitem__(self, key):
+        raise KeyError("Not implemented yet")
+    
+    #//-------------------------------------------------------//
+    
+    def __contains__(self, key):
+        return self.__find( key ) is not None
+    
+    #//-------------------------------------------------------//
+    
+    def has_key(self, key):
+        return self.__find( key ) is not None
+    
+    #//-------------------------------------------------------//
+    
+    def get(self, key, default = None):
+        node = self.__find(key)
+        if node is not None:
+            return node.value
+        return default
+    
+    #//-------------------------------------------------------//
+    
+    def setdefault( self, key, value = None ):
+        node = self.__find( key )
+        if node is not None:
+            return node.value
         
-        gpl_left, gpl_value, gpl_right, gpl_balance = gpl_node
-        
-        if node.value != gpl_value:
-            return False
-        
-        return cmpAvlTrees( node.left, gpl_left ) and \
-               cmpAvlTrees( node.right, gpl_right )
-    
-    gpl_tree = gpl_avl_tree.AVLTree()
-    tree = AvlTree()
-    
-    random.seed(0)
-    random_numbers = range(50000, 49000, -1)
-    random.shuffle( random_numbers )
-    
-    class Foo (object):
-        __slots__ = ( 'key', 'value' )
-        def     __init__(self, n ):
-            self.key = n
-            self.value = n
-        
-        def __cmp__(self, other, isinstance = isinstance, cmp = cmp, int = int ):
-            if isinstance(other, int):
-                return cmp(self.key, other)
-            
-            return cmp(self.key, other.key)
-        
-        def __lt__(self, other ):
-            return self.key < other.key
-    
-    foo_random_numbers = map(Foo, random_numbers)
-    
-    import time
-    now_time = time.clock()
-    for i in xrange(0,1000):
-        tree = AvlTree()
-        for n in random_numbers:
-            tree.insert( n )
-    print "AvlTree time:", time.clock() - now_time
-    
-    #~ now_time = time.clock()
-    #~ for n in random_numbers:
-        #~ gpl_tree.insert( Foo(n) )
-    #~ print "GPL AVLTree time:", time.clock() - now_time
-    
-    now_time = time.clock()
-    for i in xrange(0,1000):
-        rb_tree = RBTree.RBTree()
-        for n in random_numbers:
-            rb_tree.insertNode( n, n )
-    print "RBTree time:", time.clock() - now_time
-    
-    #~ tree.insert( 10001 )
-    import bisect
-    now_time = time.clock()
-    for i in xrange(0,1000):
-        bi_list = []
-        for n in foo_random_numbers:
-            bisect.insort( bi_list, n )
-    print "bisect time:", time.clock() - now_time
-    
-    now_time = time.clock()
-    for i in xrange(0,1000):
-        for n in foo_random_numbers:
-          bisect.bisect_left( bi_list, n )
-    print "bisect find time:", time.clock() - now_time
-    
-    now_time = time.clock()
-    for i in xrange(0,1000):
-        for n in random_numbers:
-            tree.find( n )
-    print "AvlTree find time:", time.clock() - now_time
-    
-    now_time = time.clock()
-    for i in xrange(0,1000):
-        for n in random_numbers:
-            rb_tree.findNode( n )
-    print "RBTree find time:", time.clock() - now_time
-    
-    #~ print cmpAvlTrees( tree.head, gpl_tree.tree )
-    
-    print "Tests passed"
+        self.__insert( key, value )
+        return value
