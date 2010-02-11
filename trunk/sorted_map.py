@@ -1,19 +1,8 @@
-from bisect import bisect_left, insort
+from bisect import bisect_left
 
 class BisectionMap(object):
     
-    class Node (object):
-        __slots__ = ('key', 'value')
-        def     __init__(self, key, value ):
-            self.key = key
-            self.value = value
-        
-        def   __lt__( self, other ):
-          return self.key < other.key
-    
-    #//-------------------------------------------------------//
-    
-    __slots__ = ( 'nodes')
+    __slots__ = ('nodes')
     
     #//-------------------------------------------------------//
     
@@ -25,82 +14,76 @@ class BisectionMap(object):
     
     #//-------------------------------------------------------//
     
-    def __str__(self):
-        return '{'+ ', '.join( map(lambda node: repr(node.key) + ': ' + repr(node.value), self.nodes) ) + '}'
-    
-    #//-------------------------------------------------------//
-    
-    def __repr__(self):
-        return "<BisectionMap object " + str(self) + ">"
-    
-    #//-------------------------------------------------------//
-    
-    def __getitem__(self, key, bisect_left = bisect_left ):
+    def __findPosition( self, key ):
+        
         nodes = self.nodes
-        key = BisectionMap.Node( key, None )
-        pos = bisect_left( nodes, key )
+        
+        pos = 0
+        end = len(nodes)
+        while pos < end:
+            mid = (pos + end) // 2
+            if nodes[mid][0] < key:
+                pos = mid + 1
+            else:
+                end = mid
+        
         try:
             node = nodes[pos]
-            if not (key < node):
-                return node.value
+            if not (key < node[0]):
+                return pos, node
                 
         except IndexError:
             pass
         
-        raise KeyError(str(key))
+        return pos, None
     
     #//-------------------------------------------------------//
     
-    def __setitem__(self, key, value, bisect_left = bisect_left ):
-        nodes = self.nodes
+    def __getitem__(self, key ):
         
-        node = BisectionMap.Node( key, value )
+        pos, node = self.__findPosition( key )
+        if node is None:
+            raise KeyError(str(key))
         
-        pos = bisect_left( nodes, node )
-        try:
-            if not (node < nodes[pos]):
-                nodes[pos] = node
-                return
+        return node[1]
+    
+    #//-------------------------------------------------------//
+    
+    def __setitem__(self, key, value ):
+        pos, node = self.__findPosition( key )
+        if node is not None:
+            node[1] = value
+        else:
+          self.nodes.insert( pos, [ key, value ] )
+    
+    #//-------------------------------------------------------//
+    
+    def setdefault(self, key, value = None ):
+        pos, node = self.__findPosition( key )
+        if node is not None:
+            return node[1]
         
-        except IndexError:
-            pass
-        
-        nodes.insert( pos, node )
+        self.nodes.insert( pos, [key, value] )
+        return value
     
     #//-------------------------------------------------------//
     
     def __delitem__(self, key):
-        nodes = self.nodes
-        key = BisectionMap.Node( key, None )
-        pos = bisect_left( nodes, key )
-        try:
-            if not( key < nodes[pos]):
-              del nodes[pos]
-        
-        except IndexError:
-            pass
+        pos, node = self.__findPosition( key )
+        if node is not None:
+            del nodes[pos]
         
         raise KeyError(str(key))
     
     #//-------------------------------------------------------//
     
     def __contains__(self, key):
-        nodes = self.nodes
-        key = BisectionMap.Node( key, None )
-        pos = bisect_left( nodes, key )
-        try:
-            if not( key < nodes[pos]):
-              return True
-        
-        except IndexError:
-            pass
-        
-        return False
+        return self.__findPosition( key )[1] is not None
     
     #//-------------------------------------------------------//
     
     def has_key(self, key):
-        return self.__contains__(key);
+        return self.__findPosition( key )[1] is not None
     
     #//-------------------------------------------------------//
     
@@ -109,22 +92,6 @@ class BisectionMap(object):
             return self[key]
         except KeyError:
             return default
-    
-    #//-------------------------------------------------------//
-    
-    def setdefault(self, key, value = None ):
-        nodes = self.nodes
-        node = BisectionMap.Node( key, value )
-        pos = bisect_left( nodes, node )
-        try:
-            if not (node < nodes[pos]):
-                return nodes[pos].value
-            
-        except IndexError:
-            pass
-        
-        nodes.insert( pos, node )
-        return value
     
     #//-------------------------------------------------------//
     
@@ -145,19 +112,19 @@ class BisectionMap(object):
     
     def itervalues(self):
         for node in self.nodes:
-            yield node.value
+            yield node[1]
     
     #//-------------------------------------------------------//
     
     def iterkeys(self):
         for node in self.nodes:
-            yield node.key
+            yield node[0]
     
     #//-------------------------------------------------------//
     
     def iteritems(self):
         for node in self.nodes:
-            yield ( node.key, node.value )
+            yield ( node[0], node[1] )
     
     #//-------------------------------------------------------//
     
@@ -165,7 +132,7 @@ class BisectionMap(object):
         return self.iterkeys()
     
     #//-------------------------------------------------------//
-
+    
     def clear(self):
         self.nodes = []
     
@@ -182,3 +149,13 @@ class BisectionMap(object):
     def update(self, other):
         for key in other.iterkeys():
             self[key] = other[key]
+    
+    #//-------------------------------------------------------//
+    
+    def __str__(self):
+        return '{'+ ', '.join( map(lambda node: repr(node[0]) + ': ' + repr(node[1]), self.nodes) ) + '}'
+    
+    #//-------------------------------------------------------//
+    
+    def __repr__(self):
+        return self.__str__()

@@ -37,11 +37,13 @@ class FooKey (object):
     def __ge__( self, other):       return self.__cmp__(other) >= 0
 
 def     testDict( dict_type ):
-    loop_count = 10000
+    loop_count = 100
     
     random_keys = []
-    for key in map( hex, map( id, range(1,10) ) ):
+    for key in map( hex, map( id, range(1,500) ) ):
         random_keys.append( FooKey( key.upper(), id(key) ) )
+    
+    random_keys += random_keys
     
     now_time = time.clock()
     for i in xrange(0, loop_count):
@@ -57,8 +59,8 @@ def     testDict( dict_type ):
     print str(type(dict_map)) + " get time:", time.clock() - now_time
 
 if __name__ == "__main__":
-    testDict( dict )
+    #~ testDict( dict )
     testDict( sorted_map.BisectionMap )
-    testDict( RBTree.RBDict )
+    #~ testDict( RBTree.RBDict )
     testDict( avl_map.AvlMap )
 
