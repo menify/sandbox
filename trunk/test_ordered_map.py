@@ -59,8 +59,8 @@ def     testDict( dict_type ):
     print str(type(dict_map)) + " get time:", time.clock() - now_time
 
 if __name__ == "__main__":
-    #~ testDict( dict )
+    testDict( dict )
     testDict( sorted_map.BisectionMap )
-    #~ testDict( RBTree.RBDict )
+    testDict( RBTree.RBDict )
     testDict( avl_map.AvlMap )
 

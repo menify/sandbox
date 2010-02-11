@@ -1,4 +1,3 @@
-from bisect import bisect_left
 
 class BisectionMap(object):
     

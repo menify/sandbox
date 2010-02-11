@@ -1,5 +1,3 @@
-from bisect import bisect_left, insort
-
 
 class AvlMap (object):
     
