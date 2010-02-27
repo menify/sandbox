@@ -39,8 +39,8 @@ if __name__ == '__main__':
         sys.stderr.write('Search string is not specified.\n')
         exit(1)
     
-    files_ext = set( ('.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.xml', '.py', '.pl'
-                      '.mak', '.mc', '.msg', '.mof', '.log'
+    files_ext = set( ('.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.xml', '.py', '.pl', '.lua',
+                      '.mak', '.mc', '.msg', '.mof', '.log',
                       '') )
     
     if (len(sys.argv) > 2):

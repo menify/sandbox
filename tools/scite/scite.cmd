@@ -4,6 +4,7 @@ rem call D:\bin\development\compilers\env.cmd tools
 
 set PATH=%PATH%;%~dp0
 set PATH=%PATH%;C:\bin\ctags
+set PATH=%PATH%;C:\bin\astyle\bin
 set PATH=%PATH%;C:\Python26
 
 set USERPROFILE=%~dp0
