@@ -40,7 +40,7 @@ def     testDict( dict_type ):
     loop_count = 100
     
     random_keys = []
-    for key in map( hex, map( id, range(1,500) ) ):
+    for key in map( hex, map( id, range(1,50) ) ):
         random_keys.append( FooKey( key.upper(), id(key) ) )
     
     random_keys += random_keys
