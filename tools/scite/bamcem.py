@@ -62,43 +62,6 @@ def  _verifyXml( xml_text ):
 
 #//===========================================================================//
 
-def   _parseXML( xml_text ):
-  
-  stack = []
-  root_node = []
-  
-  def startElement( name, attrs, stack = stack ):
-    
-    node = XmlNode( name, attrs )
-    
-    try:
-      parent_node = stack[-1]
-      parent_node.children.append( node )
-    except IndexError:
-      pass
-    
-    stack.append( node )
-  
-  def endElement(name, stack = stack, root_node = root_node):
-    if len(stack) == 1:
-      root_node.append( stack[0] )
-    del stack[-1]
-  
-  p = xml.parsers.expat.ParserCreate()
-  p.StartElementHandler = startElement
-  p.EndElementHandler = endElement
-  p.Parse( xml_text, True )
-  
-  try:
-    root_node = root_node[0]
-    root_node.text = xml_text
-    return root_node
-  
-  except IndexError:
-    return None
-
-#//===========================================================================//
-
 def   _sendRequest( ip, data, verbose, session_id = "" ):
   global _NEXT_TASK_ID
   global _CURRENT_TASK_ID
@@ -133,31 +96,63 @@ def   _sendRequest( ip, data, verbose, session_id = "" ):
 #//=======================================================//
 
 def   _readXmlResponse( output, verbose ):
+  
+  stack = []
+  root_node = []
+  
+  def startElement( name, attrs, stack = stack ):
+    
+    node = XmlNode( name, attrs )
+    
+    try:
+      parent_node = stack[-1]
+      parent_node.children.append( node )
+    except IndexError:
+      pass
+    
+    stack.append( node )
+  
+  def endElement(name, stack = stack, root_node = root_node):
+    if len(stack) == 1:
+      root_node.append( stack[0] )
+    del stack[-1]
+  
+  p = xml.parsers.expat.ParserCreate()
+  p.StartElementHandler = startElement
+  p.EndElementHandler = endElement
+  
+  #//-------------------------------------------------------//
+  
   xml_response_prefix = '<?xml '
-  xml_response_postfix = ' ' * 256
   
   xml_response = ''
   xml_response_prefix_found = False
   
   while True:
-    xml_response = xml_response + output.read(1)
+    xml_text = output.read(1)
+    xml_response = xml_response + xml_text
     
     if len(xml_response) >= len(xml_response_prefix):
-      if (not xml_response_prefix_found) and (not xml_response.startswith( xml_response_prefix )):
-        xml_response = xml_response[1:]
+      if not xml_response_prefix_found:
+        if xml_response.startswith( xml_response_prefix ):
+          xml_response_prefix_found = True
+          p.Parse( xml_response, False )
+        else:
+          xml_response = xml_response[1:]
       
       else:
-        xml_response_prefix_found = True
-        if xml_response.endswith( xml_response_postfix ):
-          xml_response = xml_response.rstrip()
-          
+        p.Parse( xml_text, False )
+        if root_node:
+          root_node = root_node[0]
+          root_node.text = xml_response
+        
           if verbose:
             print "<" * 64
             print "Response:"
             print xml_response
             print
           
-          return _parseXML( xml_response )
+          return root_node
 
 #//=======================================================//
 
@@ -295,10 +290,9 @@ if __name__ == "__main__":
   else:
     request = options.request
     
-  _verifyXml( request )
-  
   if print_usage:
     parser.print_help()
   else:
+    _verifyXml( request )
     connectCEM( options.host, options.user, options.password, request, options.verbose )
 

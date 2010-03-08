@@ -48,7 +48,7 @@ function handleChar()
                 table.sort(menuItems)
                 scite.SendEditor( SCI_AUTOCSETSEPARATOR, 10 )
                 scite.SendEditor( SCI_AUTOCSETMAXHEIGHT, 10 )
-                scite.SendEditor( SCI_AUTOCSETDROPRESTOFWORD, 1 )
+--~                 scite.SendEditor( SCI_AUTOCSETDROPRESTOFWORD, 1 )
                 scite.SendEditor( SCI_AUTOCSETAUTOHIDE, 1 )
                 editor:AutoCShow(len, table.concat(menuItems, "\n") )
             else
