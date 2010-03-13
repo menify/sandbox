@@ -335,7 +335,7 @@ if __name__ == '__main__':
     else:
         cmd = sys.argv[1]
         
-        if cmd == 'copyFrom': copyRemote(sys.argv[2], copy_to = False)
-        elif cmd == 'copyTo': copyRemote(sys.argv[2], copy_to = True)
-        elif cmd == 'ant': runAnt(sys.argv[2], sys.argv[3] )
+        #~ if cmd == 'copyFrom': copyRemote(sys.argv[2], copy_to = False)
+        #~ elif cmd == 'copyTo': copyRemote(sys.argv[2], copy_to = True)
+        if cmd == 'ant': runAnt(sys.argv[2], sys.argv[3] )
         elif cmd == 'run_test': runAnt('deploy_remote deploy_test_remote', sys.argv[2] ); runSchedulerTest()
