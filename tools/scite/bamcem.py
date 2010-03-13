@@ -228,8 +228,11 @@ def   connectCEM( ip, login, password, request, verbose ):
     if xml_node is None:
       break
     
+    task_respond_id = str(_CURRENT_TASK_ID)
+    
     for node in xml_node:
-      if int(node.attrs.get('id', -1)) == _CURRENT_TASK_ID:
+      node = xml_node.find( 'bam:BAMTask' )
+      if (node is not None) and (node.attrs.get('id') == task_respond_id):
         if not verbose:
           print "\n\nResponse:\n", xml_node.text
         connection.close()
