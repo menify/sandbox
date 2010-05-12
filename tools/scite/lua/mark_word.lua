@@ -101,7 +101,7 @@ local function markUnmarkWord( word, mark )
       marked_words[word] = nil
     end
     
-    local flags = SCFIND_WHOLEWORD
+    local flags = SCFIND_WHOLEWORD + SCFIND_MATCHCASE
     local s,e = editor:findtext(word,flags,0)
     while s do
         updateMarkerCounter( mark, marker_number )

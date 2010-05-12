@@ -15,6 +15,7 @@ class XmlNode (object):
     self.name = name
     self.attrs = attrs
     self.children = []
+    self.text = ''
   
   #//-------------------------------------------------------//
   
@@ -28,6 +29,22 @@ class XmlNode (object):
         return node
     
     return None
+    
+  #//-------------------------------------------------------//
+  
+  def   findAll( self, name, found_nodes = None ):
+    
+    if found_nodes is None:
+      found_nodes = []
+    
+    if self.name == name:
+      found_nodes.append( self )
+    
+    else:
+      for node in self.children:
+        node.findAll( name, found_nodes )
+    
+    return found_nodes
     
   #//-------------------------------------------------------//
   
@@ -66,7 +83,7 @@ def   _sendRequest( ip, data, verbose, session_id = "" ):
   global _NEXT_TASK_ID
   global _CURRENT_TASK_ID
   
-  req = urllib2.Request( "http://%s/cemUI.html" % ip )
+  req = urllib2.Request( "https://%s/cemUI.html" % ip )
   
   req.add_header( 'Content-Type', 'text/xml')
   
@@ -205,38 +222,75 @@ def   _getSessionId( ip, login, password, verbose ):
 
 #//=======================================================//
 
-
-def   connectCEM( ip, login, password, request, verbose ):
+class Connection( object ):
+  __slots__ = ( 'handle', 'ip', 'session_id' )
   
-  global _CURRENT_TASK_ID
+  #//-------------------------------------------------------//
   
-  session_id = _getSessionId( ip, login, password, verbose )
-  
-  connection = _sendRequest( ip, '<Connect><CemSystem/></Connect>', verbose, session_id )
-  
-  while True:
-    xml_node = _readXmlResponse( connection, verbose )
-    if xml_node is not None:
-      node = xml_node.find( 'bam:SessionConnected' )
-      if (node is not None) and (node.attrs.get('sessionId', '0') == session_id ):
-        break
-  
-  _sendRequest( ip, request, verbose, session_id )
-  
-  while True:
-    xml_node = _readXmlResponse( connection, verbose )
-    if xml_node is None:
-      break
+  def   __init__( self, ip, login, password, verbose = True ):
+    session_id = _getSessionId( ip, login, password, verbose )
     
+    handle = _sendRequest( ip, '<Connect><CemSystem/></Connect>', verbose, session_id )
+    
+    while True:
+      xml_node = _readXmlResponse( handle, verbose )
+      if xml_node is not None:
+        node = xml_node.find( 'bam:SessionConnected' )
+        if (node is not None) and (node.attrs.get('sessionId', '0') == session_id ):
+          break
+    
+    self.handle = handle
+    self.ip = ip
+    self.session_id = session_id
+  
+  #//-------------------------------------------------------//
+  
+  def   send( self, request, verbose = True):
+    return _sendRequest( self.ip, request, verbose, self.session_id )
+  
+  #//-------------------------------------------------------//
+  
+  def   read( self, verbose = True):
+    return _readXmlResponse( self.handle, verbose )
+  
+  #//-------------------------------------------------------//
+  
+  def   recv( self, verbose = True):
+    global _CURRENT_TASK_ID
     task_respond_id = str(_CURRENT_TASK_ID)
     
-    for node in xml_node:
-      node = xml_node.find( 'bam:BAMTask' )
-      if (node is not None) and (node.attrs.get('id') == task_respond_id):
-        if not verbose:
-          print "\n\nResponse:\n", xml_node.text
-        connection.close()
-        return
+    while True:
+      node = self.read( verbose )
+      if node is not None:
+        node = node.find( 'bam:BAMTask' )
+        
+        if (node is not None) and (node.attrs.get('id') == task_respond_id):
+          return node
+  
+  #//-------------------------------------------------------//
+  
+  def   close( self ):
+    self.handle.close()
+
+#//=======================================================//
+
+def   sendRequest( ip, login, password, request, verbose, keep ):
+  
+  connection = Connection( ip, login, password, verbose )
+  
+  if request is not None:
+    connection.send( request, verbose )
+    xml_node = connection.recv( verbose )
+    if not verbose:
+      print "\n\nResponse:\n", xml_node.text
+  
+  if keep and verbose:
+    while True:
+      xml_node = connection.read( verbose )
+      if xml_node is None:
+        break
+  
+  connection.close()
 
 #//=======================================================//
 
@@ -268,6 +322,9 @@ if __name__ == "__main__":
   parser.add_option("-q", action="store_false", dest="verbose",
                     help = "Quiet mode", default = True )
   
+  parser.add_option("-k", "--keep", action="store_true", dest="keep",
+                    help = "Don't close connection upon response", default = False )
+  
   (options, args) = parser.parse_args()
   
   print_usage = False
@@ -284,18 +341,18 @@ if __name__ == "__main__":
     print "Error: User's login is not specified"
     print_usage = True
   
-  elif options.request is None:
-    if options.request_file is None:
-      print "Error: BAM request is not specified"
-      print_usage = True
-    else:
-      request = ''.join( open(options.request_file).readlines() )
-  else:
+  request = None
+  
+  if options.request is not None:
     request = options.request
+  elif options.request_file is not None:
+    request = ''.join( open(options.request_file).readlines() )
     
   if print_usage:
     parser.print_help()
   else:
-    _verifyXml( request )
-    connectCEM( options.host, options.user, options.password, request, options.verbose )
+    if request is not None:
+      _verifyXml( request )
+    
+    sendRequest( options.host, options.user, options.password, request, options.verbose, options.keep )
 
