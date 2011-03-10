@@ -1,5 +1,9 @@
 
-class   Value (object):
+import Value
+
+class   File (Value):
+    
+    __slots__ = ( 'path', 'size', 'fast_checksum', 'checksum' )
     
     def   __init__( self ):
         pass
