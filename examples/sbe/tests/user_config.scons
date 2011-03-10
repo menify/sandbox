@@ -13,5 +13,4 @@ sbe_debug = 'on'
 # All locals variables will be used to update values of corresponding options.
 
 
-
-
+link_runtime='static'
