@@ -59,11 +59,10 @@ class RemoteHost (object):
 #//-------------------------------------------------------//
 
 _REMOTE_HOSTS = {
-  'dev': RemoteHost( 'user', 'user', '10.64.74.147' ),
   'dev11': RemoteHost( 'c4dev', 'c4dev!', '10.64.74.114' ),
-  'sim': RemoteHost( 'root', 'c4proto!', '10.64.75.125' ),
-  'magnum205-spa': RemoteHost( 'root', 'c4proto!', '10.64.75.185' ),
-  'magnum205-spb': RemoteHost( 'root', 'c4proto!', '10.64.75.186' ),
+  'sim': RemoteHost( 'root', 'c4proto!', '10.64.75.121' ),
+  #~ 'sim': RemoteHost( 'root', 'c4proto!', '10.109.17.70' ),
+  #~ 'sim': RemoteHost( 'root', 'c4proto!', '10.109.17.71' ),
 }
 
 #//---------------------------------------------------------------------------//
@@ -111,8 +110,6 @@ class   RemotePathMapping (object):
 #//-------------------------------------------------------//
 
 _REMOTE_PATH_MAPS = [
-  #~ RemotePathMapping( "W:\\", "/sources/", _REMOTE_HOSTS['dev'] ),
-  RemotePathMapping( "\\\\10.64.74.147\\sources\\", "/sources/", _REMOTE_HOSTS['dev'] ),
   RemotePathMapping( "\\\\10.64.74.114\\work\\", "/work/", _REMOTE_HOSTS['dev11'] ),
   ]
   # key = lambda x: len(x.local_root), reverse = True )

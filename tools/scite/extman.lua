@@ -386,7 +386,7 @@ function scite_Command(tbl)
 		 props['command.name'..which] = name
 		 props['command'..which] = cmd     
 		 props['command.subsystem'..which] = '3'
-		 props['command.mode'..which] = 'savebefore:no'
+		 props['command.mode'..which] = 'savebefore:no,quiet:yes'
 		 if shortcut then 
 		   local cmd = shortcuts_used[shortcut]
 		   if cmd then
@@ -435,9 +435,9 @@ function scite_require(f)
   silent_dofile(f)
 end
 
-if not GTK then
-   scite_dofile 'scite_other.lua'
-end
+--~ if not GTK then
+--~    scite_dofile 'scite_other.lua'
+--~ end
 
 local script_list = scite_Files(path..'/*.lua')
 

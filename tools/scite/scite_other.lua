@@ -12,10 +12,10 @@
 -- 
 -- Steve Donovan, 2004
 
-local TEMP_FILE_IN = "/scite_other_temp1"
-local TEMP_FILE_OUT = "/scite_other_temp2"
+local TEMP_FILE_IN = "c:\\scite_other_temp1"
+local TEMP_FILE_OUT = "c:\\scite_other_temp2"
 local our_window = 0
-local fn = package.loadlib(props['SciteUserHome']..'/scite_other.dll','scite_other')
+local fn = package.loadlib(props['SciteDefaultHome']..'/scite_other.dll','scite_other')
 if not fn then print 'cannot load scite_other.dll!!' end
 
 function Perform(verb,arg,other)
@@ -31,17 +31,19 @@ function Perform(verb,arg,other)
   end
   local cmd = 1
   if other then cmd = 0 end
+  
+  print ("verb: "..verb)
+  print ("arg: "..arg)
+  
   f:write(verb,':',arg,'\n')
   f:write(cmd,' ',our_window,'\n')
   f:close()
   fn()
-  if verb ~= 'exec' then
-    f = io.open(TEMP_FILE_OUT,'r')
-    local n = f:read('*n')
-    f:read()
-    if n == 1 then
-      our_window = f:read()
-    end
+  f = io.open(TEMP_FILE_OUT,'r')
+  local n = f:read('*n')
+  f:read()
+  if n == 1 then
+     our_window = f:read()
   end
 end
 
