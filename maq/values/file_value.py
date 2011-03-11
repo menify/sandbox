@@ -15,13 +15,13 @@ class   File (Value):
     
     #//-------------------------------------------------------//
     
-    def   serialize( self ):
+    def   to_bytes( self ):
         return str()
     
     #//-------------------------------------------------------//
     
     @classmethod
-    def   restore( cls, state ):
+    def   from_bytes( cls, bytes ):
         return cls();
    
     

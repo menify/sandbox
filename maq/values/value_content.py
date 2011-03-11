@@ -1,8 +1,19 @@
 
-class   Value (object):
+import array
+
+class   _Checksum (object):
+    __slots__ = ('offset', 'size', 'raw_data', 'checksum')
+    
+    def   __init__( self, offset, size ):
+        self.offset = offset
+        self.size = size
+
+class   ValueContent (object):
+    
+    __slots__ = ( 'checksums' )
     
     def   __init__( self ):
-        pass
+        self.checksums = []
     
     #//-------------------------------------------------------//
     
