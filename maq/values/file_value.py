@@ -1,12 +1,38 @@
 
 import Value
+import hashlib
+
+#//===========================================================================//
+
+class   FileContent (object):
+    
+    __slots__ = ( 'checksums' )
+    
+    def   __init__( self, path ):
+        
+        checksum = hashlib.md5()
+        
+        for chunk in open( path, mode = 'rb' ):
+            checksum.update( chunk )
+        
+        self.checksum = checksum
+    
+    #//-------------------------------------------------------//
+    
+    def   __eq__( self, other ):          return self.checksum == other.checksum
+    def   __ne__( self, other ):          return self.checksum != other.checksum
+    def   __getstate__( self ):           return { 'checksum': self.checksum }
+    def   __setstate__( self, state ):    self.checksum = state['checksum']
+
+#//===========================================================================//
 
 class   File (Value):
     
-    __slots__ = ( 'path', 'size', 'fast_checksum', 'checksum' )
+    __slots__ = ( 'path', 'size', 'content' )
     
-    def   __init__( self ):
-        pass
+    def   __init__( self, path, content = FileContent ) :
+        self.path = os.path.abspath( path )
+        self.content = content( path )
     
     #//-------------------------------------------------------//
     
@@ -15,7 +41,7 @@ class   File (Value):
     
     #//-------------------------------------------------------//
     
-    def   to_bytes( self ):
+    def   __( self ):
         return str()
     
     #//-------------------------------------------------------//
