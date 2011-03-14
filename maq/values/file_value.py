@@ -50,7 +50,7 @@ class   FileContentTimeStamp (object):
 
 #//===========================================================================//
 
-class   File (Value):
+class   File (ValueBase):
     
     __slots__ = ( 'path', 'content' )
     

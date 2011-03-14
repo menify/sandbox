@@ -1,24 +1,18 @@
 
-class   Value (object):
+class   ValueBase (object):
     
     def   __init__( self ):
         pass
     
     #//-------------------------------------------------------//
     
-    def   modified( self, other ):
-        return False
+    def   __getstate__( self ):
+        return {}
     
     #//-------------------------------------------------------//
     
-    def   to_bytes( self ):
-        return str()
-    
-    #//-------------------------------------------------------//
-    
-    @classmethod
-    def   from_bytes( cls, bytes ):
-        return cls();
+    def   __setstate__( self, state ):
+        pass
    
     
     #//-------------------------------------------------------//
