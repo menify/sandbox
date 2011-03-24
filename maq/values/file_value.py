@@ -3,8 +3,14 @@ import os
 import hashlib
 import datetime
 
+from value import Value
+
+#//===========================================================================//
+
 class   Unpickling(object):
     pass
+
+#//===========================================================================//
 
 class FileContentNotExists( object ):
     def   __eq__( self, other ):    return False
@@ -47,15 +53,15 @@ class   FileContentChecksum (object):
     
     #//-------------------------------------------------------//
     
-    def   __eq__( self, other ):        return (self.size == other.size) and (self.checksum == other.checksum)
-    def   __ne__( self, other ):        return (self.size != other.size) or (self.checksum != other.checksum)
+    def   __eq__( self, other ):        return type(self) == type(other) and (self.size == other.size) and (self.checksum == other.checksum)
+    def   __ne__( self, other ):        return not self.__eq__( other )
     
     def     __getnewargs__(self):       return ( Unpickling(), )
 
     def   __getstate__( self ):         return { 'size': self.size, 'checksum': self.checksum }
     def   __setstate__( self, state ):  self.size = state['size']; self.checksum = state['checksum']
     
-    def   __str__( self ):              return repr(self.checksum)
+    def   __str__( self ):              return self.checksum
 
 #//===========================================================================//
 
@@ -86,8 +92,8 @@ class   FileContentTimeStamp (object):
 
     #//-------------------------------------------------------//
     
-    def   __eq__( self, other ):        return (self.size == other.size) and (self.modify_time == other.modify_time)
-    def   __ne__( self, other ):        return (self.size != other.size) or (self.modify_time != other.modify_time)
+    def   __eq__( self, other ):        return type(self) == type(other) and (self.size == other.size) and (self.modify_time == other.modify_time)
+    def   __ne__( self, other ):        return not self.__eq__( other )
     
     def     __getnewargs__(self):       return ( Unpickling(), )
     def   __getstate__( self ):         return { 'size': self.size, 'modify_time': self.modify_time }
@@ -117,3 +123,13 @@ class   FileName (str):
     
     def     __getnewargs__(self):
         return ( Unpickling(), super(FileName, self).__getnewargs__() )
+
+#//===========================================================================//
+
+class   FileValue (Value):
+    
+    def   __init__( self, name, content = FileContentChecksum ):
+        super( FileValue, self ).__init__( name, content )
+
+
+#//===========================================================================//

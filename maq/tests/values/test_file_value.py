@@ -8,7 +8,7 @@ import logging
 sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..', '..', 'values') )
 
 from value import Value
-from file_value import FileName, FileContentChecksum, FileContentTimeStamp
+from file_value import FileValue, FileName, FileContentChecksum, FileContentTimeStamp
 
 #//===========================================================================//
 def   init_logging():
@@ -32,27 +32,30 @@ def   test( logger ):
       temp_file.flush()
       
       temp_file_name = FileName( temp_file.name )
-      temp_file_content = FileContentChecksum( temp_file_name )
-      temp_file_time_content = FileContentTimeStamp( temp_file_name )
       
-      temp_file_value = Value( temp_file_name, temp_file_content )
-      logger.debug( "temp_file_value: %s", temp_file_value )
+      temp_file_value = FileValue( temp_file_name )
+      logger.debug( "temp_file_value: %s, %s", temp_file_value, temp_file_value.content )
       
       temp_file.close()
       os.remove( temp_file_name )
       
       saver = pickle.Pickler( file, protocol = pickle.HIGHEST_PROTOCOL )
-      saver.dump( temp_file_value )
-      saver.dump( temp_file_value )
+      saver.dump( ( temp_file_value, ) )
       
       file.seek(0)
       
       loader = pickle.Unpickler( file )
-      loaded_value = loader.load()
-      logger.debug( "loaded_value: %s", loaded_value )
+      loaded_values = loader.load()
+      value = loaded_values[0]
+      logger.debug( "value: %s, %s", value, value.content )
       
-      loaded_value = loader.load()
-      logger.debug( "loaded_value: %s", loaded_value )
+      new_value = FileValue( value )
+      
+      logger.debug( "new_value: %s, %s", new_value, new_value.content )
+      
+      logger.debug( "new_value == value: %s", new_value == value )
+      logger.debug( "new_value.content == value.content: %s", new_value.content == value.content )
+      logger.debug( "value.content == new_value.content: %s", value.content == new_value.content )
       
 
 if __name__ == "__main__":

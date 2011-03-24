@@ -3,9 +3,26 @@ class   Value (object):
     
     __slots__ = ( 'name', 'content' )
     
-    def   __init__( self, name, content ) :
-        self.name = name
-        self.content = content
+    #//-------------------------------------------------------//
+    
+    def   __init__( self, name, content ):
+        
+        if isinstance( name, Value ):
+            self.name = name.name
+            if content is None:
+                content = type(name.content)
+            
+            elif type(content) is type:
+                content = content( name.name )
+            
+            self.content = content
+            
+        else:
+            if type(content) is type:
+                content = content( name )
+            
+            self.name = name
+            self.content = content
     
     #//-------------------------------------------------------//
     
@@ -29,4 +46,4 @@ class   Value (object):
     
     #//-------------------------------------------------------//
     
-    def   __str__(self):    return str(self.name) + ", " + str(self.content)
+    def   __str__(self):    return str(self.name)
