@@ -2,6 +2,22 @@
 import sys
 import traceback
 
+import logging
+
+
+
+#//-------------------------------------------------------//
+
+_logger = logging.getLogger( "AQL" )
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler()
+handler.setLevel( logging.DEBUG )
+
+logger.addHandler( handler )
+
+
+
 def     LogLevel( level = None ):
     global _log_level
     
@@ -14,11 +30,8 @@ def     LogLevel( level = None ):
 
 #//-------------------------------------------------------//
 
-class   ErrorException( StandardError ):
-    pass
-
 def     Error( exception ):
-    raise ErrorException( exception )
+    raise StandardError( exception )
 
 def     Msg( msg ):
         print 'AQL: ***', msg

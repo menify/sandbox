@@ -7,8 +7,7 @@ import logging
 
 sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..', '..', 'values') )
 
-from value import Value
-from file_value import FileValue, FileName, FileContentChecksum, FileContentTimeStamp
+from aql_file_value import FileValue, FileName, FileContentChecksum, FileContentTimeStamp
 
 #//===========================================================================//
 def   init_logging():
