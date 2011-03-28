@@ -8,13 +8,14 @@ class   Value (object):
     def   __init__( self, name, content ):
         
         if isinstance( name, Value ):
-            self.name = name.name
+            other = name
             if content is None:
-                content = type(name.content)
+                content = type(other.content)( other.name )
             
             elif type(content) is type:
-                content = content( name.name )
+                content = content( other.name )
             
+            self.name = other.name
             self.content = content
             
         else:
@@ -37,11 +38,7 @@ class   Value (object):
     
     #//-------------------------------------------------------//
     
-    def   __hash__(self):
-        return hash(self.name);
-    
-    #//-------------------------------------------------------//
-    
+    def   __hash__(self):             return hash(self.name)
     def   __lt__( self, other):       return self.name < other.name
     def   __le__( self, other):       return self.name <= other.name
     def   __eq__( self, other):       return self.name == other.name

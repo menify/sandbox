@@ -5,46 +5,57 @@ import traceback
 import logging
 
 
+_logger = None
 
-#//-------------------------------------------------------//
-
-_logger = logging.getLogger( "AQL" )
-logger.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler()
-handler.setLevel( logging.DEBUG )
-
-logger.addHandler( handler )
-
+CRITICAL = logging.CRITICAL
+FATAL = CRITICAL
+ERROR = logging.ERROR
+WARNING = logging.WARNING
+WARN = WARNING
+INFO = logging.INFO
+DEBUG = logging.DEBUG
 
 
-def     LogLevel( level = None ):
-    global _log_level
+#//---------------------------------------------------------------------------//
+
+def   _init():
+    logger = logging.getLogger( "AQL" )
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    handler.setLevel( logging.DEBUG )
+    logger.addHandler( handler )
     
-    previous_level = _log_level
-    
-    if level is not None:
-        _log_level = int(level)
-    
-    return previous_level
+    global _logger
+    _logger = logger
 
-#//-------------------------------------------------------//
+#//---------------------------------------------------------------------------//
 
-def     Error( exception ):
-    raise StandardError( exception )
+def     logLevel( level = None ):
+    global _logger
+    _logger.setLevel( level )
 
-def     Msg( msg ):
-        print 'AQL: ***', msg
+#//---------------------------------------------------------------------------//
 
-def     Warning( msg ):
+def     logCritical(msg, *args, **kwargs):
+    global _logger
+    _logger.error( msg, *args, **kwargs )
+
+def     logError(msg, *args, **kwargs):
+    global _logger
+    _logger.error( msg, *args, **kwargs )
+
+def     logMsg( msg ):
+        logger.debug()
+
+def     logWarning( msg ):
     if _log_level > 0:
         print 'AQL: Warning: ***', msg
 
-def     Info( msg ):
+def     logInfo( msg ):
     if _log_level > 1:
         print 'AQL: Info: ***', msg
 
-def     DebugMsg( exception, traceback_limit = 50, backtfrom = 2 ):
+def     logDebug( exception, traceback_limit = 50, backtfrom = 2 ):
     if __debug__:
         if _log_level > 2:
             try:
@@ -54,3 +65,8 @@ def     DebugMsg( exception, traceback_limit = 50, backtfrom = 2 ):
             
             print 'AQL DBG: ***', exception
             traceback.print_stack( frame, traceback_limit )
+
+
+#//-------------------------------------------------------//
+
+_init()
