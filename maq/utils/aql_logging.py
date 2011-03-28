@@ -40,33 +40,24 @@ def     logCritical(msg, *args, **kwargs):
     global _logger
     _logger.error( msg, *args, **kwargs )
 
+logFatal = logCritical
+
 def     logError(msg, *args, **kwargs):
     global _logger
     _logger.error( msg, *args, **kwargs )
 
-def     logMsg( msg ):
-        logger.debug()
+def     logWarning(msg, *args, **kwargs):
+    global _logger
+    _logger.warning( msg, *args, **kwargs )
 
-def     logWarning( msg ):
-    if _log_level > 0:
-        print 'AQL: Warning: ***', msg
+logWarn = logWarning
 
-def     logInfo( msg ):
-    if _log_level > 1:
-        print 'AQL: Info: ***', msg
+def     logInfo(msg, *args, **kwargs):
+    global _logger
+    _logger.info( msg, *args, **kwargs )
 
-def     logDebug( exception, traceback_limit = 50, backtfrom = 2 ):
-    if __debug__:
-        if _log_level > 2:
-            try:
-                raise ZeroDivisionError
-            except ZeroDivisionError:
-                frame = sys.exc_info()[ backtfrom ].tb_frame.f_back
-            
-            print 'AQL DBG: ***', exception
-            traceback.print_stack( frame, traceback_limit )
-
-
-#//-------------------------------------------------------//
+def     logDebug(msg, *args, **kwargs):
+    global _logger
+    _logger.debug( msg, *args, **kwargs )
 
 _init()
