@@ -3,12 +3,11 @@ import sys
 import os.path
 import tempfile
 import pickle
-import logging
 
 sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..', '..', 'utils') )
 sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..', '..', 'values') )
 
-from aql_logging import *
+from aql_logging import logDebug, logError
 from aql_file_value import FileValue, FileName, FileContentChecksum, FileContentTimeStamp
 
 #//===========================================================================//
