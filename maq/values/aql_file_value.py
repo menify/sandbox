@@ -7,7 +7,7 @@ from aql_value import Value
 
 #//===========================================================================//
 
-class   Unpickling(object):
+class   _Unpickling(object):
     pass
 
 #//===========================================================================//
@@ -26,7 +26,7 @@ class   FileContentChecksum (object):
     
     def   __new__( cls, path = None ):
         
-        if isinstance( path, Unpickling):
+        if isinstance( path, _Unpickling):
             return super(FileContentChecksum, cls).__new__(cls)
         
         if path is None:
@@ -56,7 +56,7 @@ class   FileContentChecksum (object):
     def   __eq__( self, other ):        return type(self) == type(other) and (self.size == other.size) and (self.checksum == other.checksum)
     def   __ne__( self, other ):        return not self.__eq__( other )
     
-    def     __getnewargs__(self):       return ( Unpickling(), )
+    def     __getnewargs__(self):       return ( _Unpickling(), )
 
     def   __getstate__( self ):         return { 'size': self.size, 'checksum': self.checksum }
     def   __setstate__( self, state ):  self.size = state['size']; self.checksum = state['checksum']
@@ -71,7 +71,7 @@ class   FileContentTimeStamp (object):
     
     def   __new__( cls, path = None ):
         
-        if isinstance( path, Unpickling):
+        if isinstance( path, _Unpickling):
             return super(FileContentTimeStamp, cls).__new__(cls)
         
         if path is None:
@@ -95,7 +95,7 @@ class   FileContentTimeStamp (object):
     def   __eq__( self, other ):        return type(self) == type(other) and (self.size == other.size) and (self.modify_time == other.modify_time)
     def   __ne__( self, other ):        return not self.__eq__( other )
     
-    def     __getnewargs__(self):       return ( Unpickling(), )
+    def     __getnewargs__(self):       return ( _Unpickling(), )
     def   __getstate__( self ):         return { 'size': self.size, 'modify_time': self.modify_time }
     def   __setstate__( self, state ):  self.size = state['size']; self.modify_time = state['modify_time']
     
@@ -109,7 +109,7 @@ class   FileName (str):
         if isinstance( path, FileName ):
             return path
         
-        if isinstance( path, Unpickling ):
+        if isinstance( path, _Unpickling ):
             return super(FileName, cls).__new__(cls, *str_new_args )
         
         if path is None:
@@ -122,7 +122,7 @@ class   FileName (str):
     #//-------------------------------------------------------//
     
     def     __getnewargs__(self):
-        return ( Unpickling(), super(FileName, self).__getnewargs__() )
+        return ( _Unpickling(), super(FileName, self).__getnewargs__() )
 
 #//===========================================================================//
 

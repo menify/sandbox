@@ -39,9 +39,13 @@ def     logCritical(msg, *args, **kwargs):
 
 logFatal = logCritical
 
+#//---------------------------------------------------------------------------//
+
 def     logError(msg, *args, **kwargs):
     global _logger
     _logger.error( msg, *args, **kwargs )
+
+#//---------------------------------------------------------------------------//
 
 def     logWarning(msg, *args, **kwargs):
     global _logger
@@ -49,12 +53,18 @@ def     logWarning(msg, *args, **kwargs):
 
 logWarn = logWarning
 
+#//---------------------------------------------------------------------------//
+
 def     logInfo(msg, *args, **kwargs):
     global _logger
     _logger.info( msg, *args, **kwargs )
 
+#//---------------------------------------------------------------------------//
+
 def     logDebug(msg, *args, **kwargs):
     global _logger
     _logger.debug( msg, *args, **kwargs )
+
+#//---------------------------------------------------------------------------//
 
 _init()
