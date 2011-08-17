@@ -1,50 +1,37 @@
 
-import sys
-import traceback
+import os
+import tempfile
 
-_log_level = 1
-
-# 0 - only error messages will be reported
-# 1 - only error and warning messages will be reported
-# 2 - only error, warning and informational messages will be reported
-# 3 - all messages will be reported
-
-def     LogLevel( level = None ):
-    global _log_level
+class Tempfile (object):
     
-    previous_level = _log_level
+    __slots__ = ('__handle','name')
     
-    if level is not None:
-        _log_level = int(level)
+    def   __init__(self):
+        self.__handle = tempfile.NamedTemporaryFile( delete = False )
+        self.name = self.__handle.name
     
-    return previous_level
+    def   __enter__(self):
+        print( "__enter__" )
+        return self
+    
+    def   __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+        os.remove( self.name )
+    
+    def write( self, buffer ):
+        self.__handle.write( buffer )
+    
+    def read( self, buffer ):
+        self.__handle.read( buffer )
+    
+    def seek( self, offset, whence = os.SEEK_SET ):
+        self.__handle.read( buffer )
+    
+    def flush( self ):
+        self.__handle.flush()
 
-#//-------------------------------------------------------//
-
-class   ErrorException( StandardError ):
-    pass
-
-def     Error( exception ):
-    raise ErrorException( exception )
-
-def     Msg( msg ):
-        print 'AQL: ***', msg
-
-def     Warning( msg ):
-    if _log_level > 0:
-        print 'AQL: Warning: ***', msg
-
-def     Info( msg ):
-    if _log_level > 1:
-        print 'AQL: Info: ***', msg
-
-def     DebugMsg( exception, traceback_limit = 50, backtfrom = 2 ):
-    if __debug__:
-        if _log_level > 2:
-            try:
-                raise ZeroDivisionError
-            except ZeroDivisionError:
-                frame = sys.exc_info()[ backtfrom ].tb_frame.f_back
-            
-            print 'AQL DBG: ***', exception
-            traceback.print_stack( frame, traceback_limit )
+if __name__ == "__main__":
+  
+  with Tempfile() as t:
+      t.write('1234567890\n1234567890'.encode())
+      print ( t.name )
