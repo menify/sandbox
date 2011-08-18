@@ -19,7 +19,7 @@ scite_Command {
    'Go to mark|goto_mark|Alt+.',
    'Set Mark|set_mark|Ctrl+\'',
    'Select from mark|select_mark|Ctrl+/',
-   'Alt-T|* do_altc_commands|Alt+T',
+   'Alt-T|* do_altc_commands|Alt+t',
 }
 
   local operation

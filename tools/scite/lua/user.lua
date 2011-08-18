@@ -3,10 +3,10 @@
 if scite_Command then -- extman is present!
     scite_Command {
        'Select word|select_word|Shift+Enter',
-       'Convert to LF|convert_to_lf|Alt+F',
+       'Convert to LF|convert_to_lf|Alt+f',
        'Hexify Selection|HexifySelection|',
-       'Tabs to Spaces|TabToSpace|Alt+J',
-       'Invert value|ToggleBinaryValue|Alt+R',
+       'Tabs to Spaces|TabToSpace|Alt+j',
+       'Invert value|ToggleBinaryValue|Alt+r',
     }
 end
 

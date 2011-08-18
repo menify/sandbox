@@ -1,7 +1,7 @@
 
 scite_Command {
-   'Mark word|markOccurrences|Alt+H',
-   'Unmark words|clearAllOccurrences|Alt+C',
+   'Mark word|markOccurrences|Alt+h',
+   'Unmark words|clearAllOccurrences|Alt+c',
 }
 
 local marked_words = {}

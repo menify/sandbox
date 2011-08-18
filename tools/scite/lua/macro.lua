@@ -2,8 +2,8 @@
 
 if scite_Command then -- extman is present!
     scite_Command {
-       'Expand Macro|do_macro|Alt+M',
-       'Macro Select|macro_select|Alt+L',
+       'Expand Macro|do_macro|Alt+m',
+       'Macro Select|macro_select|Alt+l',
     }
 end
 

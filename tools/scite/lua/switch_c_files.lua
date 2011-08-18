@@ -1,6 +1,6 @@
 -- toggles between C++ source files and corresponding header files
 
-scite_Command 'Switch Source/Header|switch_source_header|Alt+K'
+scite_Command 'Switch Source/Header|switch_source_header|Alt+k'
 
 local cpp_exts = {'cpp','cc','cxx','c++','c'}
 local hpp_exts = {'h','hpp', 'hh'}
