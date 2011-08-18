@@ -7,15 +7,14 @@ class Tempfile (object):
     __slots__ = ('__handle','name')
     
     def   __init__(self):
-        self.__handle = tempfile.NamedTemporaryFile( delete = False )
+        self.__handle = tempfile.NamedTemporaryFile( mode = 'w+b', delete = False )
         self.name = self.__handle.name
     
     def   __enter__(self):
-        print( "__enter__" )
         return self
     
     def   __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+        self.__handle.close()
         os.remove( self.name )
     
     def write( self, buffer ):
@@ -29,9 +28,9 @@ class Tempfile (object):
     
     def flush( self ):
         self.__handle.flush()
+    
+    def close( self ):
+        self.__handle.flush()
+        self.__handle.close()
 
-if __name__ == "__main__":
-  
-  with Tempfile() as t:
-      t.write('1234567890\n1234567890'.encode())
-      print ( t.name )
+
