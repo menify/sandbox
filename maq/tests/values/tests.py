@@ -1,62 +1,17 @@
 ﻿import io
 import sys
+import time
+import pickle
 import os.path
 import tempfile
-import pickle
+import unittest
 
 sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..', '..', 'utils') )
 sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..', '..', 'values') )
 
-#~ from aql_logging import logDebug, logError
-#~ from aql_file_value import FileValue, FileName, FileContentChecksum, FileContentTimeStamp
-
-#~ #//===========================================================================//
-
-#~ def   test():
-  #~ with io.BytesIO() as file:
-    #~ with tempfile.NamedTemporaryFile( delete = False ) as temp_file:
-      
-      #~ temp_file.write( '1234567890\n1234567890'.encode() )
-      #~ temp_file.flush()
-      
-      #~ temp_file_name = FileName( temp_file.name )
-      
-      #~ temp_file_value = FileValue( temp_file_name )
-      #~ logDebug( "temp_file_value: %s, %s", temp_file_value, temp_file_value.content )
-      
-      #~ temp_file.close()
-      #~ os.remove( temp_file_name )
-      
-      #~ saver = pickle.Pickler( file, protocol = pickle.HIGHEST_PROTOCOL )
-      #~ saver.dump( ( temp_file_value, ) )
-      
-      #~ file.seek(0)
-      
-      #~ loader = pickle.Unpickler( file )
-      #~ loaded_values = loader.load()
-      #~ value = loaded_values[0]
-      #~ logDebug( "value: %s, %s", value, value.content )
-      
-      #~ new_value = FileValue( value )
-      
-      #~ logDebug( "new_value: %s, %s", new_value, new_value.content )
-      
-      #~ logDebug( "new_value == value: %s", new_value == value )
-      #~ logDebug( "new_value.content == value.content: %s", new_value.content == value.content )
-      #~ logDebug( "value.content == new_value.content: %s", value.content == new_value.content )
-      
-
-#~ if __name__ == "__main__":
-  
-  #~ logError( "test logging" )
-  #~ test()
-
-
-import sys
-import re
-import os.path
-import unittest
-
+from aql_temp_file import Tempfile
+from aql_logging import logDebug, logError
+from aql_file_value import FileValue, FileName, FileContentChecksum, FileContentTimeStamp
 
 #//===========================================================================//
 def _listAllTests( TestCasesClass ):
@@ -190,8 +145,6 @@ class AqlTests(unittest.TestCase):
   #//=======================================================//
   
   def test_temp_file(self):
-    from aql_temp_file import Tempfile
-    
     temp_file_name = None
     
     with Tempfile() as temp_file:
@@ -206,8 +159,6 @@ class AqlTests(unittest.TestCase):
   #//=======================================================//
   
   def test_temp_file_rw(self):
-    from aql_temp_file import Tempfile
-    
     temp_file_name = None
     
     with Tempfile() as temp_file:
@@ -224,7 +175,120 @@ class AqlTests(unittest.TestCase):
         self.assertEqual( test_string,test_string_read )
     
   #//=======================================================//
+  
+  def test_file_value(self):
+    with Tempfile() as temp_file:
+      test_string = '1234567890'
+      
+      temp_file.write( test_string.encode() )
+      temp_file.flush()
 
+      temp_file_value1 = FileValue( temp_file.name )
+      temp_file_value2 = FileValue( temp_file.name )
+      
+      self.assertEqual( temp_file_value1, temp_file_value2 )
+      self.assertEqual( temp_file_value1.content, temp_file_value2.content )
+      
+      reversed_test_string = str(reversed(test_string))
+      temp_file.seek( 0 )
+      temp_file.write( reversed_test_string.encode() )
+      temp_file.flush()
+      
+      temp_file_value2 = FileValue( temp_file_value1 )
+      self.assertEqual( temp_file_value1, temp_file_value2 )
+      self.assertNotEqual( temp_file_value1.content, temp_file_value2.content )
+
+  #//=======================================================//
+  
+  def test_file_value_save_load(self):
+    
+    temp_file_name = None
+    
+    with Tempfile() as temp_file:
+      test_string = '1234567890'
+      
+      temp_file.write( test_string.encode() )
+      temp_file.flush()
+      
+      temp_file_name = temp_file.name
+      
+      temp_file_value = FileValue( temp_file_name )
+      
+    with io.BytesIO() as saved_status:
+      saver = pickle.Pickler( saved_status, protocol = pickle.HIGHEST_PROTOCOL )
+      saver.dump( ( temp_file_value, ) )
+      
+      saved_status.seek(0)
+      
+      loader = pickle.Unpickler( saved_status )
+      loaded_values = loader.load()
+      loaded_file_value = loaded_values[0]
+      
+      self.assertEqual( temp_file_value, loaded_file_value )
+      self.assertEqual( temp_file_value.content, loaded_file_value.content )
+    
+    temp_file_value = FileValue( temp_file_name )
+    self.assertEqual( temp_file_value, loaded_file_value )
+    self.assertNotEqual( temp_file_value.content, loaded_file_value.content )
+    self.assertFalse( temp_file_value.exists() )
+  
+  #//=======================================================//
+  
+  def test_file_value_time(self):
+    with Tempfile() as temp_file:
+      test_string = '1234567890'
+      
+      temp_file.write( test_string.encode() )
+      temp_file.flush()
+
+      temp_file_value1 = FileValue( temp_file.name, FileContentTimeStamp )
+      temp_file_value2 = FileValue( temp_file.name, FileContentTimeStamp )
+      
+      self.assertEqual( temp_file_value1, temp_file_value2 )
+      self.assertEqual( temp_file_value1.content, temp_file_value2.content )
+      
+      time.sleep(1)
+      temp_file.seek( 0 )
+      temp_file.write( test_string.encode() )
+      temp_file.flush()
+      
+      temp_file_value2 = FileValue( temp_file_value1, FileContentTimeStamp )
+      self.assertEqual( temp_file_value1, temp_file_value2 )
+      self.assertNotEqual( temp_file_value1.content, temp_file_value2.content )
+
+  #//=======================================================//
+  
+  def test_file_value_time_save_load(self):
+    
+    temp_file_name = None
+    
+    with Tempfile() as temp_file:
+      test_string = '1234567890'
+      
+      temp_file.write( test_string.encode() )
+      temp_file.flush()
+      
+      temp_file_name = temp_file.name
+      
+      temp_file_value = FileValue( temp_file_name, FileContentTimeStamp )
+      
+    with io.BytesIO() as saved_status:
+      saver = pickle.Pickler( saved_status, protocol = pickle.HIGHEST_PROTOCOL )
+      saver.dump( ( temp_file_value, ) )
+      
+      saved_status.seek(0)
+      
+      loader = pickle.Unpickler( saved_status )
+      loaded_values = loader.load()
+      loaded_file_value = loaded_values[0]
+      
+      self.assertEqual( temp_file_value, loaded_file_value )
+      self.assertEqual( temp_file_value.content, loaded_file_value.content )
+    
+    temp_file_value = FileValue( temp_file_name, FileContentTimeStamp )
+    self.assertEqual( temp_file_value, loaded_file_value )
+    self.assertNotEqual( temp_file_value.content, loaded_file_value.content )
+    self.assertFalse( temp_file_value.exists() )
 
 #//===========================================================================//
 #//===========================================================================//

@@ -24,7 +24,10 @@ class Tempfile (object):
         self.__handle.read( buffer )
     
     def seek( self, offset, whence = os.SEEK_SET ):
-        self.__handle.read( buffer )
+        self.__handle.seek( offset )
+    
+    def tell( self ):
+        return self.__handle.tell()
     
     def flush( self ):
         self.__handle.flush()

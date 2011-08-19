@@ -12,7 +12,7 @@ class   _Unpickling(object):
 
 #//===========================================================================//
 
-class FileContentNotExists( object ):
+class NoFileContent( object ):
     def   __eq__( self, other ):    return False
     def   __ne__( self, other ):    return True
     def   __str__( self ):          return "<Not exists>"
@@ -30,7 +30,7 @@ class   FileContentChecksum (object):
             return super(FileContentChecksum, cls).__new__(cls)
         
         if path is None:
-            return FileContentNotExists()
+            return NoFileContent()
         
         try:
             size = os.stat( path ).st_size
@@ -49,11 +49,15 @@ class   FileContentChecksum (object):
             return self
         
         except OSError:
-            return FileContentNotExists()
+            return NoFileContent()
     
     #//-------------------------------------------------------//
     
-    def   __eq__( self, other ):        return type(self) == type(other) and (self.size == other.size) and (self.checksum == other.checksum)
+    def   __eq__( self, other ):
+        return (type(self) == type(other)) and \
+               (self.size == other.size) and \
+               (self.checksum == other.checksum)
+    
     def   __ne__( self, other ):        return not self.__eq__( other )
     
     def     __getnewargs__(self):       return ( _Unpickling(), )
@@ -75,7 +79,7 @@ class   FileContentTimeStamp (object):
             return super(FileContentTimeStamp, cls).__new__(cls)
         
         if path is None:
-            return FileContentNotExists()
+            return NoFileContent()
         
         try:
             stat = os.stat( path )
@@ -88,7 +92,7 @@ class   FileContentTimeStamp (object):
             return self
         
         except OSError:
-            return FileContentNotExists()
+            return NoFileContent()
 
     #//-------------------------------------------------------//
     
@@ -130,6 +134,9 @@ class   FileValue (Value):
     
     def   __init__( self, name, content = FileContentChecksum ):
         super( FileValue, self ).__init__( name, content )
+    
+    def   exists( self ):
+        return type(self.content) is not NoFileContent
 
 
 #//===========================================================================//
