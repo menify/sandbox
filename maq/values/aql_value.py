@@ -1,4 +1,11 @@
 
+class NoContent( object ):
+    def   __eq__( self, other ):    return False
+    def   __ne__( self, other ):    return True
+    def   __str__( self ):          return "<Not exist>"
+
+#//===========================================================================//
+
 class   Value (object):
     
     __slots__ = ( 'name', 'content' )
@@ -48,4 +55,11 @@ class   Value (object):
     
     #//-------------------------------------------------------//
     
-    def   __str__(self):    return str(self.name)
+    def   __str__(self):
+        return str(self.name)
+    
+    #//-------------------------------------------------------//
+    
+    def   exists( self ):
+        return type(self.content) is not NoContent
+

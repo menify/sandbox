@@ -3,7 +3,7 @@ import os
 import hashlib
 import datetime
 
-from aql_value import Value
+from aql_value import Value, NoContent
 
 #//===========================================================================//
 
@@ -11,11 +11,6 @@ class   _Unpickling(object):
     pass
 
 #//===========================================================================//
-
-class NoFileContent( object ):
-    def   __eq__( self, other ):    return False
-    def   __ne__( self, other ):    return True
-    def   __str__( self ):          return "<Not exists>"
 
 
 #//===========================================================================//
@@ -30,7 +25,7 @@ class   FileContentChecksum (object):
             return super(FileContentChecksum, cls).__new__(cls)
         
         if path is None:
-            return NoFileContent()
+            return NoContent()
         
         try:
             size = os.stat( path ).st_size
@@ -49,7 +44,7 @@ class   FileContentChecksum (object):
             return self
         
         except OSError:
-            return NoFileContent()
+            return NoContent()
     
     #//-------------------------------------------------------//
     
@@ -79,7 +74,7 @@ class   FileContentTimeStamp (object):
             return super(FileContentTimeStamp, cls).__new__(cls)
         
         if path is None:
-            return NoFileContent()
+            return NoContent()
         
         try:
             stat = os.stat( path )
@@ -92,7 +87,7 @@ class   FileContentTimeStamp (object):
             return self
         
         except OSError:
-            return NoFileContent()
+            return NoContent()
 
     #//-------------------------------------------------------//
     
@@ -134,9 +129,6 @@ class   FileValue (Value):
     
     def   __init__( self, name, content = FileContentChecksum ):
         super( FileValue, self ).__init__( name, content )
-    
-    def   exists( self ):
-        return type(self.content) is not NoFileContent
 
 
 #//===========================================================================//
