@@ -7,14 +7,6 @@ from aql_value import Value, NoContent
 
 #//===========================================================================//
 
-class   _Unpickling(object):
-    pass
-
-#//===========================================================================//
-
-
-#//===========================================================================//
-
 class   FileContentChecksum (object):
     
     __slots__ = ( 'size', 'checksum' )
@@ -127,8 +119,22 @@ class   FileName (str):
 
 class   FileValue (Value):
     
-    def   __init__( self, name, content = FileContentChecksum ):
-        super( FileValue, self ).__init__( name, content )
+    def   __init__( self, name, content = None ):
+      if isinstance( name, FileValue ) and (content is None):
+          other = name
+          self.name = other.name
+          self.content = type(other.content)( other.name )
+          
+      else:
+          if content is None:
+            content = FileContentChecksum
+          
+          if type(content) is type:
+              content = content( name )
+          
+          self.name = name
+          self.content = content
+
 
 
 #//===========================================================================//

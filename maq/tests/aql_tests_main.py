@@ -7,13 +7,13 @@ import os.path
 sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..', 'utils') )
 sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), '..', 'values') )
 
-from test_suite import runTests
+from aql_tests import runTests
 from aql_logging import logInfo
 
 #//===========================================================================//
 
 def  _findTestModules():
-  test_case_re = re.compile(r"^test_.+\.py$")
+  test_case_re = re.compile(r"^aql_test_.+\.py$")
   
   test_case_modules = []
   

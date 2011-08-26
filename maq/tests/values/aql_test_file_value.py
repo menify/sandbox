@@ -1,16 +1,14 @@
-﻿import io
-import sys
+﻿import sys
 import time
-import pickle
 import os.path
 
-from test_suite import testcase
+from aql_tests import testcase
 from aql_temp_file import Tempfile
 from aql_file_value import FileValue, FileName, FileContentChecksum, FileContentTimeStamp
-from aql_logging import logDebug, logError
 
 @testcase
 def test_file_value(self):
+  
   with Tempfile() as temp_file:
     test_string = '1234567890'
     
@@ -48,24 +46,13 @@ def test_file_value_save_load(self):
     temp_file_name = temp_file.name
     
     temp_file_value = FileValue( temp_file_name )
-    
-  with io.BytesIO() as saved_status:
-    saver = pickle.Pickler( saved_status, protocol = pickle.HIGHEST_PROTOCOL )
-    saver.dump( ( temp_file_value, ) )
-    
-    saved_status.seek(0)
-    
-    loader = pickle.Unpickler( saved_status )
-    loaded_values = loader.load()
-    loaded_file_value = loaded_values[0]
-    
-    self.assertEqual( temp_file_value, loaded_file_value )
-    self.assertEqual( temp_file_value.content, loaded_file_value.content )
   
-  temp_file_value = FileValue( temp_file_name )
-  self.assertEqual( temp_file_value, loaded_file_value )
-  self.assertNotEqual( temp_file_value.content, loaded_file_value.content )
-  self.assertFalse( temp_file_value.exists() )
+  self.testSaveLoad( temp_file_value )
+  
+  file_value = FileValue( temp_file_name )
+  self.assertEqual( temp_file_value, file_value )
+  self.assertNotEqual( temp_file_value.content, file_value.content )
+  self.assertFalse( file_value.exists() )
 
 #//=======================================================//
 
@@ -109,20 +96,9 @@ def test_file_value_time_save_load(self):
     
     temp_file_value = FileValue( temp_file_name, FileContentTimeStamp )
     
-  with io.BytesIO() as saved_status:
-    saver = pickle.Pickler( saved_status, protocol = pickle.HIGHEST_PROTOCOL )
-    saver.dump( ( temp_file_value, ) )
-    
-    saved_status.seek(0)
-    
-    loader = pickle.Unpickler( saved_status )
-    loaded_values = loader.load()
-    loaded_file_value = loaded_values[0]
-    
-    self.assertEqual( temp_file_value, loaded_file_value )
-    self.assertEqual( temp_file_value.content, loaded_file_value.content )
+  self.testSaveLoad( temp_file_value )
   
-  temp_file_value = FileValue( temp_file_name, FileContentTimeStamp )
-  self.assertEqual( temp_file_value, loaded_file_value )
-  self.assertNotEqual( temp_file_value.content, loaded_file_value.content )
-  self.assertFalse( temp_file_value.exists() )
+  file_value = FileValue( temp_file_name, FileContentTimeStamp )
+  self.assertEqual( temp_file_value, file_value )
+  self.assertNotEqual( temp_file_value.content, file_value.content )
+  self.assertFalse( file_value.exists() )

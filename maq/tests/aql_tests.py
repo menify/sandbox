@@ -1,4 +1,6 @@
-﻿import unittest
+﻿import io
+import pickle
+import unittest
 
 class AqlTests(unittest.TestCase):
   
@@ -36,6 +38,23 @@ class AqlTests(unittest.TestCase):
     print("*" * 64)
   
   #//=======================================================//
+  
+  def testSaveLoad( self, value ):
+    with io.BytesIO() as saved_status:
+      saver = pickle.Pickler( saved_status, protocol = pickle.HIGHEST_PROTOCOL )
+      saver.dump( ( value, ) )
+      
+      saved_status.seek(0)
+      
+      loader = pickle.Unpickler( saved_status )
+      loaded_values = loader.load()
+      loaded_value = loaded_values[0]
+      
+      self.assertEqual( value, loaded_value )
+      self.assertEqual( value.content, loaded_value.content )
+  
+  #//=======================================================//
+  
 
 
 def  testcase( test_case ):
