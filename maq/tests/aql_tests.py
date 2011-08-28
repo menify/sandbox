@@ -2,6 +2,8 @@
 import pickle
 import unittest
 
+from aql_value import NoContent
+
 class AqlTests(unittest.TestCase):
   
   testcases = set()
@@ -51,7 +53,10 @@ class AqlTests(unittest.TestCase):
       loaded_value = loaded_values[0]
       
       self.assertEqual( value, loaded_value )
-      self.assertEqual( value.content, loaded_value.content )
+      if type(value.content) is not NoContent:
+        self.assertEqual( value.content, loaded_value.content )
+      else:
+        self.assertEqual( type(value.content), type(loaded_value.content) )
   
   #//=======================================================//
   

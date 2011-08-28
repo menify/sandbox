@@ -1,6 +1,4 @@
 
-class   Unpickling(object): pass
-
 #//===========================================================================//
 
 class NoContent( object ):
@@ -18,6 +16,7 @@ class   Value (object):
   #//-------------------------------------------------------//
   
   def   __init__( self, name, content = None ):
+    
     if content is None:
       content = NoContent()
     
@@ -54,16 +53,5 @@ class   Value (object):
   
   def   exists( self ):
     return type(self.content) is not NoContent
-
-  #//-------------------------------------------------------//
-  
-  def   update( self ):
-    self.content = type(self.content)( self.content )
   
   #//-------------------------------------------------------//
-  
-  def   __copy__( self ):
-    return type(self)( self.name, self.content )
-  
-  def   __deepcopy__( self ):
-    return type(self)( type(self.name, type(self.content)( self.content ) )

@@ -102,3 +102,16 @@ def test_file_value_time_save_load(self):
   self.assertEqual( temp_file_value, file_value )
   self.assertNotEqual( temp_file_value.content, file_value.content )
   self.assertFalse( file_value.exists() )
+
+#//=======================================================//
+
+@testcase
+def test_file_empty_value_save_load(self):
+  
+  value1 = FileValue('__non_exist_file__')
+  value2 = FileValue( value1, FileContentTimeStamp )
+  
+  self.testSaveLoad( value1 )
+  self.testSaveLoad( value2 )
+
+

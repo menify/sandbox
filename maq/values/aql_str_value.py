@@ -4,7 +4,6 @@ from aql_value import Value
 #//===========================================================================//
 
 StringContent = str
-StringValue = Value
 
 class   StringContentIgnoreCase (str):
     
@@ -13,5 +12,19 @@ class   StringContentIgnoreCase (str):
       (self.lower() == other.lower())
   
   def   __ne__( self, other ):        return not self.__eq__( other )
+
+#//===========================================================================//
+
+class StringValue (Value):
+  def   __init__(self, name, content = None ):
+    if isinstance( name, Value ):
+      other = name
+      name = other.name
+      
+      if content is None:
+        content = other.content
+    
+    super(StringValue, self).__init__( name, content )
+
 
 #//===========================================================================//
