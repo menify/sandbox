@@ -36,7 +36,7 @@ class AqlTests(unittest.TestCase):
     
     print("")
     print( "*" * 64)
-    print("* TestCase:", self.id())
+    print("* TestCase: %s" % self.id() )
     print("*" * 64)
   
   #//=======================================================//
