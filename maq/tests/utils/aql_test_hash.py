@@ -32,10 +32,12 @@ def test_hash(self):
   
   item1 = Item('test', 'value1')
   item2 = Item('test', 'value2')
+  item2_ = Item('test', 'value2')
   item3 = Item('test3', 'value2')
   
   hash.add( item1 )
   hash.add( item2 )
+  hash.add( item2_ )
   hash.add( item3 )
   
   self.assertEqual( len(hash), 3 )
