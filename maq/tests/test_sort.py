@@ -1,3 +1,7 @@
+import bisect
+import random
+import time
+
 class Hash (object):
   
   __slots__ = ('values', 'size', 'seq_num', 'keys')
@@ -84,3 +88,52 @@ class Hash (object):
   
   def   __bool__(self):
     return self.size > 0
+
+#//===========================================================================//
+
+
+class _HashItem(object):
+  __slots__ = ('item', 'key')
+  
+  def  __init__(self, item ):
+    self.item = item
+    self.key = hash(item)
+
+  def   __lt__( self, other):       return self.key <  other.key
+  def   __le__( self, other):       return self.key <= other.key
+  def   __eq__( self, other):       return self.key == other.key
+  def   __ne__( self, other):       return self.key != other.key
+  def   __gt__( self, other):       return self.key >  other.key
+  def   __ge__( self, other):       return self.key >= other.key
+
+
+num_of_values = 100000
+values =[ random.randrange(1000000) for i in range(num_of_values) ]
+item_values = map(_HashItem, values )
+
+bi_list = []
+start_time = time.clock()
+for value in item_values:
+  bisect.insort( bi_list, value )
+elapsed_time = time.clock() - start_time
+
+print ("bisect: %s" % elapsed_time)
+
+sorted_list = []
+start_time = time.clock()
+for value in item_values:
+  sorted_list.append( value )
+
+sorted_list.sort()
+elapsed_time = time.clock() - start_time
+
+print ("list: %s" % elapsed_time)
+
+h = Hash()
+start_time = time.clock()
+for value in values:
+  h.add( value )
+
+elapsed_time = time.clock() - start_time
+
+print ("hash: %s" % elapsed_time)

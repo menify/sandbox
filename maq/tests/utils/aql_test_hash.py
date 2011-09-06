@@ -79,6 +79,8 @@ def test_hash(self):
   
   hash.clear()
   
+  self.assertIsNone( hash.find( item1 ) )
+  self.assertNotIn( item1, hash )
   self.assertEqual( len(hash), 0 )
   self.assertFalse( hash )
   
