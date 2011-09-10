@@ -17,7 +17,7 @@ def  _findTestModules():
   
   test_case_modules = []
   
-  for root, dirs, files in os.walk('.'):
+  for root, dirs, files in os.walk( os.path.dirname( __file__ ) ):
     for file_name in files:
       if test_case_re.match( file_name ):
         test_case_modules.append( os.path.join(root, file_name))

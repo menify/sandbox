@@ -8,14 +8,13 @@ class ItemManager (object):
   #//-------------------------------------------------------//
   
   def   __init__(self, item_type):
-    self.item_type = item_type
     self.hash = Hash()
   
   #//-------------------------------------------------------//
   
-  def   createItem( self, *args, **kw ):
+  def   addItem( self, item ):
     
-    item = self.item_type( *args, **kw )
+    item = self.hash( *args, **kw )
     
     return self.hash.add( item )
   

@@ -1,3 +1,5 @@
+import uuid
+
 class Hash (object):
   
   __slots__ = ('values', 'size', 'seq_num', 'keys')
@@ -8,6 +10,15 @@ class Hash (object):
     self.size = 0
     self.seq_num = 0
     self.keys = {}
+  
+  #//-------------------------------------------------------//
+  
+  def   __genKey(self):
+    key = (self.seq_num, uuid.uuid4())
+    self.seq_num += 1
+    
+    print( "key: %s" % str(key) )
+    return key
   
   #//-------------------------------------------------------//
   
@@ -36,8 +47,7 @@ class Hash (object):
       if value_item == item:
         return value_item, key
     
-    key = self.seq_num
-    self.seq_num += 1
+    key = self.__genKey()
     
     value = (item, key )
     
@@ -52,10 +62,15 @@ class Hash (object):
   
   def   remove(self, item):
     values = self.values.get( hash(item), [] )
+    index = 0
     for value_item, key in values:
       if value_item == item:
-        del values[ item ]
+        del values[ index ]
         del self.keys[ key ]
+        self.size -= 1
+        break
+      
+      index += 1
   
   #//-------------------------------------------------------//
   
