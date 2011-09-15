@@ -16,8 +16,6 @@ class Hash (object):
   def   __genKey(self):
     key = (self.seq_num, uuid.uuid4())
     self.seq_num += 1
-    
-    print( "key: %s" % str(key) )
     return key
   
   #//-------------------------------------------------------//
@@ -40,23 +38,34 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   add(self, item):
-    values = self.values.setdefault( hash(item), [] )
+  def   add(self, item, key = None ):
+    pairs = self.values.setdefault( hash(item), [] )
     
-    for value_item, key in values:
+    index = 0
+    for value_item, value_key in pairs:
       if value_item == item:
-        return value_item, key
+        if key is None:
+          return value_item, value_key
+        else:
+          pairs[ index ] = (item, key)
+          del self.keys[ value_key ]
+          self.keys[ key ] = item
+          return item, key
+      
+      index += 1
     
-    key = self.__genKey()
     
-    value = (item, key )
+    if key is None:
+      key = self.__genKey()
     
-    values.append( value )
+    pair = (item, key)
+    
+    pairs.append( pair )
     self.size += 1
     
     self.keys[ key ] = item
     
-    return value
+    return pair
   
   #//-------------------------------------------------------//
   

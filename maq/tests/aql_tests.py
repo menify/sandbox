@@ -1,5 +1,6 @@
 ﻿import io
 import pickle
+import pickletools
 import unittest
 
 from aql_value import NoContent
@@ -42,14 +43,11 @@ class AqlTests(unittest.TestCase):
   #//=======================================================//
   
   def testSaveLoad( self, value ):
-    with io.BytesIO() as saved_status:
-      saver = pickle.Pickler( saved_status, protocol = pickle.HIGHEST_PROTOCOL )
-      saver.dump( ( value, ) )
       
-      saved_status.seek(0)
+      data = pickle.dumps( ( value, ), protocol = pickle.HIGHEST_PROTOCOL )
+      data = pickletools.optimize( data )
       
-      loader = pickle.Unpickler( saved_status )
-      loaded_values = loader.load()
+      loaded_values = pickle.loads( data )
       loaded_value = loaded_values[0]
       
       self.assertEqual( value, loaded_value )
