@@ -2,16 +2,15 @@ import struct
 
 from aql_hash import Hash
 
-class ValueManager (object):
+class DataFile (object):
   
   __slots__ = ('item_locations', 'hash', 'stream')
   
   #//-------------------------------------------------------//
   
-  def   __init__( self, stream ):
+  def   __init__( self, filename ):
     
-    self.hash = Hash()
-    self.value_locations = {}
+    self.data_locations = {}
     self.size = 0
     self.stream = stream
     self.chunk_struct = struct.Struct(">LL") # big-endian 4 + 4 bytes

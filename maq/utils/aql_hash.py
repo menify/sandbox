@@ -26,7 +26,7 @@ class Hash (object):
       if value_item == item:
         return value_item, key
     
-    return None, -1
+    return None, None
   
   #//-------------------------------------------------------//
   
