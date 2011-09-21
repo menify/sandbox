@@ -61,9 +61,9 @@ class DataFile (object):
   
   def  __load( self, filename ):
     if os.path.isfile( filename ):
-      self.stream = open( filename, 'r+b' )
+      self.stream = open( filename, 'r+b', 0 )
     else:
-      self.stream = open( filename, 'w+b' )
+      self.stream = open( filename, 'w+b', 0 )
     
     self.file_size = self.stream.seek( 0, os.SEEK_END )
     self.stream.seek( 0 )
@@ -87,7 +87,7 @@ class DataFile (object):
     data_size = len(data)
     
     if reserved_data_size is None:
-      reserved_data_size = data_size + data_size // 2
+      reserved_data_size = max( 16, data_size + data_size // 2 )
     
     header = self.header_struct.pack( reserved_data_size, data_size )
     
@@ -104,13 +104,18 @@ class DataFile (object):
   
   def   __moveBack( self, offset, reserved_data_size, chunk, new_reserved_data_size ):
     shift_size = self.header_size + reserved_data_size
+    #~ print("shift_size: %s" % shift_size )
     rest_offset = offset + shift_size
     rest_data_size = self.file_size - rest_offset
     
+    #~ print("rest_offset: %s" % rest_offset )
+    #~ print("rest_data_size: %s" % rest_data_size )
+    
     rest_chunks = self.__readBytes( rest_offset, rest_data_size )
+    rest_chunks = rest_chunks + bytearray( rest_data_size - len(rest_chunks) )
     
     if chunk is None:
-      chunk = bytes()
+      chunk = bytearray()
       new_reserved_data_size = 0
     
     self.__writeBytes( offset, rest_chunks + chunk )
@@ -133,8 +138,13 @@ class DataFile (object):
   def   __setitem__(self, key, data ):
     
     location = self.locations[ key ]
+    
+    #~ print("location: %s" % location )
+    
     offset, reserved_data_size, data_size = location
     new_data_size = len(data)
+    
+    #~ print("new_data_size: %s" % new_data_size )
     
     if new_data_size <= reserved_data_size:
       reserved_data_size, chunk = self.__chunkData( data, reserved_data_size )
@@ -145,9 +155,12 @@ class DataFile (object):
       
     else:
       new_reserved_data_size, chunk = self.__chunkData( data )
+      #~ print("new_reserved_data_size: %s" % new_reserved_data_size )
       new_offset = self.__moveBack( offset, reserved_data_size, chunk, new_reserved_data_size )
+      #~ print("new_offset: %s" % new_offset )
       
       location[:] = [ new_offset, new_reserved_data_size, new_data_size ]
+      #~ print("new location: %s" % location )
   
   #//-------------------------------------------------------//
   
@@ -178,10 +191,14 @@ class DataFile (object):
   
   def append( self, data ):
     reserved_data_size, chunk = self.__chunkData( data )
+    
     offset = self.file_size
     self.__writeBytes( offset, chunk )
     
-    self.file_size += reserved_data_size
+    self.file_size += reserved_data_size + self.header_size
     
     location = [ offset, reserved_data_size, len(data) ]
+    #~ print("location: %s" % location )
+    #~ print("file_size: %s" % self.file_size )
+    #~ print("real file_size: %s" % self.stream.tell() )
     self.locations.append( location )

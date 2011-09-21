@@ -36,5 +36,8 @@ class Tempfile (object):
     
     def remove( self ):
         self.__handle.close()
-        os.remove( self.name )
+        try:
+          os.remove( self.name )
+        except OSError:
+            pass
 
