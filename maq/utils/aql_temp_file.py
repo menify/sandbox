@@ -14,8 +14,7 @@ class Tempfile (object):
         return self
     
     def   __exit__(self, exc_type, exc_value, traceback):
-        self.__handle.close()
-        os.remove( self.name )
+        self.remove()
     
     def write( self, buffer ):
         self.__handle.write( buffer )
@@ -33,7 +32,9 @@ class Tempfile (object):
         self.__handle.flush()
     
     def close( self ):
-        self.__handle.flush()
         self.__handle.close()
-
+    
+    def remove( self ):
+        self.__handle.close()
+        os.remove( self.name )
 

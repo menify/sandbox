@@ -1,151 +1,187 @@
+import os
 import struct
-
-from aql_hash import Hash
 
 class DataFile (object):
   
-  __slots__ = ('item_locations', 'hash', 'stream')
+  __slots__ = ('locations', 'file_size', 'stream', 'header_struct', 'header_size' )
   
   #//-------------------------------------------------------//
   
   def   __init__( self, filename ):
     
-    self.data_locations = {}
-    self.size = 0
-    self.stream = stream
-    self.chunk_struct = struct.Struct(">LL") # big-endian 4 + 4 bytes
-    self.reserved_data_size_mul = 1.5
+    self.locations = []
+    self.file_size = 0
+    self.header_struct = struct.Struct(">LL") # big-endian 4 + 4 bytes
+    self.header_size = self.header_struct.size
+    
+    self.__load( filename )
   
   #//-------------------------------------------------------//
   
-  def   __chunkData( self, data, reserved_data_size = None )
+  def   close(self):
+    self.stream.close()
+  
+  #//-------------------------------------------------------//
+  
+  def   __del__(self):
+    self.stream.close()
+  
+  #//-------------------------------------------------------//
+  
+  def   __readHeader( self ):
+    header = self.stream.read( self.header_size )
+    if len(header) != self.header_size:
+      return 0, 0
+    
+    reserved_data_size, data_size = self.header_struct.unpack( header )
+    if reserved_data_size < data_size:
+      raise AssertionError( "Invalid file format" )
+    
+    return reserved_data_size, data_size
+  
+  #//-------------------------------------------------------//
+  
+  def   __readData( self, offset, data_size ):
+    self.stream.seek( offset + self.header_size )
+    return self.stream.read( data_size )
+  
+  #//-------------------------------------------------------//
+  
+  def   __readBytes( self, offset, data_size ):
+    self.stream.seek( offset )
+    return self.stream.read( data_size )
+  
+  #//-------------------------------------------------------//
+  
+  def   __writeBytes( self, offset, data ):
+    self.stream.seek( offset )
+    self.stream.write( data )
+  
+  #//-------------------------------------------------------//
+  
+  def  __load( self, filename ):
+    if os.path.isfile( filename ):
+      self.stream = open( filename, 'r+b' )
+    else:
+      self.stream = open( filename, 'w+b' )
+    
+    self.file_size = self.stream.seek( 0, os.SEEK_END )
+    self.stream.seek( 0 )
+    
+    offset = 0
+    
+    while True:
+      reserved_data_size, data_size = self.__readHeader()
+      if not reserved_data_size:
+        break
+      
+      self.locations.append( [ offset, reserved_data_size, data_size ] )
+      offset += self.header_size + reserved_data_size
+      self.stream.seek( offset )
+    
+    self.file_size = offset
+  
+  #//-------------------------------------------------------//
+  
+  def   __chunkData( self, data, reserved_data_size = None ):
     data_size = len(data)
     
     if reserved_data_size is None:
       reserved_data_size = data_size + data_size // 2
     
-    elif reserved_data_size < data_size:
-      raise AssertionError( "Invalid file format")
+    header = self.header_struct.pack( reserved_data_size, data_size )
     
-    chunk_header = self.chunk_struct.pack( reserved_data_size, data_size )
-    return chunk_header + data, reserved_data_size
+    return reserved_data_size, header + data
   
   #//-------------------------------------------------------//
   
-  def   __writeChunk( self, offset, data, reserved_data_size = None)
-    chunk_data, reserved_data_size = self.__chunkData( data, reserved_data_size )
-    self.stream.seek( offeset )
-    self.stream.write( chunk_data )
-    return reserved_data_size
-  
-  #//-------------------------------------------------------//
-  
-  def   __readChunk( self )
-    chunk_header = self.stream.read( self.chunk_struct.size )
-    reserved_data_size, data_size = self.chunk_struct.unpack( chunk_header )
-    if reserved_data_size < data_size:
-      raise AssertionError( "Invalid file format")
-    
-    data = self.stream.read( data_size )
-    self.stream.seek( reserved_data_size - data_size, os.SEEK_CUR )
-    
-    return data, reserved_data_size
-  
-  #//-------------------------------------------------------//
-  
-  def   __resizeChunk( self, chunk_offset, reserved_data_size, data ):
-    
-    chunk_data, new_reserved_data_size = self.__chunkData( data )
-    
-    stream = self.stream
-    
-    next_chunk_offset = chuck_offset + reserved_data_size + self.chunk_struct.size
-    rest_data_size = stream.seek( 0, os.SEEK_END ) - next_chunk_offset
-    
-    stream.seek( next_chunk_offset )
-    rest_data = stream.read( rest_data_size )
-    
-    stream.seek( chuck_offset )
-    stream.write( rest_data + chunk )
-    
-    return new_reserved_data_size
-  
-  #//-------------------------------------------------------//
-  
-  def   __extendLocations( self, start_offset, extend_size ):
-    for key, location in self.value_locations.items():
+  def   __moveLocations( self, start_offset, shift_size ):
+    for location in self.locations:
       if location[0] > start_offset:
-        self.value_locations[ key ] = [ location[0] + extend_size, location[1] ]
+        location[0] += shift_size
   
   #//-------------------------------------------------------//
   
-  def   __extend(self, location, data_size ):
-    chuck_offset, chunk_size = location
+  def   __moveBack( self, offset, reserved_data_size, chunk, new_reserved_data_size ):
+    shift_size = self.header_size + reserved_data_size
+    rest_offset = offset + shift_size
+    rest_data_size = self.file_size - rest_offset
     
-    if chunk_size < (data_size + self.prefix_size):
-      new_chunk_size = self.__newChunkSize( data_size )
-      chunk_size_delta = new_chunk_size - chunk_size
-      
-      next_chunk_offset = chuck_offset + chunk_size
-      new_next_chunk_offset = next_chunk_offset + chunk_size_delta
-      
-      rest_data_size = self.size - next_chunk_offset
-      
-      self.size += chunk_size_delta
-      
-      location[1] = new_chunk_size
-      
-      if rest_data_size > 0:
-        self.__moveData( next_chunk_offset, new_next_chunk_offset, rest_data_size )
-        self.__extendLocations( chuck_offset, chunk_size_delta )
+    rest_chunks = self.__readBytes( rest_offset, rest_data_size )
+    
+    if chunk is None:
+      chunk = bytes()
+      new_reserved_data_size = 0
+    
+    self.__writeBytes( offset, rest_chunks + chunk )
+    
+    self.__moveLocations( offset, -shift_size )
+    
+    self.file_size = offset + rest_data_size + new_reserved_data_size
+    
+    new_offset = offset + rest_data_size
+    return new_offset
   
   #//-------------------------------------------------------//
   
-  def   __saveValue( self, value, key ):
-    data = pickle.dumps( ( key, value ), protocol = pickle.HIGHEST_PROTOCOL )
-    data = pickletools.optimize( data )
-    
-    data_size = len(data)
-    
-    location = self.value_locations.setdefault( key, [-1,0 ] )
-    chuck_offset, chunk_size = location
-    if chunk_offset == -1:
-      chunk_size = self.__newChunkSize( data_size )
-      chunk_offset = self.size
-      self.size += chunk_size
-      location[:] = [ chunk_offset, chunk_size ]
-    
-    self.__extend( location, data_size )
-    
-    self.__writeData( chuck_offset, data )
-    
+  def   __getitem__(self, key ):
+    offset, reserved_data_size, data_size = self.locations[ key ]
+    return self.__readData( offset, data_size )
   
   #//-------------------------------------------------------//
   
-  def   add( self, value ):
+  def   __setitem__(self, key, data ):
     
-    value, key = self.hash.add( value )
-    self.__saveValue( value, key )
-    return value
-  
-  #//-------------------------------------------------------//
-  
-  def   save( self, values = None ):
+    location = self.locations[ key ]
+    offset, reserved_data_size, data_size = location
+    new_data_size = len(data)
     
-    if values is None:
-      for value, key in self.hash:
-        self.__saveValue( value, key )
+    if new_data_size <= reserved_data_size:
+      reserved_data_size, chunk = self.__chunkData( data, reserved_data_size )
+      
+      self.__writeBytes( offset, chunk )
+      
+      location[2] = new_data_size
+      
     else:
-      try:
-        values = iter(values)
-      except TypeError:
-        values = (values, )
+      new_reserved_data_size, chunk = self.__chunkData( data )
+      new_offset = self.__moveBack( offset, reserved_data_size, chunk, new_reserved_data_size )
       
-      for value in values:
-        self.add( value )
+      location[:] = [ new_offset, new_reserved_data_size, new_data_size ]
   
   #//-------------------------------------------------------//
   
-  def   load( self, filename ):
-    stream = open( filename, "r+b" )
+  def   __delitem__(self, key):
+    offset, reserved_data_size, data_size = self.locations[ key ]
+    self.__moveBack( offset, reserved_data_size, None, 0 )
     
+    del self.locations[ key ]
+    
+  
+  #//-------------------------------------------------------//
+  
+  def   __len__(self):
+    return len( self.locations )
+  
+  #//-------------------------------------------------------//
+  
+  def   __nonzero__(self):
+    return self.locations.__nonzero__()
+  
+  #//-------------------------------------------------------//
+  
+  def   __iter__(self):
+    for offset, reserved_data_size, data_size in self.locations:
+      yield self.__readData( offset, data_size )
+  
+  #//-------------------------------------------------------//
+  
+  def append( self, data ):
+    reserved_data_size, chunk = self.__chunkData( data )
+    offset = self.file_size
+    self.__writeBytes( offset, chunk )
+    
+    self.file_size += reserved_data_size
+    
+    location = [ offset, reserved_data_size, len(data) ]
+    self.locations.append( location )

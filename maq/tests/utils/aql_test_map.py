@@ -1,7 +1,7 @@
 import random
 import time
 
-from aql_tests import testcase
+from aql_tests import testcase, skip
 from aql_map import AvlMap
 from aql_temp_file import Tempfile
 
@@ -32,6 +32,7 @@ class Item (object):
 
 #//===========================================================================//
 
+@skip
 @testcase
 def test_map(self):
   with Tempfile() as temp_file:
