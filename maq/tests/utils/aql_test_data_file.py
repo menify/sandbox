@@ -39,7 +39,7 @@ def test_data_file(self):
   with Tempfile() as tmp:
     tmp.remove()
     
-    data_list = generateDataList( 3000, 3000, 7, 57 )
+    data_list = generateDataList( 5000, 5000, 7, 57 )
     
     df = DataFile( tmp.name )
     
@@ -54,9 +54,44 @@ def test_data_file(self):
     
     self.assertEqual( data_list, list( df ) )
     
+    #//-------------------------------------------------------//
+    
     data_list = generateDataList( len(data_list), len(data_list), 77, 157 )
     
     for i in range(0, len(data_list)):
+      df[i] = data_list[i]
+    
+    self.assertEqual( data_list, list( df ) )
+    
+    #//-------------------------------------------------------//
+    
+    data_list = generateDataList( len(data_list), len(data_list), 157, 257 )
+    
+    indexes = list( range(0, len(data_list) ) )
+    random.shuffle( indexes )
+    for i in indexes:
+      df[i] = data_list[i]
+    
+    self.assertEqual( data_list, list( df ) )
+    
+    #//-------------------------------------------------------//
+    
+    data_list = generateDataList( len(data_list), len(data_list), 150, 200 )
+    
+    indexes = list( range(0, len(data_list) ) )
+    random.shuffle( indexes )
+    for i in indexes:
+      df[i] = data_list[i]
+    
+    self.assertEqual( data_list, list( df ) )
+    
+    #//-------------------------------------------------------//
+    
+    data_list = generateDataList( len(data_list), len(data_list), 1570, 2570 )
+    
+    indexes = list( range(0, len(data_list) ) )
+    random.shuffle( indexes )
+    for i in indexes:
       df[i] = data_list[i]
     
     self.assertEqual( data_list, list( df ) )

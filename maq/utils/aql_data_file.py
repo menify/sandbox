@@ -65,9 +65,6 @@ class DataFile (object):
     else:
       self.stream = open( filename, 'w+b', 0 )
     
-    self.file_size = self.stream.seek( 0, os.SEEK_END )
-    self.stream.seek( 0 )
-    
     offset = 0
     
     while True:
@@ -96,13 +93,19 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __moveLocations( self, start_offset, shift_size ):
+    #~ print("shift_size: %s" % shift_size )
     for location in self.locations:
       if location[0] > start_offset:
         location[0] += shift_size
+        #~ print("shifted location: %s" % location )
   
   #//-------------------------------------------------------//
   
   def   __moveBack( self, offset, reserved_data_size, chunk, new_reserved_data_size ):
+    #~ print("offset: %s" % offset )
+    #~ print("reserved_data_size: %s" % reserved_data_size )
+    #~ print("new_reserved_data_size: %s" % new_reserved_data_size )
+    
     shift_size = self.header_size + reserved_data_size
     #~ print("shift_size: %s" % shift_size )
     rest_offset = offset + shift_size
@@ -122,7 +125,7 @@ class DataFile (object):
     
     self.__moveLocations( offset, -shift_size )
     
-    self.file_size = offset + rest_data_size + new_reserved_data_size
+    self.file_size += new_reserved_data_size - reserved_data_size
     
     new_offset = offset + rest_data_size
     return new_offset
@@ -139,7 +142,7 @@ class DataFile (object):
     
     location = self.locations[ key ]
     
-    #~ print("location: %s" % location )
+    #~ print("location[%s]: %s" % (key, location ) )
     
     offset, reserved_data_size, data_size = location
     new_data_size = len(data)
