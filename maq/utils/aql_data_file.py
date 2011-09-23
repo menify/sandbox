@@ -116,13 +116,14 @@ class DataFile (object):
       new_reserved_data_size = -self.header_size
     
     written_bytes_size = self.__writeBytes( offset, rest_chunks + chunk )
-    if new_reserved_data_size < reserved_data_size:
-      self.stream.truncate( offset + written_bytes_size )
     
     self.__moveLocations( offset, -shift_size )
     
     reserved_data_size_delta = new_reserved_data_size - reserved_data_size
     self.file_size += reserved_data_size_delta
+    
+    if new_reserved_data_size < reserved_data_size:
+      self.stream.truncate( offset + written_bytes_size )
     
     new_offset = offset + rest_data_size
     return new_offset
@@ -211,12 +212,18 @@ class DataFile (object):
       raise AssertionError("file_size != self.file_size")
     
     sorted_locations.sort()
-    last_offset, last_reserved_data_size, last_data_size = sorted_locations[-1]
     
-    real_file_size = self.stream.seek( 0, os.SEEK_END ) + (last_reserved_data_size - last_data_size)
+    real_file_size = self.stream.seek( 0, os.SEEK_END )
+    if sorted_locations:
+      last_offset, last_reserved_data_size, last_data_size = sorted_locations[-1]
+      total_reserved_size = real_file_size + (last_reserved_data_size - last_data_size)
     
-    if file_size != real_file_size:
-      raise AssertionError("file_size != real_file_size")
+      if (file_size != real_file_size) and (total_reserved_size != file_size):
+        raise AssertionError("file_size != real_file_size")
+    
+    else:
+      if file_size != real_file_size:
+        raise AssertionError("file_size != real_file_size")
     
     prev_offset = 0
     prev_reserved_data_size = -self.header_size
