@@ -39,7 +39,7 @@ def test_data_file(self):
   with Tempfile() as tmp:
     tmp.remove()
     
-    data_list = generateDataList( 5000, 5000, 7, 57 )
+    data_list = generateDataList( 50, 50, 7, 57 )
     
     df = DataFile( tmp.name )
     
@@ -48,11 +48,14 @@ def test_data_file(self):
     
     self.assertEqual( data_list, list( df ) )
     
+    df.selfTest()
+    
     df.close()
     
     df = DataFile( tmp.name )
     
     self.assertEqual( data_list, list( df ) )
+    df.selfTest()
     
     #//-------------------------------------------------------//
     
@@ -62,6 +65,19 @@ def test_data_file(self):
       df[i] = data_list[i]
     
     self.assertEqual( data_list, list( df ) )
+    df.selfTest()
+    
+    #//-------------------------------------------------------//
+    
+    del df[len(df) - 1]
+    del data_list[len(data_list) - 1]
+    
+    df.selfTest()
+    
+    del df[len(df) // 2]
+    del data_list[len(data_list) // 2]
+    
+    df.selfTest()
     
     #//-------------------------------------------------------//
     
@@ -73,6 +89,19 @@ def test_data_file(self):
       df[i] = data_list[i]
     
     self.assertEqual( data_list, list( df ) )
+    df.selfTest()
+    
+    #//-------------------------------------------------------//
+    
+    del df[len(df) - 1]
+    del data_list[len(data_list) - 1]
+    
+    df.selfTest()
+    
+    del df[len(df) // 2]
+    del data_list[len(data_list) // 2]
+    
+    df.selfTest()
     
     #//-------------------------------------------------------//
     
@@ -84,6 +113,19 @@ def test_data_file(self):
       df[i] = data_list[i]
     
     self.assertEqual( data_list, list( df ) )
+    df.selfTest()
+    
+    #//-------------------------------------------------------//
+    
+    del df[len(df) - 1]
+    del data_list[len(data_list) - 1]
+    
+    df.selfTest()
+    
+    del df[len(df) // 2]
+    del data_list[len(data_list) // 2]
+    
+    df.selfTest()
     
     #//-------------------------------------------------------//
     
@@ -95,6 +137,27 @@ def test_data_file(self):
       df[i] = data_list[i]
     
     self.assertEqual( data_list, list( df ) )
+    df.selfTest()
+    
+    #//-------------------------------------------------------//
+    
+    del df[len(df) - 1]
+    del data_list[len(data_list) - 1]
+    
+    df.selfTest()
+    
+    del df[len(df) // 2]
+    del data_list[len(data_list) // 2]
+    
+    self.assertEqual( data_list, list( df ) )
+    df.selfTest()
+    
+    for i in range(0, len(df) ):
+      del df[0]
+    
+    self.assertEqual( len( df ), 0 )
+    self.assertFalse( df )
+    df.selfTest()
 
 
 #//===========================================================================//

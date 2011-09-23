@@ -55,7 +55,7 @@ class DataFile (object):
   
   def   __writeBytes( self, offset, data ):
     self.stream.seek( offset )
-    self.stream.write( data )
+    return self.stream.write( data )
   
   #//-------------------------------------------------------//
   
@@ -93,39 +93,36 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __moveLocations( self, start_offset, shift_size ):
-    #~ print("shift_size: %s" % shift_size )
     for location in self.locations:
       if location[0] > start_offset:
         location[0] += shift_size
-        #~ print("shifted location: %s" % location )
   
   #//-------------------------------------------------------//
   
-  def   __moveBack( self, offset, reserved_data_size, chunk, new_reserved_data_size ):
-    #~ print("offset: %s" % offset )
-    #~ print("reserved_data_size: %s" % reserved_data_size )
-    #~ print("new_reserved_data_size: %s" % new_reserved_data_size )
-    
+  def   __resizeChunk( self, offset, reserved_data_size, chunk, new_reserved_data_size ):
     shift_size = self.header_size + reserved_data_size
-    #~ print("shift_size: %s" % shift_size )
     rest_offset = offset + shift_size
     rest_data_size = self.file_size - rest_offset
     
-    #~ print("rest_offset: %s" % rest_offset )
-    #~ print("rest_data_size: %s" % rest_data_size )
-    
     rest_chunks = self.__readBytes( rest_offset, rest_data_size )
-    rest_chunks = rest_chunks + bytearray( rest_data_size - len(rest_chunks) )
     
-    if chunk is None:
+    rest_data_delta = rest_data_size - len(rest_chunks)
+    
+    if chunk is not None:
+      rest_chunks = rest_chunks + bytearray( rest_data_delta )
+    
+    else:
       chunk = bytearray()
-      new_reserved_data_size = 0
+      new_reserved_data_size = -self.header_size
     
-    self.__writeBytes( offset, rest_chunks + chunk )
+    written_bytes_size = self.__writeBytes( offset, rest_chunks + chunk )
+    if new_reserved_data_size < reserved_data_size:
+      self.stream.truncate( offset + written_bytes_size )
     
     self.__moveLocations( offset, -shift_size )
     
-    self.file_size += new_reserved_data_size - reserved_data_size
+    reserved_data_size_delta = new_reserved_data_size - reserved_data_size
+    self.file_size += reserved_data_size_delta
     
     new_offset = offset + rest_data_size
     return new_offset
@@ -142,12 +139,8 @@ class DataFile (object):
     
     location = self.locations[ key ]
     
-    #~ print("location[%s]: %s" % (key, location ) )
-    
     offset, reserved_data_size, data_size = location
     new_data_size = len(data)
-    
-    #~ print("new_data_size: %s" % new_data_size )
     
     if new_data_size <= reserved_data_size:
       reserved_data_size, chunk = self.__chunkData( data, reserved_data_size )
@@ -158,18 +151,15 @@ class DataFile (object):
       
     else:
       new_reserved_data_size, chunk = self.__chunkData( data )
-      #~ print("new_reserved_data_size: %s" % new_reserved_data_size )
-      new_offset = self.__moveBack( offset, reserved_data_size, chunk, new_reserved_data_size )
-      #~ print("new_offset: %s" % new_offset )
+      new_offset = self.__resizeChunk( offset, reserved_data_size, chunk, new_reserved_data_size )
       
       location[:] = [ new_offset, new_reserved_data_size, new_data_size ]
-      #~ print("new location: %s" % location )
   
   #//-------------------------------------------------------//
   
   def   __delitem__(self, key):
     offset, reserved_data_size, data_size = self.locations[ key ]
-    self.__moveBack( offset, reserved_data_size, None, 0 )
+    self.__resizeChunk( offset, reserved_data_size, None, 0 )
     
     del self.locations[ key ]
     
@@ -201,7 +191,37 @@ class DataFile (object):
     self.file_size += reserved_data_size + self.header_size
     
     location = [ offset, reserved_data_size, len(data) ]
-    #~ print("location: %s" % location )
-    #~ print("file_size: %s" % self.file_size )
-    #~ print("real file_size: %s" % self.stream.tell() )
     self.locations.append( location )
+  
+  #//-------------------------------------------------------//
+  
+  def   selfTest( self ):
+    file_size = 0
+    
+    sorted_locations = []
+    
+    for offset, reserved_data_size, data_size in self.locations:
+      if reserved_data_size < data_size:
+        raise AssertionError("reserved_data_size < data_size")
+      
+      sorted_locations.append( (offset, reserved_data_size, data_size) )
+      file_size += self.header_size + reserved_data_size
+      
+    if file_size != self.file_size:
+      raise AssertionError("file_size != self.file_size")
+    
+    sorted_locations.sort()
+    last_offset, last_reserved_data_size, last_data_size = sorted_locations[-1]
+    
+    real_file_size = self.stream.seek( 0, os.SEEK_END ) + (last_reserved_data_size - last_data_size)
+    
+    if file_size != real_file_size:
+      raise AssertionError("file_size != real_file_size")
+    
+    prev_offset = 0
+    prev_reserved_data_size = -self.header_size
+    for offset, reserved_data_size, data_size in sorted_locations:
+      if (prev_offset + prev_reserved_data_size + self.header_size) > offset:
+        raise AssertionError("(prev_offset + prev_reserved_data_size + self.header_size) > offset")
+      prev_offset = offset
+      prev_reserved_data_size = reserved_data_size
