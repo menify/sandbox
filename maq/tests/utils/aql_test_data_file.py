@@ -57,6 +57,24 @@ def test_data_file(self):
     self.assertEqual( data_list, list( df ) )
     df.selfTest()
     
+    df[-1] = bytearray( len(df[-1]) // 2 )
+    df.selfTest()
+    
+    df[0] = bytearray( len(df[0]) // 2 )
+    df.selfTest()
+    
+    df[2] = bytearray( len(df[2]) // 2 )
+    df.selfTest()
+    
+    df[-1] = bytearray( len(df[-1]) * 8 )
+    df.selfTest()
+    
+    df[0] = bytearray( len(df[0]) * 8 )
+    df.selfTest()
+    
+    df[2] = bytearray( len(df[2]) * 8 )
+    df.selfTest()
+    
     #//-------------------------------------------------------//
     
     data_list = generateDataList( len(data_list), len(data_list), 77, 157 )
@@ -69,8 +87,8 @@ def test_data_file(self):
     
     #//-------------------------------------------------------//
     
-    del df[len(df) - 1]
-    del data_list[len(data_list) - 1]
+    del df[-1]
+    del data_list[-1]
     
     df.selfTest()
     
@@ -93,8 +111,8 @@ def test_data_file(self):
     
     #//-------------------------------------------------------//
     
-    del df[len(df) - 1]
-    del data_list[len(data_list) - 1]
+    del df[-1]
+    del data_list[-1]
     
     df.selfTest()
     
@@ -117,8 +135,8 @@ def test_data_file(self):
     
     #//-------------------------------------------------------//
     
-    del df[len(df) - 1]
-    del data_list[len(data_list) - 1]
+    del df[-1]
+    del data_list[-1]
     
     df.selfTest()
     
@@ -141,8 +159,13 @@ def test_data_file(self):
     
     #//-------------------------------------------------------//
     
-    del df[len(df) - 1]
-    del data_list[len(data_list) - 1]
+    del df[0]
+    del data_list[0]
+    
+    df.selfTest()
+    
+    del df[-1]
+    del data_list[-1]
     
     df.selfTest()
     

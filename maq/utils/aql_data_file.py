@@ -149,7 +149,7 @@ class DataFile (object):
       self.__writeBytes( offset, chunk )
       
       location[2] = new_data_size
-      
+    
     else:
       new_reserved_data_size, chunk = self.__chunkData( data )
       new_offset = self.__resizeChunk( offset, reserved_data_size, chunk, new_reserved_data_size )
@@ -163,7 +163,6 @@ class DataFile (object):
     self.__resizeChunk( offset, reserved_data_size, None, 0 )
     
     del self.locations[ key ]
-    
   
   #//-------------------------------------------------------//
   
@@ -218,8 +217,8 @@ class DataFile (object):
       last_offset, last_reserved_data_size, last_data_size = sorted_locations[-1]
       total_reserved_size = real_file_size + (last_reserved_data_size - last_data_size)
     
-      if (file_size != real_file_size) and (total_reserved_size != file_size):
-        raise AssertionError("file_size != real_file_size")
+      if (file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)):
+        raise AssertionError("(file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)")
     
     else:
       if file_size != real_file_size:

@@ -1,10 +1,12 @@
+
 import struct
 
 from aql_hash import Hash
+from aql_data_file import DataFile
 
 class ValueManager (object):
   
-  __slots__ = ('item_locations', 'hash', 'stream')
+  __slots__ = ('data_file', 'hash')
   
   #//-------------------------------------------------------//
   
