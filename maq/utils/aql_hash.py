@@ -30,33 +30,74 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   findByKey(self, key):
-    try:
-      return self.keys[ key ]
-    except KeyError:
-      return None
+  def   __getitem__(self, key):
+    return self.keys[ key ]
   
   #//-------------------------------------------------------//
   
-  def   add(self, item, key = None ):
+  @staticmethod
+  def   __findItem( pairs, item ):
+    index = 0
+    for value_item, value_key in pairs:
+      if value_item == item:
+        return index, value_item, value_key
+    
+    return -1, None, None
+    
+  #//-------------------------------------------------------//
+  
+  def   __setitem__(self, key, item ):
+    
+    pairs = self.values.setdefault( hash(item), [] )
+    index = self.__findItem( item )[0]
+    if index != -1:
+        pairs[ index ] = (item, key)
+        del self.keys[ value_key ]
+        self.keys[ key ] = item
+    
+      index += 1
+    
+    pair = (item, key)
+    
+    pairs.append( pair )
+    self.size += 1
+    
+    self.keys[ key ] = item
+  
+  #//-------------------------------------------------------//
+  
+  def   __delitem__(self, key ):
+    
+    item = self.keys[ key ]
+    
+    pairs = self.values[ hash(item) ]
+    index = 0
+    for value_item, value_key in pairs:
+      if value_item == item:
+        del pairs[ index ] = (item, key)
+        del self.keys[ value_key ]
+        self.keys[ key ] = item
+    
+      index += 1
+    
+    pair = (item, key)
+    
+    pairs.append( pair )
+    self.size += 1
+    
+    self.keys[ key ] = item
+  
+  #//-------------------------------------------------------//
+  
+  def   add( self, item ):
     pairs = self.values.setdefault( hash(item), [] )
     
     index = 0
     for value_item, value_key in pairs:
       if value_item == item:
-        if key is None:
           return value_item, value_key
-        else:
-          pairs[ index ] = (item, key)
-          del self.keys[ value_key ]
-          self.keys[ key ] = item
-          return item, key
-      
-      index += 1
     
-    
-    if key is None:
-      key = self.__genKey()
+    key = self.__genKey()
     
     pair = (item, key)
     

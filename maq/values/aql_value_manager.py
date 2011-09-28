@@ -1,41 +1,67 @@
 
-import struct
+import pickle
+import pickletools
 
 from aql_hash import Hash
 from aql_data_file import DataFile
 
 class ValueManager (object):
   
-  __slots__ = ('data_file', 'hash')
+  __slots__ = ('data_file', 'hash', 'locations' )
   
   #//-------------------------------------------------------//
   
-  def   __init__( self, stream ):
-    
+  def   __init__( self, filename ):
     self.hash = Hash()
-    self.value_locations = {}
-    self.size = 0
-    self.stream = stream
-    self.chunk_struct = struct.Struct(">LL") # big-endian 4 + 4 bytes
-    self.reserved_data_size_mul = 1.5
+    self.locations = {}
   
   #//-------------------------------------------------------//
   
-  def   __chunkData( self, data, reserved_data_size = None )
-    data_size = len(data)
+  def   __load( self, filename )
+    self.data_file = DataFile( filename )
     
-    if reserved_data_size is None:
-      reserved_data_size = data_size + data_size // 2
-    
-    elif reserved_data_size < data_size:
-      raise AssertionError( "Invalid file format")
-    
-    chunk_header = self.chunk_struct.pack( reserved_data_size, data_size )
-    return chunk_header + data, reserved_data_size
+    index = 0
+    for data in self.data_file:
+      key, value = pickle.loads( data )
+      self.locations[ key ] = index
+      self.hash.add( value, key )
   
   #//-------------------------------------------------------//
   
-  def   __writeChunk( self, offset, data, reserved_data_size = None)
+  def   find(self, item):
+    return self.hash.find( item )
+    return value, key
+  
+  #//-------------------------------------------------------//
+  
+  def   findByKey(self, key):
+    return self.hash.findByKey( key )
+  
+  #//-------------------------------------------------------//
+  
+  def   __getitem__(self, key ):
+    return self.hash[ key ]
+  
+  #//-------------------------------------------------------//
+  
+  def   __setitem__(self, key, value ):
+    
+  
+  #//-------------------------------------------------------//
+  
+  def   add(self, item, key = None, replace = False ):
+    
+  def   add(self, item, key = None, replace = False ):
+    if replace:
+      index = self.locations[ ]
+    
+    value, key = self.hash.add( item, key, replace )
+    
+    
+  
+  #//-------------------------------------------------------//
+  
+  def   __save( self, offset, data, reserved_data_size = None)
     chunk_data, reserved_data_size = self.__chunkData( data, reserved_data_size )
     self.stream.seek( offeset )
     self.stream.write( chunk_data )
