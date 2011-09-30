@@ -20,13 +20,41 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   find(self, item):
-    values = self.values.get( hash(item), [] )
-    for value_item, key in values:
+  def   __findItem( self, pairs, item ):
+    index = 0
+    for value_item, value_key in pairs:
       if value_item == item:
-        return value_item, key
+        return index
+      
+      index += 1
     
-    return None, None
+    return -1
+    
+  #//-------------------------------------------------------//
+  
+  def   __addItem( self, pairs, item, key ):
+    pair = (item, key)
+    
+    pairs.append( pair )
+    self.keys[ key ] = item
+    
+    self.size += 1
+    
+    return pair
+    
+  #//-------------------------------------------------------//
+  
+  def   __removeItem( self, pairs, index, key ):
+    del self.keys[ key ]
+    del pairs[ index ]
+    
+    self.size -= 1
+  
+  #//-------------------------------------------------------//
+  
+  def   __delitem__( self, key ):
+    item = self.keys[ key ]
+    self.remove( item )
   
   #//-------------------------------------------------------//
   
@@ -35,92 +63,67 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  @staticmethod
-  def   __findItem( pairs, item ):
-    index = 0
-    for value_item, value_key in pairs:
-      if value_item == item:
-        return index, value_item, value_key
-    
-    return -1, None, None
-    
-  #//-------------------------------------------------------//
-  
   def   __setitem__(self, key, item ):
     
+    if key in self.keys:
+      del self[ key ]
+    
     pairs = self.values.setdefault( hash(item), [] )
-    index = self.__findItem( item )[0]
-    if index != -1:
-        pairs[ index ] = (item, key)
-        del self.keys[ value_key ]
-        self.keys[ key ] = item
     
-      index += 1
+    index = self.__findItem( pairs, item )
+    if index == -1:
+      self.__addItem( pairs, item, key )
     
-    pair = (item, key)
-    
-    pairs.append( pair )
-    self.size += 1
-    
-    self.keys[ key ] = item
+    else:
+      old_key = pairs[index][1]
+      del self.keys[ old_key ]
+      pairs[ index ] = (item, key)
+      self.keys[ key ] = item
   
   #//-------------------------------------------------------//
   
-  def   __delitem__(self, key ):
+  def   find(self, item):
+    try:
+      pairs = self.values[ hash(item) ]
+      index = self.__findItem( self.values.get( hash(item), [] ), item )
+      if index != -1:
+        return pairs[index]
     
-    item = self.keys[ key ]
+    except KeyError:
+      pass
     
-    pairs = self.values[ hash(item) ]
-    index = 0
-    for value_item, value_key in pairs:
-      if value_item == item:
-        del pairs[ index ] = (item, key)
-        del self.keys[ value_key ]
-        self.keys[ key ] = item
-    
-      index += 1
-    
-    pair = (item, key)
-    
-    pairs.append( pair )
-    self.size += 1
-    
-    self.keys[ key ] = item
+    return None, None
   
   #//-------------------------------------------------------//
   
   def   add( self, item ):
+    
     pairs = self.values.setdefault( hash(item), [] )
+    index = self.__findItem( pairs, item )
+    if index != -1:
+      return pairs[index]
     
-    index = 0
-    for value_item, value_key in pairs:
-      if value_item == item:
-          return value_item, value_key
-    
-    key = self.__genKey()
-    
-    pair = (item, key)
-    
-    pairs.append( pair )
-    self.size += 1
-    
-    self.keys[ key ] = item
-    
-    return pair
+    return self.__addItem( pairs, item, self.__genKey() )
+  
+  #//-------------------------------------------------------//
+  
+  def   update( self, item ):
+    self.remove( item )
+    return self.add( item )
   
   #//-------------------------------------------------------//
   
   def   remove(self, item):
-    values = self.values.get( hash(item), [] )
-    index = 0
-    for value_item, key in values:
-      if value_item == item:
-        del values[ index ]
-        del self.keys[ key ]
-        self.size -= 1
-        break
+    
+    pairs = self.values.get( hash(item), [] )
+    index = self.__findItem( pairs, item )
+    if index != -1:
+      key = pairs[index][1]
+      del self.keys[ key ]
+      del pairs[ index ]
       
-      index += 1
+      self.size -= 1
+
   
   #//-------------------------------------------------------//
   

@@ -60,6 +60,17 @@ def test_hash(self):
   
   self.assertEqual( len(hash), count )
   
+  new_item1 = Item('testing', 'value')
+  hash[ item_key1 ] = new_item1
+  self.assertEqual( hash.find( item1 ), (None, None) )
+  
+  item1 = new_item1
+  
+  hash[ item_key2 ] = item1
+  self.assertEqual( hash.find( item2 ), (None, None) )
+  
+  item1 = new_item1
+  
   hash.remove( item1 )
   self.assertEqual( hash.find( item1 ), (None, None) )
   self.assertNotIn( item1, hash )
