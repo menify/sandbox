@@ -35,10 +35,12 @@ def test_hash(self):
   item2_ = Item('test', 'value2')
   item3 = Item('test3', 'value2')
   
-  item1, item_key1 = hash.add( item1 )
-  item2, item_key2 = hash.add( item2 )
-  item2_, item_key2_ = hash.add( item2_ )
-  item3, item_key3 = hash.add( item3 )
+  hash.selfTest()
+  
+  item1, item_key1 = hash.add( item1 ); hash.selfTest()
+  item2, item_key2 = hash.add( item2 ); hash.selfTest()
+  item2_, item_key2_ = hash.add( item2_ ); hash.selfTest()
+  item3, item_key3 = hash.add( item3 ); hash.selfTest()
   
   self.assertIs( item2, item2_ )
   self.assertEqual( item_key2, item_key2_ )
@@ -61,37 +63,37 @@ def test_hash(self):
   self.assertEqual( len(hash), count )
   
   new_item1 = Item('testing', 'value')
-  hash[ item_key1 ] = new_item1
+  hash[ item_key1 ] = new_item1; hash.selfTest()
   self.assertEqual( hash.find( item1 ), (None, None) )
   
   item1 = new_item1
   
-  hash[ item_key2 ] = item1
+  hash[ item_key2 ] = item1; hash.selfTest()
   self.assertEqual( hash.find( item2 ), (None, None) )
   
   item1 = new_item1
   
-  hash.remove( item1 )
+  hash.remove( item1 ); hash.selfTest()
   self.assertEqual( hash.find( item1 ), (None, None) )
   self.assertNotIn( item1, hash )
   
-  hash.remove( item2 )
+  hash.remove( item2 ); hash.selfTest()
   self.assertEqual( hash.find( item2 ), (None, None) )
   self.assertNotIn( item2, hash )
   
-  hash.remove( item3 )
+  hash.remove( item3 ); hash.selfTest()
   self.assertEqual( hash.find( item3 ), (None, None))
   self.assertNotIn( item3, hash )
   
   self.assertEqual( len(hash), 0 )
   self.assertFalse( hash )
   
-  hash.add( item1 )
+  hash.add( item1 ); hash.selfTest()
   
   self.assertEqual( len(hash), 1 )
   self.assertTrue( hash )
   
-  hash.clear()
+  hash.clear(); hash.selfTest()
   
   self.assertEqual( hash.find( item1 ), (None, None))
   self.assertNotIn( item1, hash )

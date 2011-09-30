@@ -2,11 +2,11 @@ import uuid
 
 class Hash (object):
   
-  __slots__ = ('values', 'size', 'seq_num', 'keys')
+  __slots__ = ('pairs', 'size', 'seq_num', 'keys')
   
   def   __init__(self):
     
-    self.values = {}
+    self.pairs = {}
     self.size = 0
     self.seq_num = 0
     self.keys = {}
@@ -21,7 +21,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   __findItem( self, item ):
-    pairs = self.values.setdefault( hash(item), [] )
+    pairs = self.pairs.setdefault( hash(item), [] )
     
     index = 0
     for value_item, value_key in pairs:
@@ -129,7 +129,6 @@ class Hash (object):
       del pairs[ index ]
       
       self.size -= 1
-
   
   #//-------------------------------------------------------//
   
@@ -145,7 +144,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   clear(self):
-    self.values.clear()
+    self.pairs.clear()
     self.keys.clear()
     self.size = 0
   
@@ -158,3 +157,26 @@ class Hash (object):
   
   def   __bool__(self):
     return self.size > 0
+  
+  #//-------------------------------------------------------//
+  
+  def   selfTest( self ):
+    size = 0
+    for item_id, pairs in self.pairs.items():
+      for item, key in pairs:
+        size += 1
+        
+        if hash(item) != item_id:
+          raise AssertionError("hash(item) != item_id")
+        
+        if key not in self.keys:
+          raise AssertionError("key not in self.keys")
+        
+        if item is not self.keys[ key ]:
+          raise AssertionError("item is not self.keys[ key ]")
+    
+    if size != self.size:
+      raise AssertionError("size != self.size")
+    
+    if size != len(self.keys):
+      raise AssertionError("size != len(self.keys)")
