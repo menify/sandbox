@@ -20,15 +20,17 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   __findItem( self, pairs, item ):
+  def   __findItem( self, item ):
+    pairs = self.values.setdefault( hash(item), [] )
+    
     index = 0
     for value_item, value_key in pairs:
       if value_item == item:
-        return index
+        return pairs, index
       
       index += 1
     
-    return -1
+    return pairs, -1
     
   #//-------------------------------------------------------//
   
@@ -52,6 +54,18 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
+  def   __updateItem( self, pairs, index, item, key ):
+    
+    pair = (item, key)
+    old_key = pairs[index][1]
+    del self.keys[ old_key ]
+    pairs[ index ] = pair
+    self.keys[ key ] = item
+    
+    return pair
+  
+  #//-------------------------------------------------------//
+  
   def   __delitem__( self, key ):
     item = self.keys[ key ]
     self.remove( item )
@@ -68,29 +82,18 @@ class Hash (object):
     if key in self.keys:
       del self[ key ]
     
-    pairs = self.values.setdefault( hash(item), [] )
-    
-    index = self.__findItem( pairs, item )
+    pairs, index = self.__findItem( item )
     if index == -1:
       self.__addItem( pairs, item, key )
-    
     else:
-      old_key = pairs[index][1]
-      del self.keys[ old_key ]
-      pairs[ index ] = (item, key)
-      self.keys[ key ] = item
+      self.__updateItem( pairs, index, item, key )
   
   #//-------------------------------------------------------//
   
   def   find(self, item):
-    try:
-      pairs = self.values[ hash(item) ]
-      index = self.__findItem( self.values.get( hash(item), [] ), item )
-      if index != -1:
-        return pairs[index]
-    
-    except KeyError:
-      pass
+    pairs, index = self.__findItem( item )
+    if index != -1:
+      return pairs[index]
     
     return None, None
   
@@ -98,8 +101,7 @@ class Hash (object):
   
   def   add( self, item ):
     
-    pairs = self.values.setdefault( hash(item), [] )
-    index = self.__findItem( pairs, item )
+    pairs, index = self.__findItem( item )
     if index != -1:
       return pairs[index]
     
@@ -108,15 +110,19 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   update( self, item ):
-    self.remove( item )
-    return self.add( item )
+    key = self.__genKey()
+    
+    pairs, index = self.__findItem( item )
+    if index == -1:
+      return self.__addItem( pairs, item, key )
+    
+    return self.__updateItem( pairs, index, item, key )
   
   #//-------------------------------------------------------//
   
   def   remove(self, item):
     
-    pairs = self.values.get( hash(item), [] )
-    index = self.__findItem( pairs, item )
+    pairs, index = self.__findItem( item )
     if index != -1:
       key = pairs[index][1]
       del self.keys[ key ]
