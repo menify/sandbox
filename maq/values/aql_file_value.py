@@ -90,7 +90,7 @@ class   FileContentTimeStamp (object):
   def   __eq__( self, other ):        return type(self) == type(other) and (self.size == other.size) and (self.modify_time == other.modify_time)
   def   __ne__( self, other ):        return not self.__eq__( other )
   
-  def     __getnewargs__(self):       return ( _Unpickling(), )
+  def   __getnewargs__(self):         return ( _Unpickling(), )
   def   __getstate__( self ):         return { 'size': self.size, 'modify_time': self.modify_time }
   def   __setstate__( self, state ):  self.size = state['size']; self.modify_time = state['modify_time']
   
