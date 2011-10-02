@@ -1,9 +1,9 @@
 
-from aql_value import Value, NoContent
+from aql_value import Value
 
 #//===========================================================================//
 
-class   DependsContent (object):
+class   DependsValueContent (object):
   
   __slots__ = ( 'values', )
   

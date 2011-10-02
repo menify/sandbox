@@ -1,9 +1,93 @@
 
+import io
 import pickle
 import pickletools
 
 from aql_hash import Hash
 from aql_data_file import DataFile
+from aql_depends_value import DependsValue, DependsValueContent
+
+#//---------------------------------------------------------------------------//
+
+class _PickledDependsValue (object):
+  __slots__ = ('name', 'value_keys' )
+  
+  def   __init__(self, depends_value, values_hash ):
+    
+    name = depends_value.name
+    value_keys = []
+    
+    for value in depends_value.content.values:
+      key = values_hash.find( value )[1]
+      if key is None:
+        name = None             # ignore invalid depends value
+        value_keys = None
+        break
+        
+      value_keys.append( key )
+    
+    self.name = name
+    self.value_keys = value_keys
+  
+  #//-------------------------------------------------------//
+  
+  def   isValid( self ):
+    return (self.name is not None) and (self.value_keys is not None)
+  
+  #//-------------------------------------------------------//
+  
+  def   restore( self, values_hash ):
+    if not self.isValid():
+      return None
+    
+    values = []
+    
+    for value_key in self.value_keys:
+      try:
+        value = values_hash[ value_key ]
+      except KeyError:
+        return None
+      
+      values.append( value )
+    
+    return DependsValue( self.name, values )
+    
+  #//-------------------------------------------------------//
+  
+  def   __getstate__( self ):
+    return { 'name': self.name, 'value_keys' : self.value_keys }
+  
+  #//-------------------------------------------------------//
+  
+  def   __setstate__( self, state ):
+    self.name = state['name']
+    self.value_keys = state['value_keys']
+
+#//---------------------------------------------------------------------------//
+
+class ValuePickler(pickle.Pickler):
+
+    def __init__(self, file, values_hash ):
+        super().__init__(file)
+        self.values_hash = values_hash
+    
+    def persistent_id( self, value ):
+        if isinstance(value, DependsValue):
+          return _PickledDependsValue( value, self.values_hash )
+        else:
+          return None   # value needs to be pickled as usual
+
+#//---------------------------------------------------------------------------//
+
+class ValueUnpickler(pickle.Unpickler):
+
+    def persistent_load( self, pdv ):
+        if isinstance( pdv, _PickledDependsValue )
+          return pdv
+        else:
+          raise pickle.UnpicklingError("Unsupported persistent object")
+
+#//---------------------------------------------------------------------------//
 
 class ValuesFile (object):
   
@@ -30,12 +114,15 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __packValue( self, )
+  def   __packValue( self, value, key ):
+    buffer = io.BytesIO()
+    
+    packer = pickle.
   
   #//-------------------------------------------------------//
   
-  def   find(self, value ):
-    return self.hash.find( value )[1]
+  def   find( self, value ):
+    return self.hash.find( value )[0]
   
   #//-------------------------------------------------------//
   

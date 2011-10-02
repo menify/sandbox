@@ -36,6 +36,11 @@ class   Value (object):
   
   #//-------------------------------------------------------//
   
+  def   __copy__( self ):
+    raise Exception("Coping is not allowed")
+  
+  #//-------------------------------------------------------//
+  
   def   __hash__(self):             return hash(self.name)
   def   __lt__( self, other):       return self.name < other.name
   def   __le__( self, other):       return self.name <= other.name
