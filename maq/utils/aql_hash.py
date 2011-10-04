@@ -24,7 +24,7 @@ class Hash (object):
     pairs = self.pairs.setdefault( hash(item), [] )
     
     index = 0
-    for value_item, value_key in pairs:
+    for value_key, value_item in pairs:
       if value_item == item:
         return pairs, index
       
@@ -34,8 +34,8 @@ class Hash (object):
     
   #//-------------------------------------------------------//
   
-  def   __addItem( self, pairs, item, key ):
-    pair = (item, key)
+  def   __addItem( self, pairs, key, item ):
+    pair = (key, item)
     
     pairs.append( pair )
     self.keys[ key ] = item
@@ -54,10 +54,10 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   __updateItem( self, pairs, index, item, key ):
+  def   __updateItem( self, pairs, index, key, item ):
     
-    pair = (item, key)
-    old_key = pairs[index][1]
+    pair = (key, item )
+    old_key = pairs[index][0]
     del self.keys[ old_key ]
     pairs[ index ] = pair
     self.keys[ key ] = item
@@ -84,9 +84,9 @@ class Hash (object):
     
     pairs, index = self.__findItem( item )
     if index == -1:
-      self.__addItem( pairs, item, key )
+      self.__addItem( pairs, key, item )
     else:
-      self.__updateItem( pairs, index, item, key )
+      self.__updateItem( pairs, index, key, item )
   
   #//-------------------------------------------------------//
   
@@ -105,7 +105,7 @@ class Hash (object):
     if index != -1:
       return pairs[index]
     
-    return self.__addItem( pairs, item, self.__genKey() )
+    return self.__addItem( pairs, self.__genKey(), item )
   
   #//-------------------------------------------------------//
   
@@ -114,9 +114,9 @@ class Hash (object):
     
     pairs, index = self.__findItem( item )
     if index == -1:
-      return self.__addItem( pairs, item, key )
+      return self.__addItem( pairs, key, item)
     
-    return self.__updateItem( pairs, index, item, key )
+    return self.__updateItem( pairs, index, key, item )
   
   #//-------------------------------------------------------//
   
@@ -124,16 +124,13 @@ class Hash (object):
     
     pairs, index = self.__findItem( item )
     if index != -1:
-      key = pairs[index][1]
-      del self.keys[ key ]
-      del pairs[ index ]
-      
-      self.size -= 1
+      key = pairs[index][0]
+      self.__removeItem( pairs, index, key )
   
   #//-------------------------------------------------------//
   
   def   __contains__(self, item):
-    return self.find( item )[0] is not None
+    return self.find( item )[1] is not None
   
   #//-------------------------------------------------------//
   
@@ -163,7 +160,7 @@ class Hash (object):
   def   selfTest( self ):
     size = 0
     for item_id, pairs in self.pairs.items():
-      for item, key in pairs:
+      for key, item in pairs:
         size += 1
         
         if hash(item) != item_id:
