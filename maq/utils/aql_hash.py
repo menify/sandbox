@@ -62,7 +62,7 @@ class Hash (object):
     pairs[ index ] = pair
     self.keys[ key ] = item
     
-    return pair
+    return old_key
   
   #//-------------------------------------------------------//
   
@@ -111,12 +111,15 @@ class Hash (object):
   
   def   update( self, item ):
     key = self.__genKey()
+    old_key = None
     
     pairs, index = self.__findItem( item )
     if index == -1:
-      return self.__addItem( pairs, key, item)
+      self.__addItem( pairs, key, item )
+    else:
+      old_key = self.__updateItem( pairs, index, key, item )
     
-    return self.__updateItem( pairs, index, key, item )
+    return key, old_key
   
   #//-------------------------------------------------------//
   
@@ -126,6 +129,9 @@ class Hash (object):
     if index != -1:
       key = pairs[index][0]
       self.__removeItem( pairs, index, key )
+      return key
+    
+    return None
   
   #//-------------------------------------------------------//
   

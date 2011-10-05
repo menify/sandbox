@@ -5,7 +5,8 @@ import pickletools
 
 from aql_hash import Hash
 from aql_data_file import DataFile
-from aql_depends_value import DependsValue, DependsValueContent
+from aql_depends_value import DependsValue
+from aql_file_value import FileName
 
 #//---------------------------------------------------------------------------//
 
@@ -18,7 +19,7 @@ class _PickledDependsValue (object):
     value_keys = []
     
     for value in depends_value.content.values:
-      key = values_hash.find( value )[1]
+      key = values_hash.find( value )[0]
       if key is None:
         name = None             # ignore invalid depends value
         value_keys = None
@@ -65,30 +66,6 @@ class _PickledDependsValue (object):
 
 #//---------------------------------------------------------------------------//
 
-class ValuePickler(pickle.Pickler):
-
-    def __init__(self, file, values_hash ):
-        super().__init__(file)
-        self.values_hash = values_hash
-    
-    def persistent_id( self, value ):
-        if isinstance(value, DependsValue):
-          return _PickledDependsValue( value, self.values_hash )
-        else:
-          return None   # value needs to be pickled as usual
-
-#//---------------------------------------------------------------------------//
-
-class ValueUnpickler(pickle.Unpickler):
-
-    def persistent_load( self, pdv ):
-        if isinstance( pdv, _PickledDependsValue )
-          return pdv
-        else:
-          raise pickle.UnpicklingError("Unsupported persistent object")
-
-#//---------------------------------------------------------------------------//
-
 def restoreDepends( pdv_keys, pdv_list, values_hash ):
   
     all_keys = set( pdv_keys )
@@ -120,23 +97,41 @@ def restoreDepends( pdv_keys, pdv_list, values_hash ):
 
 class ValuesFile (object):
   
-  __slots__ = ('data_file', 'hash', 'locations', 'filename', 'pickler', 'unpickler', 'pickler_stream' )
+  __slots__ = ('data_file', 'hash', 'locations', 'filename' )
   
   #//-------------------------------------------------------//
   
   def   __init__( self, filename ):
     self.hash = Hash()
     self.locations = {}
-    self.filename = os.path.normcase( os.path.normpath( os.path.abspath( str(filename) ) ) )
+    self.filename = FileName(filename)
+    self.data_file = None
     
-    self.pickler_stream = io.BytesIO()
-    self.pickler = ValuePickler( self.pickler_stream, self.hash )
-    self.unpickler = ValueUnpickler( self.pickler_stream )
+    self.__reload()
   
   #//-------------------------------------------------------//
   
-  def   __load( self, filename )
-    self.data_file = DataFile( filename )
+  def   __packValue( self, key, value ):
+    if isinstance(value, DependsValue):
+      value = _PickledDependsValue(value, self.hash )
+    data = pickle.dumps( (key, value), pickle.HIGHEST_PROTOCOL )
+    return pickletools.optimize( data )
+  
+  #//-------------------------------------------------------//
+  
+  def   __unpackValue( self, data ):
+    key, value = pickle.loads( data )
+    return key, value
+  
+  #//-------------------------------------------------------//
+  
+  def   __reload( self ):
+    if self.data_file is not None:
+      self.data_file.close()
+    
+    self.data_file = DataFile( self.filename )
+    self.hash.clear()
+    self.locations.clear()
     
     pdv_list = []
     pdv_keys = []
@@ -163,49 +158,51 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __packValue( self, key, value ):
-    buffer = self.pickler_stream
-    buffer.seek(0)
-    buffer.truncate(0)
-    self.pickler.dump( (key, value) )
-    return buffer.getvalue()
-  
-  #//-------------------------------------------------------//
-  
-  def   __unpackValue( self, data ):
-    buffer = self.pickler_stream
-    buffer.seek(0)
-    buffer.truncate(0)
-    buffer.write(data)
-    key, value = self.pickler.load()
-    return key, value
-  
-  #//-------------------------------------------------------//
-  
   def   find( self, value ):
-    return self.hash.find( value )[0]
+    return self.hash.find( value )[1]
   
   #//-------------------------------------------------------//
   
   def   add( self, value ):
     
-    added_value, key = self.hash.add( value )
+    key, added_value = self.hash.add( value )
     if added_value is not None:
       return added_value
     
     data = self.__packValue( key, value )
-    self.data_file.append( )
+    self.locations[ key ] = len(self.data_file)
+    self.data_file.append( data )
     
-    return added_value
+    return value
   
   #//-------------------------------------------------------//
   
   def   update( self, value ):
+    key, old_key = self.hash.update( value )
     
+    data = self.__packValue( key, value )
+    
+    if old_key is None:
+      self.locations[ key ] = len(self.data_file)
+      self.data_file.append( data )
+    
+    else:
+      index = self.locations[ old_key ]
+      del self.locations[ old_key ]
+      self.locations[ key ] = index
+      self.data_file[ index ] = data
   
   #//-------------------------------------------------------//
   
   def   remove(self, value):
+    old_key = self.hash.remove( value )
+    if old_key is not None:
+      old_index = self.locations[ old_key ]
+      del self.data_file[ old_index ]
+      
+      for key, index in self.locations:
+        if old_index > index:
+          self.locations[ key ] = index - 1
   
   #//-------------------------------------------------------//
   
@@ -215,25 +212,24 @@ class ValuesFile (object):
   #//-------------------------------------------------------//
   
   def   __iter__(self):
-    for key, item in self.keys.items():
-      yield item
+    return iter(self.hash)
   
   #//-------------------------------------------------------//
   
   def   clear(self):
-    self.pairs.clear()
-    self.keys.clear()
-    self.size = 0
+    self.data_file.clear()
+    self.locations.clear()
+    self.hash.clear()
   
   #//-------------------------------------------------------//
   
   def   __len__(self):
-    return self.size
+    return len(self.hash)
   
   #//-------------------------------------------------------//
   
   def   __bool__(self):
-    return self.size > 0
+    return bool(self.hash)
   
   #//-------------------------------------------------------//
 

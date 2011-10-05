@@ -22,7 +22,7 @@ class   DependsValueContent (object):
   #//-------------------------------------------------------//
   
   def   __eq__( self, other ):
-    if (type(self) != type(other)) or (self.values != other.values)
+    if (type(self) != type(other)) or (self.values != other.values):
       return False
     
     for value1, value2 in zip( self.values, other.values ):

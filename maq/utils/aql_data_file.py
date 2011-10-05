@@ -28,6 +28,15 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
+  def   clear(self):
+    self.stream.seek( o )
+    self.stream.truncate( o )
+    self.locations.clear()
+    
+    self.file_size = 0
+  
+  #//-------------------------------------------------------//
+  
   def   __readHeader( self ):
     header = self.stream.read( self.header_size )
     if len(header) != self.header_size:

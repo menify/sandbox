@@ -77,9 +77,10 @@ def test_hash(self):
   self.assertEqual( hash.find( item1 ), (None, None) )
   self.assertNotIn( item1, hash )
   
-  item_key1, item1 = hash.update( item1 ); hash.selfTest()
-  new_item_key1, new_item1 = hash.update( item1 ); hash.selfTest()
-  self.assertIs( item1, new_item1 )
+  item_key1, item_old_key1 = hash.update( item1 ); hash.selfTest()
+  self.assertIsNone( item_old_key1 )
+  new_item_key1, item_old_key1 = hash.update( item1 ); hash.selfTest()
+  self.assertEqual( item_key1, item_old_key1 )
   self.assertNotEqual( item_key1, new_item_key1 )
   self.assertIs( hash[new_item_key1], item1 )
   
