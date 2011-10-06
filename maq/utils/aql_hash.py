@@ -2,12 +2,11 @@ import uuid
 
 class Hash (object):
   
-  __slots__ = ('pairs', 'size', 'seq_num', 'keys')
+  __slots__ = ('pairs', 'seq_num', 'keys')
   
   def   __init__(self):
     
     self.pairs = {}
-    self.size = 0
     self.seq_num = 0
     self.keys = {}
   
@@ -40,8 +39,6 @@ class Hash (object):
     pairs.append( pair )
     self.keys[ key ] = item
     
-    self.size += 1
-    
     return pair
     
   #//-------------------------------------------------------//
@@ -49,8 +46,6 @@ class Hash (object):
   def   __removeItem( self, pairs, index, key ):
     del self.keys[ key ]
     del pairs[ index ]
-    
-    self.size -= 1
   
   #//-------------------------------------------------------//
   
@@ -149,17 +144,16 @@ class Hash (object):
   def   clear(self):
     self.pairs.clear()
     self.keys.clear()
-    self.size = 0
   
   #//-------------------------------------------------------//
   
   def   __len__(self):
-    return self.size
+    return len(self.keys)
   
   #//-------------------------------------------------------//
   
   def   __bool__(self):
-    return self.size > 0
+    return bool(self.keys)
   
   #//-------------------------------------------------------//
   
@@ -177,9 +171,6 @@ class Hash (object):
         
         if item is not self.keys[ key ]:
           raise AssertionError("item is not self.keys[ key ]")
-    
-    if size != self.size:
-      raise AssertionError("size != self.size")
     
     if size != len(self.keys):
       raise AssertionError("size != len(self.keys)")

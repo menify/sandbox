@@ -96,17 +96,16 @@ def restoreDepends( pdv_keys, pdv_list, values_hash ):
 
 class ValuesFile (object):
   
-  __slots__ = ('data_file', 'hash', 'locations', 'filename' )
+  __slots__ = ('data_file', 'hash', 'locations' )
   
   #//-------------------------------------------------------//
   
   def   __init__( self, filename ):
     self.hash = Hash()
     self.locations = {}
-    self.filename = FileName(filename)
     self.data_file = None
     
-    self.__reload()
+    self.load( filename )
   
   #//-------------------------------------------------------//
   
@@ -123,13 +122,11 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __reload( self ):
-    if self.data_file is not None:
-      self.data_file.close()
+  def   load( self, filename ):
     
-    self.data_file = DataFile( self.filename )
-    self.hash.clear()
-    self.locations.clear()
+    self.close()
+    
+    self.data_file = DataFile( filename )
     
     pdv_list = []
     pdv_keys = []
@@ -204,6 +201,15 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
+  def   close( self ):
+    if self.data_file is not None:
+      self.data_file.close()
+    
+    self.locations.clear()
+    self.hash.clear()
+  
+  #//-------------------------------------------------------//
+  
   def   __contains__(self, value):
     return self.find( value ) is not None
   
@@ -215,7 +221,9 @@ class ValuesFile (object):
   #//-------------------------------------------------------//
   
   def   clear(self):
-    self.data_file.clear()
+    if self.data_file is not None:
+      self.data_file.clear()
+    
     self.locations.clear()
     self.hash.clear()
   
@@ -230,5 +238,28 @@ class ValuesFile (object):
     return bool(self.hash)
   
   #//-------------------------------------------------------//
-
+  
+  def   selfTest(self):
+    size = len(self.locations)
     
+    if size != len(self.hash):
+      raise AssertionError("len(self.locations) != len(self.hash)")
+    
+    if size != len(self.data_file):
+      raise AssertionError("len(self.locations) != len(self.hash)")
+    
+    indexes = set()
+    
+    for key, index in self.locations.items():
+      try:
+        self.hash[ key ]
+      except KeyError:
+        raise AssertionError("Invalid value key")
+      
+      if index >= size:
+        raise AssertionError("index >= size")
+      
+      indexes.add( index )
+    
+    if len(indexes) != size:
+      raise AssertionError("len(indexes) != size")

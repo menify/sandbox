@@ -12,28 +12,32 @@ class DataFile (object):
     
     self.locations = []
     self.file_size = 0
+    self.stream = None
     self.header_struct = struct.Struct(">LL") # big-endian 4 + 4 bytes
     self.header_size = self.header_struct.size
     
-    self.__load( filename )
+    self.load( filename )
   
   #//-------------------------------------------------------//
   
   def   close(self):
-    self.stream.close()
+    if self.stream is not None:
+      self.stream.close()
+      self.stream = None
   
   #//-------------------------------------------------------//
   
   def   __del__(self):
-    self.stream.close()
+    self.close()
   
   #//-------------------------------------------------------//
   
   def   clear(self):
-    self.stream.seek( o )
-    self.stream.truncate( o )
-    self.locations.clear()
+    if self.stream is not None:
+      self.stream.seek( o )
+      self.stream.truncate( o )
     
+    self.locations.clear()
     self.file_size = 0
   
   #//-------------------------------------------------------//
@@ -69,7 +73,11 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def  __load( self, filename ):
+  def  load( self, filename ):
+    self.close()
+    
+    self.locations = []
+    
     if os.path.isfile( filename ):
       self.stream = io.open( filename, 'r+b', 0 )
     else:
