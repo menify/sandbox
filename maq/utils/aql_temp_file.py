@@ -40,4 +40,6 @@ class Tempfile (object):
           os.remove( self.name )
         except OSError:
             pass
+        
+        return self
 

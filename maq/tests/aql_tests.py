@@ -2,7 +2,7 @@
 import os.path
 import io
 import pickle
-import pickletools
+#~ import pickletools
 import unittest
 
 sys.path.insert( 0, os.path.normpath( os.path.join( os.path.dirname( __file__ ), '..', 'utils') ) )
@@ -118,7 +118,7 @@ class AqlTests(unittest.TestCase):
   
   def testSaveLoad( self, value ):
     data = pickle.dumps( ( value, ), protocol = pickle.HIGHEST_PROTOCOL )
-    data = pickletools.optimize( data )
+    #~ data = pickletools.optimize( data )
     
     loaded_values = pickle.loads( data )
     loaded_value = loaded_values[0]

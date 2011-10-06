@@ -12,7 +12,7 @@ def  _findTestModules( path = None ):
   
   test_case_modules = []
   if path is None:
-    path = os.path.dirname( __file__ )
+    path = os.path.normpath( os.path.dirname( __file__ ) )
   
   for root, dirs, files in os.walk( path ):
     for file_name in files:
@@ -28,8 +28,8 @@ def   _loadTestModules( test_modules ):
   
   for module_file in test_modules:
     
-    module_dir = os.path.dirname( module_file )
-    module_name = os.path.splitext( os.path.basename( module_file) )[0]
+    module_dir = os.path.normpath( os.path.dirname( module_file ) )
+    module_name = os.path.splitext( os.path.basename( module_file ) )[0]
     
     fp, pathname, description = imp.find_module( module_name, [ module_dir ] )
     
@@ -46,7 +46,6 @@ def   _isIterable( obj ):
 #//===========================================================================//
 
 def   _importTestModules( path = None ):
-  
   if _isIterable(path):
     module_files = path
   elif (path is not None) and os.path.isfile( path ):

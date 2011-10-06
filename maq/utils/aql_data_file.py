@@ -1,3 +1,4 @@
+import io
 import os
 import struct
 
@@ -70,9 +71,9 @@ class DataFile (object):
   
   def  __load( self, filename ):
     if os.path.isfile( filename ):
-      self.stream = open( filename, 'r+b', 0 )
+      self.stream = io.open( filename, 'r+b', 0 )
     else:
-      self.stream = open( filename, 'w+b', 0 )
+      self.stream = io.open( filename, 'w+b', 0 )
     
     offset = 0
     
@@ -180,8 +181,8 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __nonzero__(self):
-    return self.locations.__nonzero__()
+  def   __bool__(self):
+    return bool(self.locations)
   
   #//-------------------------------------------------------//
   
@@ -222,9 +223,9 @@ class DataFile (object):
     sorted_locations.sort()
     
     real_file_size = self.stream.seek( 0, os.SEEK_END )
+    #~ real_file_size = self.stream.tell()
     if sorted_locations:
       last_offset, last_reserved_data_size, last_data_size = sorted_locations[-1]
-      total_reserved_size = real_file_size + (last_reserved_data_size - last_data_size)
     
       if (file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)):
         raise AssertionError("(file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)")

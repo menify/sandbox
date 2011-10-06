@@ -14,7 +14,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   __genKey(self):
-    key = (self.seq_num, uuid.uuid4())
+    key = (self.seq_num, uuid.uuid4().bytes )
     self.seq_num += 1
     return key
   

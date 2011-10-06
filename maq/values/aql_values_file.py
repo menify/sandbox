@@ -1,7 +1,6 @@
 
 import io
 import pickle
-import pickletools
 
 from aql_hash import Hash
 from aql_data_file import DataFile
@@ -114,8 +113,7 @@ class ValuesFile (object):
   def   __packValue( self, key, value ):
     if isinstance(value, DependsValue):
       value = _PickledDependsValue(value, self.hash )
-    data = pickle.dumps( (key, value), pickle.HIGHEST_PROTOCOL )
-    return pickletools.optimize( data )
+    return pickle.dumps( (key, value), pickle.HIGHEST_PROTOCOL )
   
   #//-------------------------------------------------------//
   
@@ -166,7 +164,7 @@ class ValuesFile (object):
   def   add( self, value ):
     
     key, added_value = self.hash.add( value )
-    if added_value is not None:
+    if added_value is not value:
       return added_value
     
     data = self.__packValue( key, value )
