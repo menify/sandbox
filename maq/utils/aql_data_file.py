@@ -16,7 +16,7 @@ class DataFile (object):
     self.header_struct = struct.Struct(">LL") # big-endian 4 + 4 bytes
     self.header_size = self.header_struct.size
     
-    self.load( filename )
+    self.open( filename )
   
   #//-------------------------------------------------------//
   
@@ -24,6 +24,9 @@ class DataFile (object):
     if self.stream is not None:
       self.stream.close()
       self.stream = None
+      
+      del self.locations[:]
+      self.file_size = 0
   
   #//-------------------------------------------------------//
   
@@ -37,7 +40,7 @@ class DataFile (object):
       self.stream.seek( o )
       self.stream.truncate( o )
     
-    self.locations.clear()
+    del self.locations[:]
     self.file_size = 0
   
   #//-------------------------------------------------------//
@@ -73,7 +76,7 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def  load( self, filename ):
+  def  open( self, filename ):
     self.close()
     
     self.locations = []
@@ -230,17 +233,17 @@ class DataFile (object):
     
     sorted_locations.sort()
     
-    real_file_size = self.stream.seek( 0, os.SEEK_END )
-    #~ real_file_size = self.stream.tell()
-    if sorted_locations:
-      last_offset, last_reserved_data_size, last_data_size = sorted_locations[-1]
-    
-      if (file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)):
-        raise AssertionError("(file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)")
-    
-    else:
-      if file_size != real_file_size:
-        raise AssertionError("file_size != real_file_size")
+    if self.stream is not None:
+      real_file_size = self.stream.seek( 0, os.SEEK_END )
+      if sorted_locations:
+        last_offset, last_reserved_data_size, last_data_size = sorted_locations[-1]
+      
+        if (file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)):
+          raise AssertionError("(file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)")
+      
+      else:
+        if file_size != real_file_size:
+          raise AssertionError("file_size != real_file_size")
     
     prev_offset = 0
     prev_reserved_data_size = -self.header_size

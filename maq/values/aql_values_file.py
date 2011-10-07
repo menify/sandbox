@@ -10,7 +10,7 @@ from aql_file_value import FileName
 #//---------------------------------------------------------------------------//
 
 class _PickledDependsValue (object):
-  __slots__ = ('name', 'value_keys' )
+  __slots__ = ('name', 'value_keys')
   
   def   __init__(self, depends_value, values_hash ):
     
@@ -76,7 +76,7 @@ class ValuesFile (object):
     self.locations = {}
     self.data_file = None
     
-    self.load( filename )
+    self.open( filename )
   
   #//-------------------------------------------------------//
   
@@ -99,11 +99,10 @@ class ValuesFile (object):
     for key, index in self.locations:
       if index > index:
         self.locations[ key ] = index - 1
-
   
   #//-------------------------------------------------------//
   
-  def __restoreDepends( self, pdv_values ):
+  def __restoreDepends( self, pdv_values, removed_indexes ):
     
     all_keys = set( pdv_values.keys() )
     
@@ -133,18 +132,24 @@ class ValuesFile (object):
       
       restored_keys.clear()
     
-    for key in pdv_values:
-      self.__removeIndex( pdv_values[key][0] )
+    removed_indexes += map( lambda v: v[0], pdv_values.values() )
+    removed_indexes.sort( reverse = True )
+    
+    for index in removed_indexes:
+      self.__removeIndex( index )
+      
   
   #//-------------------------------------------------------//
   
-  def   load( self, filename ):
+  def   open( self, filename ):
     
     self.close()
     
     self.data_file = DataFile( filename )
     
     pdv_values = {}
+    
+    removed_indexes = []
     
     index = 0
     for data in self.data_file:
@@ -154,8 +159,7 @@ class ValuesFile (object):
         if value.isValid():
           pdv_values[ key ] = [index, value, set(value.value_keys)]
         else:
-          del self.data_file[ index ]
-          continue
+          removed_indexes.append( index )
       
       else:
         self.hash[ key ] = value
@@ -163,7 +167,16 @@ class ValuesFile (object):
       
       index += 1
     
-    self.__restoreDepends( pdv_values )
+    self.__restoreDepends( pdv_values, removed_indexes )
+  
+  #//-------------------------------------------------------//
+  
+  def   close( self ):
+    if self.data_file is not None:
+      self.data_file.close()
+    
+    self.locations.clear()
+    self.hash.clear()
   
   #//-------------------------------------------------------//
   
@@ -215,15 +228,6 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   close( self ):
-    if self.data_file is not None:
-      self.data_file.close()
-    
-    self.locations.clear()
-    self.hash.clear()
-  
-  #//-------------------------------------------------------//
-  
   def   __contains__(self, value):
     return self.find( value ) is not None
   
@@ -254,6 +258,11 @@ class ValuesFile (object):
   #//-------------------------------------------------------//
   
   def   selfTest(self):
+    if self.data_file is not None:
+      self.data_file.selfTest()
+    
+    self.hash.selfTest()
+    
     size = len(self.locations)
     
     if size != len(self.hash):
