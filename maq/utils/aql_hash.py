@@ -98,9 +98,12 @@ class Hash (object):
     
     pairs, index = self.__findItem( item )
     if index != -1:
-      return pairs[index]
+      pair = pairs[index]
+      return False, pair[0], pair[1]
     
-    return self.__addItem( pairs, self.__genKey(), item )
+    pair = self.__addItem( pairs, self.__genKey(), item )
+    
+    return True, pair[0], pair[1]
   
   #//-------------------------------------------------------//
   

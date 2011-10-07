@@ -2,7 +2,6 @@
 import os.path
 import io
 import pickle
-#~ import pickletools
 import unittest
 
 sys.path.insert( 0, os.path.normpath( os.path.join( os.path.dirname( __file__ ), '..', 'utils') ) )
@@ -84,7 +83,7 @@ class AqlTests(unittest.TestCase):
   testcases = set()
   
   def   __init__(self, testname, settings ):
-    super(AqlTests, self).__init__(testname)
+    super().__init__(testname)
     
     self.settings = settings
     self.result = self.defaultTestResult()
@@ -95,7 +94,7 @@ class AqlTests(unittest.TestCase):
     if result is not None:
       self.result = result
     
-    super( AqlTests, self ).run( self.result )
+    super().run( self.result )
   
   #//=======================================================//
   
@@ -118,7 +117,6 @@ class AqlTests(unittest.TestCase):
   
   def testSaveLoad( self, value ):
     data = pickle.dumps( ( value, ), protocol = pickle.HIGHEST_PROTOCOL )
-    #~ data = pickletools.optimize( data )
     
     loaded_values = pickle.loads( data )
     loaded_value = loaded_values[0]

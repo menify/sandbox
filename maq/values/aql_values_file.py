@@ -65,35 +65,6 @@ class _PickledDependsValue (object):
 
 #//---------------------------------------------------------------------------//
 
-def restoreDepends( pdv_keys, pdv_list, values_hash ):
-  
-    all_keys = set( pdv_keys )
-    values = {}
-    
-    for key, pdv in zip( pdv_keys, pdv_list ):
-      values[ key ] = (pdv, all_keys & set(pdv.value_keys))
-    
-    restored_keys = set()
-    
-    while True:
-      
-      for key, pair in list(values.items()):
-        if not pair[1]:
-          value = pdv.restore( values_hash )
-          values_hash.add( value )
-          restored_keys.add( key )
-          del values[ key ]
-      
-      if not restored_keys:
-        break
-      
-      for key, pair in values.items():
-        values[key][1] = pair[1] - restored_keys
-      
-      restored_keys.clear()
-
-#//---------------------------------------------------------------------------//
-
 class ValuesFile (object):
   
   __slots__ = ('data_file', 'hash', 'locations' )
@@ -122,14 +93,58 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
+  def   __removeIndex(self, index ):
+    del self.data_file[ index ]
+    
+    for key, index in self.locations:
+      if index > index:
+        self.locations[ key ] = index - 1
+
+  
+  #//-------------------------------------------------------//
+  
+  def __restoreDepends( self, pdv_values ):
+    
+    all_keys = set( pdv_values.keys() )
+    
+    for key in pdv_values:
+      pdv_values[ key ][2] &= all_keys
+    
+    restored_keys = set()
+    
+    while True:
+      for key in list(pdv_values):
+        index, pdv, pdv_keys = pdv_values[ key ]
+        if not pdv_keys:
+          value = pdv.restore( self.hash )
+          if value is not None:
+            self.hash[ key ] = value
+            self.locations[ key ] = index
+            
+            del pdv_values[ key ]
+            restored_keys.add( key )
+          
+      
+      if not restored_keys:
+        break
+      
+      for key in pdv_values:
+        pdv_values[ key ][2] -= restored_keys
+      
+      restored_keys.clear()
+    
+    for key in pdv_values:
+      self.__removeIndex( pdv_values[key][0] )
+  
+  #//-------------------------------------------------------//
+  
   def   load( self, filename ):
     
     self.close()
     
     self.data_file = DataFile( filename )
     
-    pdv_list = []
-    pdv_keys = []
+    pdv_values = {}
     
     index = 0
     for data in self.data_file:
@@ -137,19 +152,18 @@ class ValuesFile (object):
       
       if isinstance( value, _PickledDependsValue ):
         if value.isValid():
-          pdv_list.append( value )
-          pdv_keys.append( key )
+          pdv_values[ key ] = [index, value, set(value.value_keys)]
         else:
           del self.data_file[ index ]
           continue
       
       else:
         self.hash[ key ] = value
+        self.locations[ key ] = index
       
-      self.locations[ key ] = index
       index += 1
     
-    restoreDepends( pdv_keys, pdv_list, self.hash )
+    self.__restoreDepends( pdv_values )
   
   #//-------------------------------------------------------//
   
@@ -160,9 +174,9 @@ class ValuesFile (object):
   
   def   add( self, value ):
     
-    key, added_value = self.hash.add( value )
-    if added_value is not value:
-      return added_value
+    is_added, key, value = self.hash.add( value )
+    if not is_added:
+      return value
     
     data = self.__packValue( key, value )
     self.locations[ key ] = len(self.data_file)
@@ -246,7 +260,7 @@ class ValuesFile (object):
       raise AssertionError("len(self.locations) != len(self.hash)")
     
     if size != len(self.data_file):
-      raise AssertionError("len(self.locations) != len(self.hash)")
+      raise AssertionError("size != len(self.data_file)")
     
     indexes = set()
     

@@ -18,7 +18,7 @@ class   FileContentChecksum (object):
   def   __new__( cls, path = None ):
     
     if isinstance( path, _Unpickling):
-      return super(FileContentChecksum, cls).__new__(cls)
+      return super().__new__(cls)
     
     if path is None:
       return NoContent()
@@ -32,7 +32,7 @@ class   FileContentChecksum (object):
           for chunk in f:
               checksum.update( chunk )
       
-      self = super(FileContentChecksum, cls).__new__(cls)
+      self = super().__new__(cls)
       
       self.checksum = checksum.hexdigest()
       self.size = size
@@ -67,7 +67,7 @@ class   FileContentTimeStamp (object):
   def   __new__( cls, path = None ):
     
     if isinstance( path, _Unpickling):
-      return super(FileContentTimeStamp, cls).__new__(cls)
+      return super().__new__(cls)
     
     if path is None:
       return NoContent()
@@ -75,7 +75,7 @@ class   FileContentTimeStamp (object):
     try:
       stat = os.stat( path )
       
-      self = super(FileContentTimeStamp, cls).__new__(cls)
+      self = super().__new__(cls)
       
       self.size = stat.st_size
       self.modify_time = stat.st_mtime
@@ -105,19 +105,19 @@ class   FileName (str):
       return path
     
     if isinstance( path, _Unpickling ):
-      return super(FileName, cls).__new__(cls, *str_new_args )
+      return super().__new__(cls, *str_new_args )
     
     if path is None:
-      return super(FileName, cls).__new__(cls)
+      return super().__new__(cls)
     
     full_path = os.path.normcase( os.path.normpath( os.path.abspath( str(path) ) ) )
     
-    return super(FileName, cls).__new__(cls, full_path )
+    return super().__new__(cls, full_path )
   
   #//-------------------------------------------------------//
   
   def     __getnewargs__(self):
-    return ( _Unpickling(), super(FileName, self).__getnewargs__() )
+    return ( _Unpickling(), super().__getnewargs__() )
 
 #//===========================================================================//
 
@@ -138,6 +138,6 @@ class   FileValue (Value):
     elif (type(content) is type):
       content = content( name )
     
-    super(FileValue, self).__init__( name, content )
+    super().__init__( name, content )
 
 #//===========================================================================//

@@ -37,10 +37,10 @@ def test_hash(self):
   
   hash.selfTest()
   
-  item_key1, item1 = hash.add( item1 ); hash.selfTest()
-  item_key2, item2 = hash.add( item2 ); hash.selfTest()
-  item_key2_, item2_ = hash.add( item2_ ); hash.selfTest()
-  item_key3, item3 = hash.add( item3 ); hash.selfTest()
+  is_added, item_key1, item1 = hash.add( item1 ); hash.selfTest(); self.assertTrue( is_added )
+  is_added, item_key2, item2 = hash.add( item2 ); hash.selfTest(); self.assertTrue( is_added )
+  is_added, item_key2_, item2_ = hash.add( item2_ ); hash.selfTest(); self.assertTrue( is_added )
+  is_added, item_key3, item3 = hash.add( item3 ); hash.selfTest(); self.assertTrue( is_added )
   
   self.assertIs( item2, item2_ )
   self.assertEqual( item_key2, item_key2_ )

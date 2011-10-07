@@ -7,17 +7,29 @@ class   DependsValueContent (object):
   
   __slots__ = ( 'values', )
   
-  def   __init__( cls, values = None ):
+  def   __new__( cls, values = None ):
     
-    if values is None:
-      values = tuple()
+    if isinstance( values, DependsValueContent ):
+      return values
+    
+    return super().__new__(cls, values )
+  
+  #//-------------------------------------------------------//
+  
+  def   __init__( self, values = None ):
     
     try:
-      values = list(values)
+      if values is not None:
+        values = list(values)
+      else:
+        values = []
+      
     except TypeError:
       values = [values]
     
     values.sort()
+    
+    self.values = values
     
   #//-------------------------------------------------------//
   
@@ -58,6 +70,9 @@ class   DependsValue (Value):
   
   def   __init__( self, name, content = None ):
     
+    if content is not None:
+      content = DependsValueContent( content )
+    
     if isinstance( name, DependsValue ):
       other = name
       name = other.name
@@ -65,6 +80,6 @@ class   DependsValue (Value):
       if content is None:
         content = other.content
     
-    super(FileValue, self).__init__( name, content )
+    super().__init__( name, content )
 
 #//===========================================================================//
