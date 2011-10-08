@@ -110,20 +110,27 @@ def test_values_file_depends2(self):
   
     temp_file_name = temp_file.name
     
-    values = generateStringValues(3)
-    dep_values = generateDependsValues( 3, values )
-    dep_values2 = generateDependsValues( 3, values + dep_values )
-    #~ dep_values3 = []#generateDependsValues( 3, values + dep_values2 )
+    values = generateStringValues(10)
+    dep_values = generateDependsValues( 10, values )
+    dep_values2 = generateDependsValues( 10, values + dep_values )
+    dep_values3 = generateDependsValues( 10, values + dep_values2 )
     
-    all_values = values + dep_values2
+    all_values = values + dep_values + dep_values2 + dep_values3
     
     vf = ValuesFile( temp_file_name )
     
-    for value in all_values:
+    for value in values + dep_values2:
       vf.add( value ); vf.selfTest()
     
     file_size = float(os.stat( temp_file_name ).st_size) / 1000
     print( "File size: %s" % file_size )
+    
+    vf.open( temp_file_name ); vf.selfTest()
+    
+    vf.clear()
+    
+    for value in all_values:
+      vf.add( value ); vf.selfTest()
     
     vf.open( temp_file_name ); vf.selfTest()
 

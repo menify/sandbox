@@ -37,8 +37,8 @@ class DataFile (object):
   
   def   clear(self):
     if self.stream is not None:
-      self.stream.seek( o )
-      self.stream.truncate( o )
+      self.stream.seek( 0 )
+      self.stream.truncate( 0 )
     
     del self.locations[:]
     self.file_size = 0
