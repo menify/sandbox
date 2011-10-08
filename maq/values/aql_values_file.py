@@ -20,9 +20,7 @@ class _PickledDependsValue (object):
     for value in depends_value.content.values:
       key = values_hash.find( value )[0]
       if key is None:
-        name = None             # ignore invalid depends value
-        value_keys = None
-        break
+        raise Exception("Depended value '%s' is not in hash" % value )
         
       value_keys.append( key )
     
@@ -83,6 +81,7 @@ class ValuesFile (object):
   def   __packValue( self, key, value ):
     if isinstance(value, DependsValue):
       value = _PickledDependsValue(value, self.hash )
+      
     return pickle.dumps( (key, value), pickle.HIGHEST_PROTOCOL )
   
   #//-------------------------------------------------------//
