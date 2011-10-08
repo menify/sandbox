@@ -83,7 +83,7 @@ class AqlTests(unittest.TestCase):
   testcases = set()
   
   def   __init__(self, testname, settings ):
-    super().__init__(testname)
+    super(AqlTests, self).__init__(testname)
     
     self.settings = settings
     self.result = self.defaultTestResult()
@@ -94,7 +94,7 @@ class AqlTests(unittest.TestCase):
     if result is not None:
       self.result = result
     
-    super().run( self.result )
+    super(AqlTests, self).run( self.result )
   
   #//=======================================================//
   

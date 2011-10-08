@@ -24,7 +24,7 @@ class StringValue (Value):
       if content is None:
         content = other.content
     
-    super().__init__( name, content )
+    super(StringValue, self).__init__( name, content )
 
 
 #//===========================================================================//

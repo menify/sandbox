@@ -39,7 +39,7 @@ def test_hash(self):
   
   is_added, item_key1, item1 = hash.add( item1 ); hash.selfTest(); self.assertTrue( is_added )
   is_added, item_key2, item2 = hash.add( item2 ); hash.selfTest(); self.assertTrue( is_added )
-  is_added, item_key2_, item2_ = hash.add( item2_ ); hash.selfTest(); self.assertTrue( is_added )
+  is_added, item_key2_, item2_ = hash.add( item2_ ); hash.selfTest(); self.assertFalse( is_added )
   is_added, item_key3, item3 = hash.add( item3 ); hash.selfTest(); self.assertTrue( is_added )
   
   self.assertIs( item2, item2_ )

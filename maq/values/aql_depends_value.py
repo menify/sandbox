@@ -12,7 +12,7 @@ class   DependsValueContent (object):
     if isinstance( values, DependsValueContent ):
       return values
     
-    return super().__new__(cls, values )
+    return super(DependsValueContent,cls).__new__(cls, values )
   
   #//-------------------------------------------------------//
   
@@ -80,6 +80,6 @@ class   DependsValue (Value):
       if content is None:
         content = other.content
     
-    super().__init__( name, content )
+    super(DependsValue, self).__init__( name, content )
 
 #//===========================================================================//

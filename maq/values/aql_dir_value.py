@@ -21,7 +21,7 @@ class   DirContentChecksum (object):
     def   __new__( cls, path = None ):
         
         if isinstance( path, _Unpickling):
-            return super().__new__(cls)
+            return super(DirContentChecksum,self).__new__(cls)
         
         if path is None:
             return NoFileContent()
@@ -35,7 +35,7 @@ class   DirContentChecksum (object):
                 for chunk in f:
                     checksum.update( chunk )
             
-            self = super().__new__(cls)
+            self = super(DirContentChecksum,self).__new__(cls)
             
             self.checksum = checksum.hexdigest()
             self.size = size
@@ -70,7 +70,7 @@ class   FileContentTimeStamp (object):
     def   __new__( cls, path = None ):
         
         if isinstance( path, _Unpickling):
-            return super().__new__(cls)
+            return super(DirContentChecksum,self).__new__(cls)
         
         if path is None:
             return NoFileContent()
