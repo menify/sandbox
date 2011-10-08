@@ -2,6 +2,7 @@
 import io
 import pickle
 
+from aql_logging import logWarning
 from aql_hash import Hash
 from aql_data_file import DataFile
 from aql_depends_value import DependsValue
@@ -20,7 +21,10 @@ class _PickledDependsValue (object):
     for value in depends_value.content.values:
       key = values_hash.find( value )[0]
       if key is None:
-        raise Exception("Depended value '%s' is not in hash" % value )
+        name = None             # ignore invalid depends value
+        value_keys = None
+        logWarning("Depended value '%s' is not in hash" % value)
+        break
         
       value_keys.append( key )
     
@@ -218,12 +222,14 @@ class ValuesFile (object):
   def   remove(self, value):
     old_key = self.hash.remove( value )
     if old_key is not None:
-      old_index = self.locations[ old_key ]
+      locations = self.locations
+      old_index = locations[ old_key ]
       del self.data_file[ old_index ]
       
-      for key, index in self.locations:
+      for key in locations:
+        index = locations[key]
         if old_index > index:
-          self.locations[ key ] = index - 1
+          locations[ key ] = index - 1
   
   #//-------------------------------------------------------//
   

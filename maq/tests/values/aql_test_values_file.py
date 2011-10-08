@@ -119,14 +119,17 @@ def test_values_file_depends2(self):
     
     vf = ValuesFile( temp_file_name )
     
-    for value in values + dep_values:
+    for value in values + dep_values2:
       vf.add( value ); vf.selfTest()
     
     file_size = float(os.stat( temp_file_name ).st_size) / 1000
+    print( "File size: %s" % file_size )
     
     vf.open( temp_file_name ); vf.selfTest()
     
     vf.clear()
+    self.assertFalse( vf )
+    self.assertEqual( len(vf), 0 )
     
     for value in all_values:
       vf.add( value ); vf.selfTest()
@@ -135,6 +138,19 @@ def test_values_file_depends2(self):
     
     for value in all_values:
       self.assertIsNotNone( vf.find( value ) )
+    
+    vf.remove( values[0] )
+    
+    self.assertIsNone( vf.find( values[0] ) )
+    
+    vf.open( temp_file_name ); vf.selfTest()
+    
+    for value in [values[0]] + dep_values + dep_values2 + dep_values3:
+      self.assertFalse( value in vf )
+    
+    for value in values[1:]:
+      self.assertTrue( value in vf )
+
 
 
 #//===========================================================================//
