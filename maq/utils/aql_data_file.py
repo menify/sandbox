@@ -189,11 +189,14 @@ class DataFile (object):
     
     self.version, offset = self.__readFileVersion()
     
+    readHeader = self.__readHeader
+    locationsAppend = self.locations.append
+    
     while True:
-      version, reserved_data_size, data_size = self.__readHeader( offset )
+      version, reserved_data_size, data_size = readHeader( offset )
       if not reserved_data_size:
         break
-      self.locations.append( [ offset, reserved_data_size, data_size, version ] )
+      locationsAppend( [ offset, reserved_data_size, data_size, version ] )
       
       offset += self.header_size + reserved_data_size
     
@@ -285,8 +288,9 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __iter__(self):
+    readData = self.__readData
     for offset, reserved_data_size, data_size, version in self.locations:
-      yield self.__readData( offset, data_size )
+      yield readData( offset, data_size )
   
   #//-------------------------------------------------------//
   
@@ -303,7 +307,31 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   def   update(self):
-    version = self.__readFileVersion()
+    self.version, offset = self.__readFileVersion()
+    index = 0
+    
+    updated_indexes = []
+    indexesAppend = updated_indexes.append
+    
+    header_size = self.header_size
+    locations = self.locations
+    readHeader = self.__readHeader
+    
+    while True:
+      version, reserved_data_size, data_size = readHeader( offset )
+      if not reserved_data_size:
+        break
+      
+      location = [offset, reserved_data_size, data_size, version]
+      
+      if locations[index] != location:
+        locations[index] = location
+        indexesAppend( index )
+      
+      offset += header_size + reserved_data_size
+      index += 1
+    
+    return updated_indexes
   
   #//-------------------------------------------------------//
   
