@@ -1,6 +1,7 @@
 import io
 import os
 import struct
+import array
 
 class DataFile (object):
   
@@ -101,15 +102,17 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __chunkData( self, data, reserved_data_size = None ):
-    data_size = len(data)
+  def   __chunkData( self, data, data_size, reserved_data_size = None ):
     
     if reserved_data_size is None:
       reserved_data_size = max( 16, data_size + data_size // 2 )
     
     header = self.header_struct.pack( reserved_data_size, data_size )
     
-    return reserved_data_size, header + data
+    chunk = bytearray(header)
+    chunk += data
+    
+    return reserved_data_size, chunk
   
   #//-------------------------------------------------------//
   
@@ -121,69 +124,66 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __resizeChunk( self, offset, reserved_data_size, chunk, new_reserved_data_size ):
-    shift_size = self.header_size + reserved_data_size
-    rest_offset = offset + shift_size
+    
+    if chunk is None:
+      chunk = bytearray()
+      new_reserved_data_size = -self.header_size
+    else:
+      chunk = chunk + bytearray( new_reserved_data_size + self.header_size - len(chunk) )
+    
+    shift_size = new_reserved_data_size - reserved_data_size
+    rest_offset = offset + self.header_size + reserved_data_size
     rest_data_size = self.file_size - rest_offset
     
     rest_chunks = self.__readBytes( rest_offset, rest_data_size )
     
-    rest_data_delta = rest_data_size - len(rest_chunks)
+    written_bytes_size = self.__writeBytes( offset, chunk + rest_chunks )
     
-    if chunk is not None:
-      rest_chunks = rest_chunks + bytearray( rest_data_delta )
+    self.__moveLocations( offset, shift_size )
     
-    else:
-      chunk = bytearray()
-      new_reserved_data_size = -self.header_size
-    
-    written_bytes_size = self.__writeBytes( offset, rest_chunks + chunk )
-    
-    self.__moveLocations( offset, -shift_size )
-    
-    reserved_data_size_delta = new_reserved_data_size - reserved_data_size
-    self.file_size += reserved_data_size_delta
+    self.file_size += shift_size
     
     if new_reserved_data_size < reserved_data_size:
       self.stream.truncate( offset + written_bytes_size )
     
-    new_offset = offset + rest_data_size
-    return new_offset
+    return offset
   
   #//-------------------------------------------------------//
   
-  def   __getitem__(self, key ):
-    offset, reserved_data_size, data_size = self.locations[ key ]
+  def   __getitem__(self, index ):
+    offset, reserved_data_size, data_size = self.locations[ index ]
     return self.__readData( offset, data_size )
   
   #//-------------------------------------------------------//
   
-  def   __setitem__(self, key, data ):
+  def   __setitem__(self, index, data ):
     
-    location = self.locations[ key ]
+    location = self.locations[ index ]
     
     offset, reserved_data_size, data_size = location
     new_data_size = len(data)
     
     if new_data_size <= reserved_data_size:
-      reserved_data_size, chunk = self.__chunkData( data, reserved_data_size )
+      reserved_data_size, chunk = self.__chunkData( data, new_data_size, reserved_data_size )
       
       self.__writeBytes( offset, chunk )
       
       location[2] = new_data_size
     
     else:
-      new_reserved_data_size, chunk = self.__chunkData( data )
+      new_reserved_data_size, chunk = self.__chunkData( data, new_data_size )
+      
       new_offset = self.__resizeChunk( offset, reserved_data_size, chunk, new_reserved_data_size )
       
       location[:] = [ new_offset, new_reserved_data_size, new_data_size ]
   
   #//-------------------------------------------------------//
   
-  def   __delitem__(self, key):
-    offset, reserved_data_size, data_size = self.locations[ key ]
+  def   __delitem__(self, index):
+    offset, reserved_data_size, data_size = self.locations[ index ]
     self.__resizeChunk( offset, reserved_data_size, None, 0 )
     
-    del self.locations[ key ]
+    del self.locations[ index ]
   
   #//-------------------------------------------------------//
   
@@ -204,7 +204,7 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def append( self, data ):
-    reserved_data_size, chunk = self.__chunkData( data )
+    reserved_data_size, chunk = self.__chunkData( data, len(data) )
     
     offset = self.file_size
     self.__writeBytes( offset, chunk )
@@ -239,6 +239,7 @@ class DataFile (object):
         last_offset, last_reserved_data_size, last_data_size = sorted_locations[-1]
       
         if (file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)):
+          print("file_size: %s, real_file_size: %s, last_offset: %s, last_data_size: %s" % (file_size, real_file_size, last_offset, last_data_size))
           raise AssertionError("(file_size < real_file_size) or (real_file_size < (last_offset + last_data_size)")
       
       else:

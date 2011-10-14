@@ -1,7 +1,11 @@
 
+import os
+import sys
 import random
 
-from aql_tests import testcase, skip
+sys.path.insert( 0, os.path.normpath(os.path.join( os.path.dirname( __file__ ), '..') ))
+
+from aql_tests import testcase, skip, runTests
 from aql_temp_file import Tempfile
 from aql_data_file import DataFile
 
@@ -104,7 +108,9 @@ def test_data_file(self):
     indexes = list( range(0, len(data_list) ) )
     random.shuffle( indexes )
     for i in indexes:
+      print("index: %s" % i)
       df[i] = data_list[i]
+      df.selfTest()
     
     self.assertEqual( data_list, list( df ) )
     df.selfTest()
@@ -184,3 +190,6 @@ def test_data_file(self):
 
 
 #//===========================================================================//
+
+if __name__ == "__main__":
+  runTests()

@@ -25,25 +25,6 @@ class Node (object):
       if isintance()
     
     self.builder = builder
-    
-  
-  #//-------------------------------------------------------//
-  
-  def   __getstate__( self ):
-    state = {}
-    for attr in self.__slots__:
-      try:
-        state[ attr ] = getattr( self, attr )
-      except AttributeError:
-        pass
-    
-    return state
-  
-  #//-------------------------------------------------------//
-  
-  def   __setstate__( self, state ):
-    for attr,value in state.items():
-      setattr( self, attr, value )
   
   #//-------------------------------------------------------//
   

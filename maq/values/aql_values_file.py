@@ -13,22 +13,9 @@ from aql_file_value import FileName
 class _PickledDependsValue (object):
   __slots__ = ('name', 'value_keys')
   
-  def   __init__(self, depends_value, values_hash ):
+  def   __init__( self, depends_value, value_keys ):
     
-    name = depends_value.name
-    value_keys = []
-    
-    for value in depends_value.content.values:
-      key = values_hash.find( value )[0]
-      if key is None:
-        name = None             # ignore invalid depends value
-        value_keys = None
-        logWarning("Depended value '%s' is not in hash" % value)
-        break
-        
-      value_keys.append( key )
-    
-    self.name = name
+    self.name = depends_value.name
     self.value_keys = value_keys
   
   #//-------------------------------------------------------//
@@ -79,6 +66,18 @@ class ValuesFile (object):
     self.data_file = None
     
     self.open( filename )
+  
+  #//-------------------------------------------------------//
+  
+  def   __pickableValue( self, value )
+    if isinstance( value, DependsValue ):
+      value_keys = self.__getValuesKeys
+      
+      value = _PickledDependsValue( value.name, self.hash )
+      if not value.isValid():
+        return None
+    
+    return value
   
   #//-------------------------------------------------------//
   
@@ -140,7 +139,21 @@ class ValuesFile (object):
     
     for index in removed_indexes:
       self.__removeIndex( index )
+  
+  #//-------------------------------------------------------//
+  
+  def   __getValueKeys( self, values ):
+    value_keys = []
+    
+    findValue = self.hash.find
+    for value in values:
+      key = findValue( value )[0]
+      if key is None:
+        return None
       
+      value_keys.append( key )
+    
+    return value_keys
   
   #//-------------------------------------------------------//
   
@@ -184,11 +197,23 @@ class ValuesFile (object):
   #//-------------------------------------------------------//
   
   def   find( self, value ):
-    return self.hash.find( value )[1]
+    value = self.hash.find( value )[1]
+    if value is not None:
+      
+      pick_value = self.__pickableValue( value )
+      if pick_value is None:
+        return None
+    
+    return value
+    
   
   #//-------------------------------------------------------//
   
   def   add( self, value ):
+    
+    pick_value = self.__pickableValue(value)
+    if pick_value is None:
+      return None
     
     is_added, key, value = self.hash.add( value )
     if not is_added:
