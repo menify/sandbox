@@ -43,7 +43,7 @@ def test_data_file(self):
   with Tempfile() as tmp:
     tmp.remove()
     
-    data_list = generateDataList( 50, 50, 7, 57 )
+    data_list = generateDataList( 10, 10, 7, 57 )
     
     df = DataFile( tmp.name )
     

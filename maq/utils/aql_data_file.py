@@ -27,33 +27,38 @@ class DataFile (object):
     
     file_header = self.__readBytes( 0, file_header_size )
     if len(file_header) != file_header_size:
-      return 0
+      return self.version, file_header_size
     
-    return self.file_header_struct.unpack( file_header )
+    return self.file_header_struct.unpack( file_header )[0], file_header_size
+  
+  #//-------------------------------------------------------//
+  
+  def   __writeFileVersion( self, version ):
+    file_header = self.file_header_struct.pack( version )
+    self.__writeBytes( 0, file_header )
   
   #//-------------------------------------------------------//
   
   def   __nextVersion( self ):
     
-    file_header = self.file_header_struct.pack( self.version )
-    
-    self.__writeBytes( 0, file_header )
+    version = self.version
+    self.__writeFileVersion( version )
     
     if self.version < self.max_version:
       self.version += 1
     else:
       self.version = 0
+    
+    return version
   
   #//-------------------------------------------------------//
   
   def   __readHeader( self, offset ):
-    stream = self.stream
     header_size = self.header_size
     
-    stream.seek( offset )
-    header = stream.read( header_size )
+    header = self.__readBytes( offset, header_size )
     if len(header) != header_size:
-      return 0, 0
+      return 0, 0, 0
     
     version, reserved_data_size, data_size = self.header_struct.unpack( header )
     if reserved_data_size < data_size:
@@ -64,9 +69,7 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __readData( self, offset, data_size ):
-    stream = self.stream
-    stream.seek( offset + self.header_size )
-    return stream.read( data_size )
+    return self.__readBytes( offset + self.header_size, data_size )
   
   #//-------------------------------------------------------//
   
@@ -93,7 +96,7 @@ class DataFile (object):
     
     header = self.header_struct.pack( version, reserved_data_size, data_size )
     
-    chunk = bytearray(header)
+    chunk = header
     chunk += data
     
     return version, reserved_data_size, chunk
@@ -184,16 +187,14 @@ class DataFile (object):
     else:
       self.stream = io.open( filename, 'w+b', 0 )
     
-    offset = 0
-    
-    self.version = self.__readFileVersion()
+    self.version, offset = self.__readFileVersion()
     
     while True:
       version, reserved_data_size, data_size = self.__readHeader( offset )
       if not reserved_data_size:
         break
-      
       self.locations.append( [ offset, reserved_data_size, data_size, version ] )
+      
       offset += self.header_size + reserved_data_size
     
     self.file_size = offset
@@ -237,7 +238,7 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __getitem__(self, index ):
-    offset, reserved_data_size, data_size = self.locations[ index ]
+    offset, reserved_data_size, data_size, version = self.locations[ index ]
     return self.__readData( offset, data_size )
   
   #//-------------------------------------------------------//
@@ -246,7 +247,7 @@ class DataFile (object):
     
     location = self.locations[ index ]
     
-    offset, reserved_data_size, data_size = location
+    offset, reserved_data_size, data_size, version = location
     new_data_size = len(data)
     
     if new_data_size <= reserved_data_size:
@@ -254,7 +255,7 @@ class DataFile (object):
       
       self.__writeBytes( offset, chunk )
       
-      location[2:3] = [new_data_size, version ]
+      location[2:] = [new_data_size, version]
     
     else:
       version, new_reserved_data_size, chunk = self.__chunkData( data, new_data_size )
@@ -266,7 +267,7 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __delitem__(self, index):
-    offset, reserved_data_size, data_size = self.locations[ index ]
+    offset, reserved_data_size, data_size, version = self.locations[ index ]
     self.__removeChunk( offset, reserved_data_size )
     
     del self.locations[ index ]
@@ -284,7 +285,7 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __iter__(self):
-    for offset, reserved_data_size, data_size in self.locations:
+    for offset, reserved_data_size, data_size, version in self.locations:
       yield self.__readData( offset, data_size )
   
   #//-------------------------------------------------------//
@@ -307,36 +308,57 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   selfTest( self ):
-    file_size = 0
+    file_size = self.file_header_size
     
-    for offset, reserved_data_size, data_size in self.locations:
+    for offset, reserved_data_size, data_size, version in self.locations:
       if reserved_data_size < data_size:
         raise AssertionError("reserved_data_size < data_size")
       
       file_size += self.header_size + reserved_data_size
-      
+    
     if file_size != self.file_size:
-      raise AssertionError("file_size != self.file_size")
+      raise AssertionError("file_size (%s) != self.file_size (%s)" % (file_size, self.file_size) )
     
     if self.stream is not None:
       real_file_size = self.stream.seek( 0, os.SEEK_END )
       if self.locations:
-        last_offset, last_reserved_data_size, last_data_size = self.locations[-1]
+        last_offset, last_reserved_data_size, last_data_size, version = self.locations[-1]
         last_data_offset = last_offset + self.header_size
         
         if real_file_size < (last_data_offset + last_data_size) or \
            real_file_size > (last_data_offset + last_reserved_data_size) :
-          print("real_file_size: %s, last location: %s" % (real_file_size, self.locations[-1] ))
-          raise AssertionError("real_file_size != (last_offset + self.header_size + last_data_size)")
+          raise AssertionError("Invalid real_file_size(%s), last_data_offset: %s, last_data_size: %s, last_reserved_data_size: %s" %
+                                (real_file_size, last_data_offset, last_data_size, last_reserved_data_size) )
       
       else:
         if file_size != real_file_size:
           raise AssertionError("file_size != real_file_size")
     
-    prev_offset = 0
+    prev_offset = self.file_header_size
     prev_reserved_data_size = -self.header_size
-    for offset, reserved_data_size, data_size in self.locations:
+    for offset, reserved_data_size, data_size, version in self.locations:
       if (prev_offset + prev_reserved_data_size + self.header_size) != offset:
-        raise AssertionError("(prev_offset + prev_reserved_data_size + self.header_size) != offset")
+        raise AssertionError("(prev_offset (%s) + prev_reserved_data_size(%s) + self.header_size(%s)) != offset (%s)" %
+                             (prev_offset, prev_reserved_data_size, self.header_size, offset))
       prev_offset = offset
       prev_reserved_data_size = reserved_data_size
+    
+    #//-------------------------------------------------------//
+    
+    
+    version, offset = self.__readFileVersion()
+    index = 0
+    
+    while True:
+      version, reserved_data_size, data_size = self.__readHeader( offset )
+      if not reserved_data_size:
+        break
+      
+      location = [offset, reserved_data_size, data_size, version ]
+      
+      if self.locations[index] != location:
+        raise AssertionError("self.locations[%s] (%s) != location (%s)" % (index, self.locations[index], location))
+      
+      offset += self.header_size + reserved_data_size
+      index += 1
+
