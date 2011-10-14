@@ -48,7 +48,7 @@ def test_data_file(self):
     df = DataFile( tmp.name )
     
     for data in data_list:
-      df.append( data )
+      df.append( data ); df.selfTest()
     
     self.assertEqual( data_list, list( df ) )
     
@@ -108,7 +108,6 @@ def test_data_file(self):
     indexes = list( range(0, len(data_list) ) )
     random.shuffle( indexes )
     for i in indexes:
-      print("index: %s" % i)
       df[i] = data_list[i]
       df.selfTest()
     
