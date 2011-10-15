@@ -51,7 +51,7 @@ class   FileContentChecksum (object):
   
   def   __ne__( self, other ):        return not self.__eq__( other )
   
-  def     __getnewargs__(self):       return ( _Unpickling(), )
+  def   __getnewargs__(self):         return ( _Unpickling(), )
 
   def   __getstate__( self ):         return { 'size': self.size, 'checksum': self.checksum }
   def   __setstate__( self, state ):  self.size = state['size']; self.checksum = state['checksum']

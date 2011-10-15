@@ -196,6 +196,7 @@ class DataFile (object):
       version, reserved_data_size, data_size = readHeader( offset )
       if not reserved_data_size:
         break
+      
       locationsAppend( [ offset, reserved_data_size, data_size, version ] )
       
       offset += self.header_size + reserved_data_size
@@ -337,12 +338,14 @@ class DataFile (object):
           locations[index] = location
           indexesAppend( index )
        
-       except IndexError:
+      except IndexError:
           locationsAppend( location )
           indexesAppend( index )
       
       offset += header_size + reserved_data_size
       index += 1
+    
+    self.file_size = offset
     
     return updated_indexes
   
