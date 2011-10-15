@@ -306,8 +306,14 @@ class DataFile (object):
     self.locations.append( location )
   
   #//-------------------------------------------------------//
+  
   def   update(self):
-    self.version, offset = self.__readFileVersion()
+    version, offset = self.__readFileVersion()
+    if version == self.version:
+      return []
+    
+    self.version = version
+    
     index = 0
     
     updated_indexes = []
@@ -315,6 +321,8 @@ class DataFile (object):
     
     header_size = self.header_size
     locations = self.locations
+    locationsAppend = locations.append
+    
     readHeader = self.__readHeader
     
     while True:
@@ -324,9 +332,14 @@ class DataFile (object):
       
       location = [offset, reserved_data_size, data_size, version]
       
-      if locations[index] != location:
-        locations[index] = location
-        indexesAppend( index )
+      try:
+        if locations[index] != location:
+          locations[index] = location
+          indexesAppend( index )
+       
+       except IndexError:
+          locationsAppend( location )
+          indexesAppend( index )
       
       offset += header_size + reserved_data_size
       index += 1
