@@ -12,14 +12,7 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   __genKey(self):
-    key = (self.seq_num, uuid.uuid4().bytes )
-    self.seq_num += 1
-    return key
-  
-  #//-------------------------------------------------------//
-  
-  def   __findItem( self, item ):
+  def   findRef( self, item ):
     pairs = self.pairs.setdefault( hash(item), [] )
     
     index = 0
@@ -33,31 +26,31 @@ class Hash (object):
     
   #//-------------------------------------------------------//
   
-  def   __addItem( self, pairs, key, item ):
-    pair = (key, item)
+  def   addToRef( self, ref, key, item ):
     
-    pairs.append( pair )
-    self.keys[ key ] = item
-    
-    return pair
-    
-  #//-------------------------------------------------------//
-  
-  def   __removeItem( self, pairs, index, key ):
-    del self.keys[ key ]
-    del pairs[ index ]
-  
-  #//-------------------------------------------------------//
-  
-  def   __updateItem( self, pairs, index, key, item ):
-    
+    pairs, index = ref
     pair = (key, item )
-    old_key = pairs[index][0]
-    del self.keys[ old_key ]
-    pairs[ index ] = pair
-    self.keys[ key ] = item
     
-    return old_key
+    keys = self.keys
+    
+    if index != -1:
+      old_key = pairs[index][0]
+      del keys[ old_key ]
+      pairs[ index ] = pair
+    
+    else:
+      pairs.append( pair )
+    
+    keys[ key ] = item
+    
+  #//-------------------------------------------------------//
+  
+  def   removeByRef( self, ref ):
+    pairs, index = ref
+    if index != -1:
+      key = pairs[index][0]
+      del self.keys[ key ]
+      del pairs[ index ]
   
   #//-------------------------------------------------------//
   
@@ -74,19 +67,47 @@ class Hash (object):
   
   def   __setitem__(self, key, item ):
     
-    if key in self.keys:
-      del self[ key ]
+    try:
+      old_item = self.keys[ key ]
+      self.remove( old_item )
+    except KeyError:
+      pass
     
-    pairs, index = self.__findItem( item )
-    if index == -1:
-      self.__addItem( pairs, key, item )
-    else:
-      self.__updateItem( pairs, index, key, item )
+    ref = self.findRef( item )
+    self.addToRef( ref, key, item )
+  
+  #//-------------------------------------------------------//
+  
+  def   getKey( self, ref ):
+    pairs, index = ref
+    if index != -1:
+      return pairs[index][0]
+    
+    return None
+  
+  #//-------------------------------------------------------//
+  
+  def   getKeyItem( self, ref ):
+    pairs, index = ref
+    if index != -1:
+      pair = pairs[index]
+      return pair
+    
+    return None
+  
+  #//-------------------------------------------------------//
+  
+  def   getItem( self, ref ):
+    pairs, index = ref
+    if index != -1:
+      return pairs[index][1]
+    
+    return None
   
   #//-------------------------------------------------------//
   
   def   find(self, item):
-    pairs, index = self.__findItem( item )
+    pairs, index = self.findRef( item )
     if index != -1:
       return pairs[index]
     
@@ -94,42 +115,13 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   add( self, item ):
-    
-    pairs, index = self.__findItem( item )
-    if index != -1:
-      pair = pairs[index]
-      return False, pair[0], pair[1]
-    
-    pair = self.__addItem( pairs, self.__genKey(), item )
-    
-    return True, pair[0], pair[1]
-  
-  #//-------------------------------------------------------//
-  
-  def   update( self, item ):
-    key = self.__genKey()
-    old_key = None
-    
-    pairs, index = self.__findItem( item )
-    if index == -1:
-      self.__addItem( pairs, key, item )
-    else:
-      old_key = self.__updateItem( pairs, index, key, item )
-    
-    return key, old_key
-  
-  #//-------------------------------------------------------//
-  
   def   remove(self, item):
+    ref = self.findRef( item )
+    key = self.getKey( ref )
     
-    pairs, index = self.__findItem( item )
-    if index != -1:
-      key = pairs[index][0]
-      self.__removeItem( pairs, index, key )
-      return key
+    self.removeByRef( ref )
     
-    return None
+    return key
   
   #//-------------------------------------------------------//
   

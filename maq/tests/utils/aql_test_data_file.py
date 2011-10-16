@@ -193,7 +193,7 @@ def test_data_file(self):
 def   test_data_file_update(self):
   with Tempfile() as tmp:
     
-    data_list = generateDataList( 50, 50, 7, 57 )
+    data_list = generateDataList( 5, 5, 7, 57 )
     
     df = DataFile( tmp.name )
     
@@ -214,6 +214,23 @@ def   test_data_file_update(self):
     
     self.assertEqual( df.update(), [1,2, len(df2) - 2, len(df2) - 1] )
     df.selfTest()
+    self.assertEqual( df2.update(), [] )
+    df2.selfTest()
+    
+    df3 = DataFile( tmp.name ); df3.selfTest()
+    del df3[ 1 ]; df3.selfTest()
+    del df3[ 3 ]; df3.selfTest()
+    
+    self.assertEqual( df.update(), [1, 2, 3, 4] )
+    df.selfTest()
+    
+    self.assertEqual( df2.update(), [1, 2, 3, 4] )
+    df2.selfTest()
+    
+    del df3[ -1 ]; df3.selfTest()
+    
+    self.assertEqual( df2.update(), [] )
+    df2.selfTest()
 
 
 #//===========================================================================//

@@ -124,6 +124,7 @@ class DataFile (object):
     else:
       written_bytes_size = 0
     
+    self.__nextVersion()  # update file version
     self.stream.truncate( offset + written_bytes_size )
     
     self.__moveLocations( offset, -chunk_size )
@@ -215,6 +216,51 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
+  def   update(self):
+    version, offset = self.__readFileVersion()
+    if version == self.version:
+      return []
+    
+    self.version = version
+    
+    index = 0
+    
+    updated_indexes = []
+    indexesAppend = updated_indexes.append
+    
+    header_size = self.header_size
+    locations = self.locations
+    locationsAppend = locations.append
+    
+    readHeader = self.__readHeader
+    
+    while True:
+      version, reserved_data_size, data_size = readHeader( offset )
+      if not reserved_data_size:
+        break
+      
+      location = [offset, reserved_data_size, data_size, version]
+      
+      try:
+        if locations[index] != location:
+          locations[index] = location
+          indexesAppend( index )
+       
+      except IndexError:
+          locationsAppend( location )
+          indexesAppend( index )
+      
+      offset += header_size + reserved_data_size
+      index += 1
+    
+    del locations[index:]
+    
+    self.file_size = offset
+    
+    return updated_indexes
+  
+  #//-------------------------------------------------------//
+  
   def   lock( self ):
     pass
   
@@ -232,9 +278,10 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   clear(self):
-    if self.stream is not None:
-      self.stream.seek( 0 )
-      self.stream.truncate( 0 )
+    stream = self.stream
+    if stream is not None:
+      stream.seek( 0 )
+      stream.truncate( 0 )
     
     del self.locations[:]
     self.file_size = 0
@@ -305,49 +352,6 @@ class DataFile (object):
     
     location = [ offset, reserved_data_size, len(data), version ]
     self.locations.append( location )
-  
-  #//-------------------------------------------------------//
-  
-  def   update(self):
-    version, offset = self.__readFileVersion()
-    if version == self.version:
-      return []
-    
-    self.version = version
-    
-    index = 0
-    
-    updated_indexes = []
-    indexesAppend = updated_indexes.append
-    
-    header_size = self.header_size
-    locations = self.locations
-    locationsAppend = locations.append
-    
-    readHeader = self.__readHeader
-    
-    while True:
-      version, reserved_data_size, data_size = readHeader( offset )
-      if not reserved_data_size:
-        break
-      
-      location = [offset, reserved_data_size, data_size, version]
-      
-      try:
-        if locations[index] != location:
-          locations[index] = location
-          indexesAppend( index )
-       
-      except IndexError:
-          locationsAppend( location )
-          indexesAppend( index )
-      
-      offset += header_size + reserved_data_size
-      index += 1
-    
-    self.file_size = offset
-    
-    return updated_indexes
   
   #//-------------------------------------------------------//
   
