@@ -1,6 +1,10 @@
+import os
+import sys
 
+sys.path.insert( 0, os.path.normpath(os.path.join( os.path.dirname( __file__ ), '..') ))
+
+from aql_tests import testcase, runTests
 from aql_hash import Hash
-from aql_tests import testcase
 
 #//===========================================================================//
 
@@ -28,85 +32,63 @@ class Item (object):
 
 @testcase
 def test_hash(self):
-  hash = Hash()
+  items_hash = Hash()
   
   item1 = Item('test', 'value1')
   item2 = Item('test', 'value2')
   item2_ = Item('test', 'value2')
   item3 = Item('test3', 'value2')
   
-  hash.selfTest()
+  items_hash.selfTest()
   
-  is_added, item_key1, item1 = hash.add( item1 ); hash.selfTest(); self.assertTrue( is_added )
-  is_added, item_key2, item2 = hash.add( item2 ); hash.selfTest(); self.assertTrue( is_added )
-  is_added, item_key2_, item2_ = hash.add( item2_ ); hash.selfTest(); self.assertFalse( is_added )
-  is_added, item_key3, item3 = hash.add( item3 ); hash.selfTest(); self.assertTrue( is_added )
+  items_hash[ 1 ]= item1; self.assertIn( item1, items_hash ); self.assertEqual( items_hash.find( item1 ), ( 1, item1 ) );
+  items_hash.selfTest()
   
-  self.assertIs( item2, item2_ )
-  self.assertEqual( item_key2, item_key2_ )
+  items_hash[ 2 ]= item2; self.assertIn( item2, items_hash ); self.assertEqual( items_hash.find( item2 ), ( 2, item2 ) ); self.assertIn( item2_, items_hash )
+  items_hash.selfTest()
   
-  self.assertEqual( len(hash), 3 )
-  self.assertTrue( hash )
+  items_hash[ 3 ]= item3; self.assertIn( item3, items_hash ); self.assertEqual( items_hash.find( item3 ), ( 3, item3 ) );
+  items_hash.selfTest()
   
-  self.assertIsNotNone( hash.find( item1 )[0] )
-  self.assertIsNotNone( hash.find( item2 )[0] )
-  self.assertIsNotNone( hash.find( item3 )[0] )
+  found_item2_key, found_item2 = items_hash.find( item2_ ); self.assertEqual( found_item2_key, 2 ); self.assertIs( found_item2, item2 )
   
-  self.assertIn( item1, hash )
-  self.assertIn( item2, hash )
-  self.assertIn( item3, hash )
+  self.assertEqual( len(items_hash), 3 )
+  self.assertTrue( items_hash )
   
   count = 0
-  for i in hash:
+  for i in items_hash:
     count += 1
   
-  self.assertEqual( len(hash), count )
+  self.assertEqual( len(items_hash), count )
   
   new_item1 = Item('testing', 'value')
-  hash[ item_key1 ] = new_item1; hash.selfTest()
-  self.assertEqual( hash.find( item1 ), (None, None) )
+  items_hash[ 1 ] = new_item1; items_hash.selfTest()
+  self.assertEqual( items_hash.find( item1 ), (None, None) )
+  self.assertEqual( items_hash.find( new_item1 ), (1, new_item1) );
   
-  item1 = new_item1
+  items_hash[ 11 ] = new_item1; items_hash.selfTest()
+  self.assertEqual( items_hash.find( new_item1 ), (11, new_item1) )
+  with self.assertRaises( KeyError ): items_hash[1]
   
-  hash[ item_key2 ] = item1; hash.selfTest()
-  self.assertEqual( hash.find( item2 ), (None, None) )
+  items_hash.remove( item2 ); items_hash.selfTest()
+  items_hash.remove( item2 ); items_hash.selfTest()
+  with self.assertRaises( KeyError ): del items_hash[2]
+  items_hash.selfTest()
   
-  item1 = new_item1
+  del items_hash[3]; items_hash.selfTest()
+  with self.assertRaises( KeyError ): del items_hash[3]
+  items_hash.selfTest()
   
-  hash.remove( item1 ); hash.selfTest()
-  self.assertEqual( hash.find( item1 ), (None, None) )
-  self.assertNotIn( item1, hash )
+  self.assertEqual( len(items_hash), 1 )
   
-  item_key1, item_old_key1 = hash.update( item1 ); hash.selfTest()
-  self.assertIsNone( item_old_key1 )
-  new_item_key1, item_old_key1 = hash.update( item1 ); hash.selfTest()
-  self.assertEqual( item_key1, item_old_key1 )
-  self.assertNotEqual( item_key1, new_item_key1 )
-  self.assertIs( hash[new_item_key1], item1 )
+  items_hash.clear(); items_hash.selfTest()
   
-  del hash[ new_item_key1 ]; hash.selfTest()
-  
-  hash.remove( item2 ); hash.selfTest()
-  self.assertEqual( hash.find( item2 ), (None, None) )
-  self.assertNotIn( item2, hash )
-  
-  hash.remove( item3 ); hash.selfTest()
-  self.assertEqual( hash.find( item3 ), (None, None))
-  self.assertNotIn( item3, hash )
-  
-  self.assertEqual( len(hash), 0 )
-  self.assertFalse( hash )
-  
-  hash.add( item1 ); hash.selfTest()
-  
-  self.assertEqual( len(hash), 1 )
-  self.assertTrue( hash )
-  
-  hash.clear(); hash.selfTest()
-  
-  self.assertEqual( hash.find( item1 ), (None, None))
-  self.assertNotIn( item1, hash )
-  self.assertEqual( len(hash), 0 )
-  self.assertFalse( hash )
+  self.assertEqual( items_hash.find( item1 ), (None, None))
+  self.assertNotIn( item1, items_hash )
+  self.assertEqual( len(items_hash), 0 )
+  self.assertFalse( items_hash )
   
 #//===========================================================================//
+
+if __name__ == "__main__":
+  runTests()

@@ -30,8 +30,14 @@ class Hash (object):
     
     pairs, index = ref
     pair = (key, item )
-    
     keys = self.keys
+    
+    try:
+      old_item = keys[ key ]
+      if (index == -1) or (pairs[index][1] is not old_item):
+        self.removeByRef( self.findRef( old_item ) )
+    except KeyError:
+      pass
     
     if index != -1:
       old_key = pairs[index][0]
@@ -55,8 +61,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   __delitem__( self, key ):
-    item = self.keys[ key ]
-    self.remove( item )
+    self.removeByRef( self.findRef( self.keys[ key ] ) )
   
   #//-------------------------------------------------------//
   
@@ -66,15 +71,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   __setitem__(self, key, item ):
-    
-    try:
-      old_item = self.keys[ key ]
-      self.remove( old_item )
-    except KeyError:
-      pass
-    
-    ref = self.findRef( item )
-    self.addToRef( ref, key, item )
+    self.addToRef( self.findRef( item ), key, item )
   
   #//-------------------------------------------------------//
   
@@ -82,25 +79,6 @@ class Hash (object):
     pairs, index = ref
     if index != -1:
       return pairs[index][0]
-    
-    return None
-  
-  #//-------------------------------------------------------//
-  
-  def   getKeyItem( self, ref ):
-    pairs, index = ref
-    if index != -1:
-      pair = pairs[index]
-      return pair
-    
-    return None
-  
-  #//-------------------------------------------------------//
-  
-  def   getItem( self, ref ):
-    pairs, index = ref
-    if index != -1:
-      return pairs[index][1]
     
     return None
   
@@ -115,10 +93,9 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   remove(self, item):
+  def   remove( self, item ):
     ref = self.findRef( item )
     key = self.getKey( ref )
-    
     self.removeByRef( ref )
     
     return key
@@ -126,7 +103,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   __contains__(self, item):
-    return self.find( item )[1] is not None
+    return self.findRef( item )[1] != -1
   
   #//-------------------------------------------------------//
   
