@@ -12,7 +12,7 @@ class Hash (object):
   
   #//-------------------------------------------------------//
   
-  def   findRef( self, item ):
+  def   getRef( self, item ):
     pairs = self.pairs.setdefault( hash(item), [] )
     
     index = 0
@@ -35,7 +35,7 @@ class Hash (object):
     try:
       old_item = keys[ key ]
       if (index == -1) or (pairs[index][1] is not old_item):
-        self.removeByRef( self.findRef( old_item ) )
+        self.removeByRef( self.getRef( old_item ) )
     except KeyError:
       pass
     
@@ -61,7 +61,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   __delitem__( self, key ):
-    self.removeByRef( self.findRef( self.keys[ key ] ) )
+    self.removeByRef( self.getRef( self.keys[ key ] ) )
   
   #//-------------------------------------------------------//
   
@@ -71,7 +71,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   __setitem__(self, key, item ):
-    self.addToRef( self.findRef( item ), key, item )
+    self.addToRef( self.getRef( item ), key, item )
   
   #//-------------------------------------------------------//
   
@@ -85,7 +85,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   find(self, item):
-    pairs, index = self.findRef( item )
+    pairs, index = self.getRef( item )
     if index != -1:
       return pairs[index]
     
@@ -94,7 +94,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   remove( self, item ):
-    ref = self.findRef( item )
+    ref = self.getRef( item )
     key = self.getKey( ref )
     self.removeByRef( ref )
     
@@ -103,7 +103,7 @@ class Hash (object):
   #//-------------------------------------------------------//
   
   def   __contains__(self, item):
-    return self.findRef( item )[1] != -1
+    return self.getRef( item )[1] != -1
   
   #//-------------------------------------------------------//
   

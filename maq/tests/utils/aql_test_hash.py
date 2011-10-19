@@ -42,6 +42,7 @@ def test_hash(self):
   items_hash.selfTest()
   
   items_hash[ 1 ]= item1; self.assertIn( item1, items_hash ); self.assertEqual( items_hash.find( item1 ), ( 1, item1 ) );
+  items_hash[ 1 ]= item1; self.assertIn( item1, items_hash ); self.assertEqual( items_hash.find( item1 ), ( 1, item1 ) );
   items_hash.selfTest()
   
   items_hash[ 2 ]= item2; self.assertIn( item2, items_hash ); self.assertEqual( items_hash.find( item2 ), ( 2, item2 ) ); self.assertIn( item2_, items_hash )

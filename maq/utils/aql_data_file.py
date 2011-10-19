@@ -3,206 +3,252 @@ import os
 import struct
 import array
 
+class   _DFLocation (object):
+  __slots__ = \
+  (
+    'version',
+    'offset',
+    'capacity',
+    'size',
+  )
+  
+  max_version = (2 ** 32) - 1
+  header_struct = struct.Struct(">QLLL") # big-endian, 8 bytes (key), 4 bytes (version), 4 bytes (capacity), 4 bytes (size)
+  header_size = self.header_struct.size
+  
+  #//-------------------------------------------------------//
+  
+  def   __init__(self, offset ):
+    
+    self.version = 0
+    self.offset = offset
+    self.capacity = 0
+    self.size = 0
+  
+  #//-------------------------------------------------------//
+  
+  @classmethod
+  def  load( cls, stream, offset, header_size = header_size, header_struct = header_struct ):
+    
+    stream.seek( offset )
+    header = stream.read( header_size )
+    
+    if len(header) != header_size:
+      return -1, None, 0
+    
+    self = cls.__new__(cls)
+    
+    key, self.version, capacity, size = header_struct.unpack( header )
+    if capacity < size:
+      raise AssertionError( "Invalid file format" )
+    
+    self.offset = offset
+    self.capacity = capacity
+    self.size = size
+    
+    return key, self, header_size + capacity
+  
+  #//-------------------------------------------------------//
+  
+  def   pack( self, key, data, max_version = max_version, header_struct = header_struct ):
+    
+    if self.version < max_version:
+      self.version += 1
+    else:
+      self.version = 0
+    
+    size = len(data)
+    
+    if self.capacity < size:
+      self.capacity = size + size // 2
+    
+    self.size = size
+    
+    header = header_struct.pack( key, self.version, self.capacity, size )
+    
+    chunk = bytearray(header)
+    chunk += data
+    
+    return chunk
+  
+  #//-------------------------------------------------------//
+  
+  def   data( self, stream, header_size = header_size ):
+    stream.seek( self.offset + header_size )
+    return stream.read( self.size )
+  
+  #//-------------------------------------------------------//
+  
+  def   chunkSize( self, header_size = header_size )
+    return header_size + self.capacity
+  
+  #//-------------------------------------------------------//
+  
+  def   readTail( self, stream, header_size = header_size )
+    tail_offset = self.offset + header_size + self.capacity
+    stream.seek( tail_offset )
+    return stream.read()
+
+#//===========================================================================//
+
+class _DFHeader( object ):
+  
+  __slots__ = \
+  (
+    'version',
+    'uid',
+  )
+  
+  header_struct = struct.Struct(">LQ") # big-endian, 4 bytes (file version), 8 bytes (next unique ID)
+  header_size = self.file_header_struct.size
+  max_version = (2 ** 32) - 1
+  max_uid = (2 ** 64) - 1
+  
+  #//-------------------------------------------------------//
+  
+  def   __init__(self):
+    self.version = 0
+    self.uid = 0
+  
+  #//-------------------------------------------------------//
+  
+  def   load( self, stream, header_size = header_size, header_struct = header_struct ):
+    stream.seek( 0 )
+    header = stream.read( header_size )
+    
+    if len(header) != header_size:
+      self.version, self.uid = 0, 0
+      return True, 0
+    
+    version = self.version
+    self.version, self.uid = header_struct.unpack( file_header )
+    
+    return (version != self.version), header_size
+  
+  #//-------------------------------------------------------//
+  
+  def   save( self, stream, max_version = max_version, header_struct = header_struct ):
+    
+    if self.version < max_version:
+      self.version += 1
+    else:
+      self.version = 0
+    
+    header = header_struct.pack( self.version, self.uid )
+    
+    stream.seek(0)
+    return stream.write( header )
+  
+  #//-------------------------------------------------------//
+  
+  def   nextKey( self, stream, max_uid = max_uid ):
+    key = self.uid
+    
+    if key < max_uid:
+      self.uid += 1
+    else:
+      self.uid = 0
+    
+    self.write( stream )
+    
+    return key
+
+
+#//===========================================================================//
+
 class DataFile (object):
   
   __slots__ = \
   (
     'locations',
+    'file_header',
     'file_size',
     'stream',
-    'header_struct',
-    'header_size',
-    'file_header_size',
-    'file_header_struct',
-    'version',
-    'max_version',
     'lock',
   )
   
   #//-------------------------------------------------------//
   
-  def   __readFileVersion( self ):
-    
-    file_header_size = self.file_header_size
-    
-    file_header = self.__readBytes( 0, file_header_size )
-    if len(file_header) != file_header_size:
-      return self.version, file_header_size
-    
-    return self.file_header_struct.unpack( file_header )[0], file_header_size
-  
-  #//-------------------------------------------------------//
-  
-  def   __writeFileVersion( self, version ):
-    file_header = self.file_header_struct.pack( version )
-    self.__writeBytes( 0, file_header )
-  
-  #//-------------------------------------------------------//
-  
-  def   __nextVersion( self ):
-    
-    version = self.version
-    self.__writeFileVersion( version )
-    
-    if self.version < self.max_version:
-      self.version += 1
-    else:
-      self.version = 0
-    
-    return version
-  
-  #//-------------------------------------------------------//
-  
-  def   __readHeader( self, offset ):
-    header_size = self.header_size
-    
-    header = self.__readBytes( offset, header_size )
-    if len(header) != header_size:
-      return 0, 0, 0
-    
-    version, reserved_data_size, data_size = self.header_struct.unpack( header )
-    if reserved_data_size < data_size:
-      raise AssertionError( "Invalid file format" )
-    
-    return version, reserved_data_size, data_size
-  
-  #//-------------------------------------------------------//
-  
-  def   __readData( self, offset, data_size ):
-    return self.__readBytes( offset + self.header_size, data_size )
-  
-  #//-------------------------------------------------------//
-  
-  def   __readBytes( self, offset, data_size ):
-    stream = self.stream
-    stream.seek( offset )
-    return stream.read( data_size )
-  
-  #//-------------------------------------------------------//
-  
-  def   __writeBytes( self, offset, data ):
-    stream = self.stream
-    stream.seek( offset )
-    return stream.write( data )
-  
-  #//-------------------------------------------------------//
-  
-  def   __chunkData( self, data, data_size, reserved_data_size = None ):
-    
-    if reserved_data_size is None:
-      reserved_data_size = max( 16, data_size + data_size // 2 )
-    
-    version = self.__nextVersion()
-    
-    header = self.header_struct.pack( version, reserved_data_size, data_size )
-    
-    chunk = header
-    chunk += data
-    
-    return version, reserved_data_size, chunk
-  
-  #//-------------------------------------------------------//
-  
   def   __moveLocations( self, start_offset, shift_size ):
-    for location in self.locations:
-      if location[0] > start_offset:
-        location[0] += shift_size
-  
-  #//-------------------------------------------------------//
-  
-  def   __removeChunk( self, offset, reserved_data_size ):
-    
-    chunk_size = self.header_size + reserved_data_size
-    
-    rest_offset = offset + chunk_size
-    rest_data_size = self.file_size - rest_offset
-    
-    rest_chunks = self.__readBytes( rest_offset, rest_data_size )
-    
-    if rest_chunks:
-        written_bytes_size = self.__writeBytes( offset, rest_chunks )
-    else:
-      written_bytes_size = 0
-    
-    self.__nextVersion()  # update file version
-    self.stream.truncate( offset + written_bytes_size )
-    
-    self.__moveLocations( offset, -chunk_size )
-    
-    self.file_size -= chunk_size
-    
-    return offset
-  
-  #//-------------------------------------------------------//
-  
-  def   __resizeChunk( self, offset, reserved_data_size, chunk, new_reserved_data_size, new_data_size ):
-    
-    shift_size = new_reserved_data_size - reserved_data_size
-    rest_offset = offset + self.header_size + reserved_data_size
-    rest_data_size = self.file_size - rest_offset
-    
-    rest_chunks = self.__readBytes( rest_offset, rest_data_size )
-    if rest_chunks:
-      chunk += bytearray( new_reserved_data_size - new_data_size )
-    
-    chunk += rest_chunks
-    
-    written_bytes_size = self.__writeBytes( offset, chunk )
-    
-    self.__moveLocations( offset, shift_size )
-    
-    self.file_size += shift_size
-    
-    if new_reserved_data_size < reserved_data_size:
-      self.stream.truncate( offset + written_bytes_size )
-    
-    return offset
+    for location in self.locations.values():
+      if location.offset > start_offset:
+        location.offset += shift_size
   
   #//-------------------------------------------------------//
   
   def   __init__( self, filename ):
     
-    self.locations = []
+    self.locations = {}
+    self.file_header = _DFHeader()
     self.file_size = 0
     self.stream = None
-    
-    self.file_header_struct = struct.Struct(">L") # big-endian 4 bytes
-    self.file_header_size = self.file_header_struct.size
-    self.max_version = (2 ** 32) - 1
-    self.version = 0
-    
-    self.header_struct = struct.Struct(">LLL") # big-endian 4 + 4 bytes
-    self.header_size = self.header_struct.size
     
     self.open( filename )
   
   #//-------------------------------------------------------//
   
-  def  open( self, filename ):
+  def  open( self, filename, loadLocation = _DFLocation.load):
     self.close()
     
-    self.locations = []
-    
     if os.path.isfile( filename ):
-      self.stream = io.open( filename, 'r+b', 0 )
+      stream = io.open( filename, 'r+b', 0 )
     else:
-      self.stream = io.open( filename, 'w+b', 0 )
+      stream = io.open( filename, 'w+b', 0 )
     
-    self.version, offset = self.__readFileVersion()
+    self.stream = stream
     
-    readHeader = self.__readHeader
-    locationsAppend = self.locations.append
+    offset = self.file_header.read( stream )
+    if not offset:
+      return
+    
+    stream = self.stream
     
     while True:
-      version, reserved_data_size, data_size = readHeader( offset )
-      if not reserved_data_size:
+      key, location, size = loadLocation( stream, offset )
+      if key == -1:
         break
       
-      locationsAppend( [ offset, reserved_data_size, data_size, version ] )
-      
-      offset += self.header_size + reserved_data_size
+      locations[key] = location
+      offset += size
     
     self.file_size = offset
+  
+  #//-------------------------------------------------------//
+  
+  def   update(self, loadLocation = _DFLocation.load ):
+    updated, offset = self.file_header.read( self.stream )
+    if not updated:
+      return [], [], []
+    
+    added_keys = []
+    modified_keys = []
+    deleted_keys = set(self.locations)
+    
+    locations = {}
+    
+    stream = self.stream
+    getLocation = self.locations.__getitem__
+    
+    while True:
+      key, location, size = loadLocation( stream, offset )
+      if key == -1:
+        break
+      
+      try:
+        deleted_keys.remove( key )
+        
+        if getLocation(key).version != location.version:
+          modified_keys.append( key )
+      except KeyError:
+          added_keys.append( key )
+      
+      locations[key] = location
+      offset += size
+    
+    self.locations = locations
+    self.file_size = offset
+    
+    return added_keys, modified_keys, deleted_keys
   
   #//-------------------------------------------------------//
   
@@ -211,53 +257,8 @@ class DataFile (object):
       self.stream.close()
       self.stream = None
       
-      del self.locations[:]
+      self.locations.clear()
       self.file_size = 0
-  
-  #//-------------------------------------------------------//
-  
-  def   update(self):
-    version, offset = self.__readFileVersion()
-    if version == self.version:
-      return []
-    
-    self.version = version
-    
-    index = 0
-    
-    updated_indexes = []
-    indexesAppend = updated_indexes.append
-    
-    header_size = self.header_size
-    locations = self.locations
-    locationsAppend = locations.append
-    
-    readHeader = self.__readHeader
-    
-    while True:
-      version, reserved_data_size, data_size = readHeader( offset )
-      if not reserved_data_size:
-        break
-      
-      location = [offset, reserved_data_size, data_size, version]
-      
-      try:
-        if locations[index] != location:
-          locations[index] = location
-          indexesAppend( index )
-       
-      except IndexError:
-          locationsAppend( location )
-          indexesAppend( index )
-      
-      offset += header_size + reserved_data_size
-      index += 1
-    
-    del locations[index:]
-    
-    self.file_size = offset
-    
-    return updated_indexes
   
   #//-------------------------------------------------------//
   
@@ -288,40 +289,77 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __getitem__(self, index ):
-    offset, reserved_data_size, data_size, version = self.locations[ index ]
-    return self.__readData( offset, data_size )
+  def append( self, data ):
+    
+    stream  = self.stream
+    key     = self.file_header.nextKey( stream )
+    offset  = self.file_size
+    
+    location = _DFLocation( offset )
+    
+    chunk = location.pack( key, data )
+    
+    stream.seek( offset )
+    stream.write( chunk )
+    
+    self.file_size += location.chunkSize()
+    
+    self.locations[key] = location
+    
+    return key
   
   #//-------------------------------------------------------//
   
-  def   __setitem__(self, index, data ):
+  def   __setitem__(self, key, data ):
     
-    location = self.locations[ index ]
+    location = self.locations[ key ]
+    capacity = location.capacity
     
-    offset, reserved_data_size, data_size, version = location
-    new_data_size = len(data)
+    chunk = location.pack( key, data )
     
-    if new_data_size <= reserved_data_size:
-      version, reserved_data_size, chunk = self.__chunkData( data, new_data_size, reserved_data_size )
-      
-      self.__writeBytes( offset, chunk )
-      
-      location[2:] = [new_data_size, version]
+    oversize = location.capacity - capacity;
     
-    else:
-      version, new_reserved_data_size, chunk = self.__chunkData( data, new_data_size )
-      
-      new_offset = self.__resizeChunk( offset, reserved_data_size, chunk, new_reserved_data_size, new_data_size )
-      
-      location[:] = [ new_offset, new_reserved_data_size, new_data_size, version ]
+    stream = self.stream
+    
+    if oversize > 0:
+      chunk += location.readTail( stream )
+      self.file_size += oversize
+      self.__moveLocations( location.offset, oversize )
+    
+    self.file_header.save( stream )
+    
+    stream.seek( location.offset )
+    stream.write( chunk )
   
   #//-------------------------------------------------------//
   
-  def   __delitem__(self, index):
-    offset, reserved_data_size, data_size, version = self.locations[ index ]
-    self.__removeChunk( offset, reserved_data_size )
+  def   __delitem__(self, key):
+    stream = self.stream
+    location = self.locations[key]
     
-    del self.locations[ index ]
+    tail = location.readTail( stream )
+    offset = location.offset
+    
+    self.file_header.save( stream )
+    
+    stream.seek( offset )
+    stream.write( tail )
+    stream.truncate( offset + len(tail) )
+    
+    self.__moveLocations( offset, -location.chunkSize() )
+    
+    del self.locations[ key ]
+    
+  #//-------------------------------------------------------//
+  
+  def   __getitem__(self, key ):
+    return self.locations[ key ].data()
+  
+  #//-------------------------------------------------------//
+  
+  def   __iter__(self):
+    for location in self.locations:
+      yield location.data()
   
   #//-------------------------------------------------------//
   
@@ -332,26 +370,6 @@ class DataFile (object):
   
   def   __bool__(self):
     return bool(self.locations)
-  
-  #//-------------------------------------------------------//
-  
-  def   __iter__(self):
-    readData = self.__readData
-    for offset, reserved_data_size, data_size, version in self.locations:
-      yield readData( offset, data_size )
-  
-  #//-------------------------------------------------------//
-  
-  def append( self, data ):
-    version, reserved_data_size, chunk = self.__chunkData( data, len(data) )
-    
-    offset = self.file_size
-    self.__writeBytes( offset, chunk )
-    
-    self.file_size += reserved_data_size + self.header_size
-    
-    location = [ offset, reserved_data_size, len(data), version ]
-    self.locations.append( location )
   
   #//-------------------------------------------------------//
   
