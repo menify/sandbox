@@ -88,6 +88,11 @@ class   _DFLocation (object):
   
   #//-------------------------------------------------------//
   
+  def   __repr__(self):
+    return self.__str__()
+  
+  #//-------------------------------------------------------//
+  
   def   __str__(self):
     s = []
     for v in self.__slots__:
@@ -222,7 +227,7 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   update(self, loadLocation = _DFLocation.load ):
-    if self.file_header.load( self.stream ):
+    if not self.file_header.load( self.stream ):
       return [], [], []
     
     offset = self.file_header.header_size

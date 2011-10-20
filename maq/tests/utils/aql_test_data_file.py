@@ -11,7 +11,13 @@ from aql_data_file import DataFile
 #//===========================================================================//
 
 def   generateData( min_size, max_size ):
-  return bytearray( random.randint( min_size, max_size ) )
+  b = bytearray()
+  
+  size = random.randint( min_size, max_size )
+  for i in range( 0, size ):
+    b.append( random.randint( 0, 255 ) )
+  
+  return b
 
 #//===========================================================================//
 
@@ -37,7 +43,7 @@ def test_data_file(self):
   with Tempfile() as tmp:
     tmp.remove()
     
-    data_list = generateDataList( 3, 3, 7, 57 )
+    data_list = generateDataList( 50, 50, 7, 57 )
     data_hash = {}
     
     df = DataFile( tmp.name )
@@ -92,50 +98,84 @@ def test_data_file(self):
 
 #//===========================================================================//
 
-@skip
 @testcase
 def   test_data_file_update(self):
   with Tempfile() as tmp:
     
-    data_list = generateDataList( 5, 5, 7, 57 )
+    data_list = generateDataList( 10, 10, 7, 57 )
+    data_hash = {}
     
     df = DataFile( tmp.name )
     
     for data in data_list:
-      df.append( data ); df.selfTest()
+      key = df.append( data ); df.selfTest()
+      data_hash[ key ] = data
     
-    self.assertEqual( data_list, list( df ) )
+    self.assertEqual( data_hash, dict( df ) )
     
-    df.selfTest()
-    
-    self.assertEqual( df.update(), [] )
+    self.assertEqual( tuple(map(list, df.update() )), ([],[],[]) )
     
     df2 = DataFile( tmp.name ); df2.selfTest()
-    df2[ 1 ] = bytearray( 3 ); df2.selfTest()
-    df2[ 2 ] = bytearray( 3 ); df2.selfTest()
-    df2.append( bytearray( 4 ) ); df2.selfTest()
-    df2.append( bytearray( 4 ) ); df2.selfTest()
     
-    self.assertEqual( df.update(), [1,2, len(df2) - 2, len(df2) - 1] )
+    added_keys = []
+    modified_keys = []
+    deleted_keys = []
+    
+    for key in list(data_hash)[:2]:
+      data = bytearray( len(data_hash[key]) )
+      df2[key] = data
+      data_hash[key] = data
+      df2.selfTest()
+      modified_keys.append(key)
+    
+    data = bytearray( 4 )
+    key = df2.append( data ); df2.selfTest()
+    data_hash[key] = data
+    added_keys.append(key)
+    
+    data = bytearray( 5 )
+    key = df2.append( data ); df2.selfTest()
+    data_hash[key] = data
+    added_keys.append(key)
+    
+    for key in list(data_hash)[2:4]:
+      del df2[key]
+      del data_hash[key]
+      df2.selfTest()
+      deleted_keys.append( key )
+    
+    added, modified, deleted = df.update()
     df.selfTest()
-    self.assertEqual( df2.update(), [] )
+    
+    self.assertEqual( sorted(added), sorted( added_keys ) )
+    self.assertEqual( sorted(modified), sorted( modified_keys ) )
+    self.assertEqual( sorted(deleted), sorted( deleted_keys ) )
+    
     df2.selfTest()
     
+    added_keys = []
+    modified_keys = []
+    deleted_keys = []
     df3 = DataFile( tmp.name ); df3.selfTest()
-    del df3[ 1 ]; df3.selfTest()
-    del df3[ 3 ]; df3.selfTest()
+    for key in list(data_hash)[2:4]:
+      del df3[key]
+      del data_hash[key]
+      df3.selfTest()
+      deleted_keys.append( key )
     
-    self.assertEqual( df.update(), [1, 2, 3, 4] )
+    added, modified, deleted = df.update()
     df.selfTest()
     
-    self.assertEqual( df2.update(), [1, 2, 3, 4] )
+    self.assertEqual( sorted(added), sorted( added_keys ) )
+    self.assertEqual( sorted(modified), sorted( modified_keys ) )
+    self.assertEqual( sorted(deleted), sorted( deleted_keys ) )
+    
+    added, modified, deleted = df2.update()
     df2.selfTest()
     
-    del df3[ -1 ]; df3.selfTest()
-    
-    self.assertEqual( df2.update(), [] )
-    df2.selfTest()
-
+    self.assertEqual( sorted(added), sorted( added_keys ) )
+    self.assertEqual( sorted(modified), sorted( modified_keys ) )
+    self.assertEqual( sorted(deleted), sorted( deleted_keys ) )
 
 #//===========================================================================//
 
