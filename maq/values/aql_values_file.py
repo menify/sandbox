@@ -56,16 +56,7 @@ class _PickledDependsValue (object):
 
 class ValuesFile (object):
   
-  __slots__ = ('data_file', 'hash', 'locations' )
-  
-  #//-------------------------------------------------------//
-  
-  def   __init__( self, filename ):
-    self.hash = Hash()
-    self.locations = {}
-    self.data_file = None
-    
-    self.open( filename )
+  __slots__ = ('data_file', 'hash' )
   
   #//-------------------------------------------------------//
   
@@ -81,17 +72,17 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __packValue( self, key, value ):
+  def   __packValue( self, value ):
     if isinstance(value, DependsValue):
-      value = _PickledDependsValue(value, self.hash )
+      value = _PickledDependsValue( value, self.hash )
       
-    return pickle.dumps( (key, value), pickle.HIGHEST_PROTOCOL )
+    return pickle.dumps( value, pickle.HIGHEST_PROTOCOL )
   
   #//-------------------------------------------------------//
   
   def   __unpackValue( self, data ):
-    key, value = pickle.loads( data )
-    return key, value
+    value = pickle.loads( data )
+    return value
   
   #//-------------------------------------------------------//
   
@@ -104,7 +95,7 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def __restoreDepends( self, pdv_values, removed_indexes ):
+  def __restoreDepends( self, pdv_values ):
     
     all_keys = set( pdv_values.keys() )
     
@@ -115,7 +106,7 @@ class ValuesFile (object):
     
     while True:
       for key in list(pdv_values):
-        index, pdv, pdv_keys = pdv_values[ key ]
+        pdv, pdv_keys = pdv_values[ key ]
         if not pdv_keys:
           value = pdv.restore( self.hash )
           if value is not None:
@@ -157,6 +148,14 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
+  def   __init__( self, filename ):
+    self.hash = Hash()
+    self.data_file = None
+    
+    self.open( filename )
+  
+  #//-------------------------------------------------------//
+  
   def   open( self, filename ):
     
     self.close()
@@ -165,38 +164,33 @@ class ValuesFile (object):
     
     pdv_values = {}
     
-    removed_indexes = []
-    
-    index = 0
-    for data in self.data_file:
-      key, value = self.__unpackValue( data )
+    for key, data in self.data_file:
+      value = self.__unpackValue( data )
       
       if isinstance( value, _PickledDependsValue ):
         if value.isValid():
-          pdv_values[ key ] = [index, value, set(value.value_keys)]
+          pdv_values[ key ] = [value, set(value.value_keys)]
         else:
-          removed_indexes.append( index )
+          del self.data_file[ key ]
       
       else:
         self.hash[ key ] = value
-        self.locations[ key ] = index
-      
-      index += 1
     
-    self.__restoreDepends( pdv_values, removed_indexes )
+    self.__restoreDepends( pdv_values )
   
   #//-------------------------------------------------------//
   
   def   close( self ):
     if self.data_file is not None:
       self.data_file.close()
+      self.data_file = None
     
     self.locations.clear()
     self.hash.clear()
   
   #//-------------------------------------------------------//
   
-  def   find( self, value ):
+  def   findValue( self, value ):
     value = self.hash.find( value )[1]
     if value is not None:
       
@@ -209,19 +203,21 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   add( self, value ):
+  def   addValue( self, value ):
     
     pick_value = self.__pickableValue(value)
     if pick_value is None:
       return None
     
-    is_added, key, value = self.hash.add( value )
-    if not is_added:
-      return value
+    data = self.__packValue( value )
     
-    data = self.__packValue( key, value )
-    self.locations[ key ] = len(self.data_file)
-    self.data_file.append( data )
+    key = self.hash.find( value )[0]
+    if key is None:
+      key = self.data_file.append( data )
+    else:
+      self.data_file[key] = data
+    
+    self.hash[key] = value
     
     return value
   

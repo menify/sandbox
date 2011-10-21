@@ -3,7 +3,7 @@ import os
 import struct
 import array
 
-class   _DFLocation (object):
+class   DataFileChunk (object):
   __slots__ = \
   (
     'version',
@@ -102,7 +102,7 @@ class   _DFLocation (object):
 
 #//===========================================================================//
 
-class _DFHeader( object ):
+class DataFileHeader( object ):
   
   __slots__ = \
   (
@@ -123,7 +123,7 @@ class _DFHeader( object ):
   
   #//-------------------------------------------------------//
   
-  def   load( self, stream, header_size = header_size, header_struct = header_struct ):
+  def   update( self, stream, header_size = header_size, header_struct = header_struct ):
     stream.seek( 0 )
     header = stream.read( header_size )
     
@@ -187,7 +187,7 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __init__( self, filename, DataFileHeader = _DFHeader ):
+  def   __init__( self, filename, DataFileHeader = DataFileHeader ):
     
     self.locations = {}
     self.file_header = DataFileHeader()
@@ -198,7 +198,7 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def  open( self, filename, loadLocation = _DFLocation.load):
+  def  open( self, filename, loadLocation = DataFileChunk.load):
     self.close()
     
     if os.path.isfile( filename ):
@@ -208,7 +208,7 @@ class DataFile (object):
     
     self.stream = stream
     
-    self.file_header.load( stream )
+    self.file_header.update( stream )
     
     offset = self.file_header.header_size
     stream = self.stream
@@ -226,8 +226,8 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def   update(self, loadLocation = _DFLocation.load ):
-    if not self.file_header.load( self.stream ):
+  def   update(self, loadLocation = DataFileChunk.load ):
+    if not self.file_header.update( self.stream ):
       return [], [], []
     
     offset = self.file_header.header_size
@@ -301,7 +301,7 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def append( self, data, Location = _DFLocation):
+  def append( self, data, Location = DataFileChunk):
     
     stream  = self.stream
     key     = self.file_header.nextKey( stream )
@@ -432,11 +432,12 @@ class DataFile (object):
     #//-------------------------------------------------------//
     
     if self.stream is not None:
-      self.file_header.load( self.stream )
-      offset = self.file_header.header_size
+      file_header = DataFileHeader()
+      file_header.update( self.stream )
+      offset = file_header.header_size
       
       while True:
-        key, location, size = _DFLocation.load( self.stream, offset )
+        key, location, size = DataFileChunk.load( self.stream, offset )
         if key == -1:
           break
         
