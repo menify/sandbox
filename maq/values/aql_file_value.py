@@ -29,8 +29,8 @@ class   FileContentChecksum (object):
       checksum = hashlib.md5()
       
       with open( path, mode = 'rb' ) as f:
-          for chunk in f:
-              checksum.update( chunk )
+        for chunk in f:
+          checksum.update( chunk )
       
       self = super(FileContentChecksum,cls).__new__(cls)
       
@@ -40,7 +40,7 @@ class   FileContentChecksum (object):
       return self
     
     except OSError:
-        return NoContent()
+      return NoContent()
   
   #//-------------------------------------------------------//
   

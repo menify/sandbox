@@ -8,6 +8,9 @@ from aql_data_file import DataFile
 from aql_depends_value import DependsValue
 from aql_file_value import FileName
 
+# type(None), bool, int, float, bytes, bytearray, str
+# booleans, integers, floating point numbers, complex numbers, strings, bytes, bytearrays
+
 #//---------------------------------------------------------------------------//
 
 class _PickledDependsValue (object):
@@ -83,15 +86,6 @@ class ValuesFile (object):
   def   __unpackValue( self, data ):
     value = pickle.loads( data )
     return value
-  
-  #//-------------------------------------------------------//
-  
-  def   __removeIndex(self, index ):
-    del self.data_file[ index ]
-    
-    for key, index in self.locations:
-      if index > index:
-        self.locations[ key ] = index - 1
   
   #//-------------------------------------------------------//
   

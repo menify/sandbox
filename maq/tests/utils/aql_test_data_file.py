@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+import timeit
 
 sys.path.insert( 0, os.path.normpath(os.path.join( os.path.dirname( __file__ ), '..') ))
 
@@ -15,7 +16,7 @@ def   generateData( min_size, max_size ):
   
   size = random.randint( min_size, max_size )
   for i in range( 0, size ):
-    b.append( random.randint( 0, 255 ) )
+    b.append( i % 256 )
   
   return b
 
@@ -62,25 +63,25 @@ def test_data_file(self):
     
     for key in data_hash:
       data = bytearray( len(df[key]) )
-      df[key] = data
-      data_hash[key] = data
+      new_key = df.replace(key, data )
       df.selfTest()
+      del data_hash[key]; data_hash[new_key] = data
     
     self.assertEqual( data_hash, dict( df ) )
     
     for key in data_hash:
       data = bytearray( len(df[key]) // 2 )
-      df[key] = data
-      data_hash[key] = data
+      new_key = df.replace(key, data )
       df.selfTest()
+      del data_hash[key]; data_hash[new_key] = data
     
     self.assertEqual( data_hash, dict( df ) )
     
     for key in data_hash:
       data = bytearray( len(df[key]) * 8 )
-      df[key] = data
-      data_hash[key] = data
+      new_key = df.replace(key, data )
       df.selfTest()
+      del data_hash[key]; data_hash[new_key] = data
     
     self.assertEqual( data_hash, dict( df ) )
     
@@ -113,20 +114,22 @@ def   test_data_file_update(self):
     
     self.assertEqual( data_hash, dict( df ) )
     
-    self.assertEqual( tuple(map(list, df.update() )), ([],[],[]) )
+    self.assertEqual( tuple(map(list, df.update() )), ([],[]) )
     
     df2 = DataFile( tmp.name ); df2.selfTest()
     
     added_keys = []
-    modified_keys = []
     deleted_keys = []
     
     for key in list(data_hash)[:2]:
       data = bytearray( len(data_hash[key]) )
-      df2[key] = data
-      data_hash[key] = data
+      
+      new_key = df2.replace( key, data )
       df2.selfTest()
-      modified_keys.append(key)
+      del data_hash[key]; data_hash[new_key] = data
+      
+      added_keys.append(new_key)
+      deleted_keys.append(key)
     
     data = bytearray( 4 )
     key = df2.append( data ); df2.selfTest()
@@ -144,17 +147,15 @@ def   test_data_file_update(self):
       df2.selfTest()
       deleted_keys.append( key )
     
-    added, modified, deleted = df.update()
+    added, deleted = df.update()
     df.selfTest()
     
     self.assertEqual( sorted(added), sorted( added_keys ) )
-    self.assertEqual( sorted(modified), sorted( modified_keys ) )
     self.assertEqual( sorted(deleted), sorted( deleted_keys ) )
     
     df2.selfTest()
     
     added_keys = []
-    modified_keys = []
     deleted_keys = []
     df3 = DataFile( tmp.name ); df3.selfTest()
     for key in list(data_hash)[2:4]:
@@ -163,19 +164,51 @@ def   test_data_file_update(self):
       df3.selfTest()
       deleted_keys.append( key )
     
-    added, modified, deleted = df.update()
+    added, deleted = df.update()
     df.selfTest()
     
     self.assertEqual( sorted(added), sorted( added_keys ) )
-    self.assertEqual( sorted(modified), sorted( modified_keys ) )
     self.assertEqual( sorted(deleted), sorted( deleted_keys ) )
     
-    added, modified, deleted = df2.update()
+    added, deleted = df2.update()
     df2.selfTest()
     
     self.assertEqual( sorted(added), sorted( added_keys ) )
-    self.assertEqual( sorted(modified), sorted( modified_keys ) )
     self.assertEqual( sorted(deleted), sorted( deleted_keys ) )
+
+#//===========================================================================//
+
+@skip
+@testcase
+def   test_data_file_speed(self):
+  with Tempfile() as tmp:
+    
+    data_list = generateDataList( 100000, 100000, 128, 1024 )
+    data_hash = {}
+    
+    df = DataFile( tmp.name )
+    
+    key = None
+    for data in data_list:
+      key = df.append( data )
+      data_hash[ key ] = data
+    
+    df2 = DataFile( tmp.name )
+    df2.update()
+    
+    def update( df, df2 ):
+      df.append( bytearray(10) )
+      df2.update()
+    
+    up = lambda df = df, df2 = df2, update = update: update(df,df2)
+    
+    t = timeit.timeit( up, number = 10 ) / 10
+    
+    print("update time: %s" % t)
+    
+    t = timeit.timeit( lambda df = df, data = bytearray(generateData(256,256)): df.append(data), number = 1000 ) / 1000
+    
+    print("append time: %s" % t)
 
 #//===========================================================================//
 

@@ -1,26 +1,22 @@
 import io
 import os
 import struct
-import array
 
 class   DataFileChunk (object):
   __slots__ = \
   (
-    'version',
     'offset',
     'capacity',
     'size',
   )
   
-  max_version = (2 ** 32) - 1
-  header_struct = struct.Struct(">QLLL") # big-endian, 8 bytes (key), 4 bytes (version), 4 bytes (capacity), 4 bytes (size)
+  header_struct = struct.Struct(">QLL") # big-endian, 8 bytes (key), 4 bytes (capacity), 4 bytes (size)
   header_size = header_struct.size
   
   #//-------------------------------------------------------//
   
   def   __init__(self, offset ):
     
-    self.version = 0
     self.offset = offset
     self.capacity = 0
     self.size = 0
@@ -38,7 +34,7 @@ class   DataFileChunk (object):
     
     self = cls.__new__(cls)
     
-    key, self.version, capacity, size = header_struct.unpack( header )
+    key, capacity, size = header_struct.unpack( header )
     if capacity < size:
       raise AssertionError( "Invalid file format" )
     
@@ -50,12 +46,7 @@ class   DataFileChunk (object):
   
   #//-------------------------------------------------------//
   
-  def   pack( self, key, data, max_version = max_version, header_struct = header_struct ):
-    
-    if self.version < max_version:
-      self.version += 1
-    else:
-      self.version = 0
+  def   pack( self, key, data, header_struct = header_struct ):
     
     size = len(data)
     
@@ -68,7 +59,7 @@ class   DataFileChunk (object):
     
     self.size = size
     
-    header = header_struct.pack( key, self.version, self.capacity, size )
+    header = header_struct.pack( key, self.capacity, size )
     
     chunk = bytearray(header)
     chunk += data
@@ -122,6 +113,15 @@ class DataFileHeader( object ):
     self.uid = 0
   
   #//-------------------------------------------------------//
+  def   __eq__(self, other):
+    return (self.version == other.version) and (self.uid == other.uid)
+  
+  #//-------------------------------------------------------//
+  
+  def   __ne__(self, other):
+    return (self.version != other.version) or (self.uid != other.uid)
+  
+  #//-------------------------------------------------------//
   
   def   update( self, stream, header_size = header_size, header_struct = header_struct ):
     stream.seek( 0 )
@@ -163,6 +163,20 @@ class DataFileHeader( object ):
     self.save( stream )
     
     return key
+    
+  #//-------------------------------------------------------//
+  
+  def   __repr__(self):
+    return self.__str__()
+  
+  #//-------------------------------------------------------//
+  
+  def   __str__(self):
+    s = []
+    for v in self.__slots__:
+      s.append( v + ": " + str(getattr( self, v )) ) 
+    
+    return ", ".join( s )
 
 
 #//===========================================================================//
@@ -228,12 +242,11 @@ class DataFile (object):
   
   def   update(self, loadLocation = DataFileChunk.load ):
     if not self.file_header.update( self.stream ):
-      return [], [], []
+      return [], []
     
     offset = self.file_header.header_size
     
     added_keys = []
-    modified_keys = []
     deleted_keys = set(self.locations)
     
     locations = {}
@@ -248,9 +261,6 @@ class DataFile (object):
       
       try:
         deleted_keys.remove( key )
-        
-        if getLocation(key).version != location.version:
-          modified_keys.append( key )
       except KeyError:
           added_keys.append( key )
       
@@ -260,7 +270,7 @@ class DataFile (object):
     self.locations = locations
     self.file_size = offset
     
-    return added_keys, modified_keys, deleted_keys
+    return added_keys, deleted_keys
   
   #//-------------------------------------------------------//
   
@@ -321,14 +331,19 @@ class DataFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __setitem__(self, key, data ):
-    
-    location = self.locations[ key ]
-    tail_offset = location.offset + location.chunkSize()
-    
-    chunk, oversize = location.pack( key, data )
+  def   replace(self, key, data ):
     
     stream = self.stream
+    
+    locations = self.locations
+    location = locations[ key ]
+    del locations[ key ]
+    
+    key = self.file_header.nextKey( stream )
+    locations[ key ] = location
+    
+    tail_offset = location.offset + location.chunkSize()
+    chunk, oversize = location.pack( key, data )
     
     if oversize > 0:
       chunk += bytearray( location.capacity - location.size )
@@ -342,6 +357,8 @@ class DataFile (object):
     
     stream.seek( location.offset )
     stream.write( chunk )
+    
+    return key
   
   #//-------------------------------------------------------//
   
@@ -422,10 +439,10 @@ class DataFile (object):
           raise AssertionError("file_size != real_file_size")
     
     prev_location = None
-    for location in self.locations.values():
+    for location in ordered_location:
       if prev_location is not None:
         if (prev_location.offset + prev_location.capacity + prev_location.header_size) != location.offset:
-          raise AssertionError("Messed locations: %s %s" % (prev_location, location))
+          raise AssertionError("Messed locations: [%s] [%s]" % (prev_location, location))
       
       prev_location = location
     
@@ -434,6 +451,10 @@ class DataFile (object):
     if self.stream is not None:
       file_header = DataFileHeader()
       file_header.update( self.stream )
+      
+      if self.file_header != file_header:
+        raise AssertionError("self.file_header != file_header" % (key, l, location))
+      
       offset = file_header.header_size
       
       while True:
@@ -443,9 +464,7 @@ class DataFile (object):
         
         l = self.locations[key]
         
-        if (l.version != location.version) or \
-           (l.size != location.size) or \
-           (l.capacity != location.capacity) :
+        if (l.size != location.size) or (l.capacity != location.capacity):
           raise AssertionError("self.locations[%s] (%s) != location (%s)" % (key, l, location))
         
         offset += size
