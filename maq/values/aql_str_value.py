@@ -1,10 +1,12 @@
 
 from aql_value import Value
+from aql_value_pickler import pickleable
 
 #//===========================================================================//
 
 StringContent = str
 
+@pickleable
 class   StringContentIgnoreCase (str):
     
   def   __eq__( self, other ):
@@ -15,6 +17,7 @@ class   StringContentIgnoreCase (str):
 
 #//===========================================================================//
 
+@pickleable
 class StringValue (Value):
   def   __init__(self, name, content = None ):
     if isinstance( name, Value ):
