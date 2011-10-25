@@ -55,6 +55,11 @@ class   DependsValueContent (object):
   
   #//-------------------------------------------------------//
   
+  def   __getnewargs__(self):
+    raise Exception( "Object '%s' can't be serialized." % type(self).__name__ )
+  
+  #//-------------------------------------------------------//
+  
   def   __getstate__( self ):
     raise Exception( "Object '%s' can't be serialized." % type(self).__name__ )
   

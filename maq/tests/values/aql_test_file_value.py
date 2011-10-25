@@ -2,7 +2,9 @@
 import time
 import os.path
 
-from aql_tests import testcase
+sys.path.insert( 0, os.path.normpath(os.path.join( os.path.dirname( __file__ ), '..') ))
+
+from aql_tests import testcase, skip, runTests
 from aql_temp_file import Tempfile
 from aql_file_value import FileValue, FileName, FileContentChecksum, FileContentTimeStamp
 
@@ -114,4 +116,8 @@ def test_file_empty_value_save_load(self):
   self.testSaveLoad( value1 )
   self.testSaveLoad( value2 )
 
+#//=======================================================//
+
+if __name__ == "__main__":
+  runTests()
 

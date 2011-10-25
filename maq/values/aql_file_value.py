@@ -4,27 +4,31 @@ import hashlib
 import datetime
 
 from aql_value import Value, NoContent
+from aql_value_pickler import pickleable
 
 #//===========================================================================//
 
-class   _Unpickling(object): pass
-
-#//===========================================================================//
-
+@pickleable
 class   FileContentChecksum (object):
   
   __slots__ = ( 'size', 'checksum' )
   
-  def   __new__( cls, path = None ):
+  def   __new__( cls, path = None, size = None, checksum = None ):
     
-    if isinstance( path, _Unpickling):
-      return super(FileContentChecksum,cls).__new__(cls)
+    if (size is not None) and (checksum is not None):
+      self = super(FileContentChecksum,cls).__new__(cls)
+      self.size     = size
+      self.checksum = checksum
+      return self
     
     if path is None:
       return NoContent()
     
+    if isinstance( path, FileContentChecksum ):
+      return path
+    
     try:
-      size = os.stat( path ).st_size
+      size = os.stat( str(path) ).st_size
       
       checksum = hashlib.md5()
       
@@ -34,8 +38,8 @@ class   FileContentChecksum (object):
       
       self = super(FileContentChecksum,cls).__new__(cls)
       
-      self.checksum = checksum.hexdigest()
-      self.size = size
+      self.size     = size
+      self.checksum = checksum.digest()
       
       return self
     
@@ -50,27 +54,29 @@ class   FileContentChecksum (object):
            (self.checksum == other.checksum)
   
   def   __ne__( self, other ):        return not self.__eq__( other )
-  
-  def   __getnewargs__(self):         return ( _Unpickling(), )
-
-  def   __getstate__( self ):         return { 'size': self.size, 'checksum': self.checksum }
-  def   __setstate__( self, state ):  self.size = state['size']; self.checksum = state['checksum']
-  
-  def   __str__( self ):              return self.checksum
+  def   __getnewargs__(self):         return ( None, self.size, self.checksum )
+  def   __str__( self ):              return str(self.checksum)
 
 #//===========================================================================//
 
+@pickleable
 class   FileContentTimeStamp (object):
   
   __slots__ = ( 'size', 'modify_time' )
   
-  def   __new__( cls, path = None ):
+  def   __new__( cls, path = None, size = None, modify_time = None ):
     
-    if isinstance( path, _Unpickling):
-      return super(FileContentTimeStamp,cls).__new__(cls)
+    if (size is not None) and (modify_time is not None):
+      self = super(FileContentTimeStamp,cls).__new__(cls)
+      self.size = size
+      self.modify_time = modify_time
+      return self
     
     if path is None:
       return NoContent()
+    
+    if isinstance( path, FileContentTimeStamp ):
+      return path
     
     try:
       stat = os.stat( path )
@@ -90,40 +96,37 @@ class   FileContentTimeStamp (object):
   def   __eq__( self, other ):        return type(self) == type(other) and (self.size == other.size) and (self.modify_time == other.modify_time)
   def   __ne__( self, other ):        return not self.__eq__( other )
   
-  def   __getnewargs__(self):         return ( _Unpickling(), )
-  def   __getstate__( self ):         return { 'size': self.size, 'modify_time': self.modify_time }
-  def   __setstate__( self, state ):  self.size = state['size']; self.modify_time = state['modify_time']
-  
+  def   __getnewargs__(self):         return ( None, self.size, self.modify_time )
   def   __str__( self ):              return str( datetime.datetime.fromtimestamp( self.modify_time ) )
   
 
 #//===========================================================================//
 
+@pickleable
 class   FileName (str):
-  def     __new__(cls, path = None, str_new_args = None ):
+  def     __new__(cls, path = None, full_path = None ):
     if isinstance( path, FileName ):
       return path
     
-    if isinstance( path, _Unpickling ):
-      return super(FileName,cls).__new__(cls, *str_new_args )
+    if full_path is None:
+      if path is None:
+        return super(FileName,cls).__new__(cls)
     
-    if path is None:
-      return super(FileName,cls).__new__(cls)
+      full_path = os.path.normcase( os.path.normpath( os.path.abspath( str(path) ) ) )
     
-    full_path = os.path.normcase( os.path.normpath( os.path.abspath( str(path) ) ) )
-    
-    return super(FileName,cls).__new__(cls, full_path )
+    return super(FileName,cls).__new__(cls, full_path)
   
   #//-------------------------------------------------------//
   
   def     __getnewargs__(self):
-    return ( _Unpickling(), super(FileName,self).__getnewargs__() )
+    return (None, super(FileName,self).__getnewargs__()[0] )
 
 #//===========================================================================//
 
+@pickleable
 class   FileValue (Value):
   
-  def   __init__( self, name, content = None ):
+  def   __new__( cls, name, content = None ):
     
     if isinstance( name, FileValue ):
       other = name
@@ -132,12 +135,12 @@ class   FileValue (Value):
       if content is None:
         content = type(other.content)( name )
     
-    if (content is None):
+    if content is None:
       content = FileContentChecksum( name )
     
     elif (type(content) is type):
       content = content( name )
     
-    super(FileValue, self).__init__( name, content )
+    return super(FileValue, cls).__new__( cls, name, content )
 
 #//===========================================================================//

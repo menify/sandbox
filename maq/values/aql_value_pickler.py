@@ -19,7 +19,7 @@ class   ValuePickler (object):
     buffer = io.BytesIO()
     
     pickler = pickle.Pickler( buffer, protocol = pickle.HIGHEST_PROTOCOL )
-    pickler.fast = False
+    pickler.fast = True
     
     unpickler = pickle.Unpickler( buffer )
     
@@ -37,7 +37,7 @@ class   ValuePickler (object):
     value_type = type(value)
     type_name = value_type.__name__
     if type_name in known_types:
-      return (type_name, value.__getstate__())
+      return (type_name, value.__getnewargs__())
     else:
       return None
   
@@ -45,12 +45,12 @@ class   ValuePickler (object):
   @staticmethod
   def persistent_load( pid, known_types = _known_types ):
     
-    type_name, state = pid
+    type_name, new_args = pid
     
     try:
+      
       value_type = known_types[ type_name ]
-      value = value_type.__new__(value_type)
-      value.__setstate__( state )
+      value = value_type.__new__(value_type, *new_args )
       return value
     
     except KeyError:
@@ -59,19 +59,21 @@ class   ValuePickler (object):
   #//-------------------------------------------------------//
   
   def   dumps( self, value ):
-    self.buffer.seek(0)
-    self.buffer.truncate(0)
+    buffer = self.buffer
+    buffer.seek(0)
+    buffer.truncate(0)
     self.pickler.dump( value )
     
-    return self.buffer.getvalue()
+    return buffer.getvalue()
  
   #//-------------------------------------------------------//
   
   def   loads( self, bytes_object ):
-    self.buffer.seek(0)
-    self.buffer.truncate(0)
-    self.buffer.write( bytes_object )
-    self.buffer.seek(0)
+    buffer = self.buffer
+    buffer.seek(0)
+    buffer.truncate(0)
+    buffer.write( bytes_object )
+    buffer.seek(0)
     
     return self.unpickler.load()
 

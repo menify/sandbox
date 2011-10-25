@@ -4,12 +4,15 @@ from aql_value_pickler import pickleable
 
 @pickleable
 class NoContent( object ):
+  
+  def   __new__( cls ):
+    return super(NoContent,cls).__new__(cls)
+  
   def   __init__(self, *args ):     pass
   def   __eq__( self, other ):      return False
   def   __ne__( self, other ):      return True
   def   __str__( self ):            return "<Not exist>"
-  def   __getstate__( self ):       return {}
-  def   __setstate__( self, state): pass
+  def   __getnewargs__(self):       return ()
 
 #//===========================================================================//
 
@@ -20,24 +23,26 @@ class   Value (object):
   
   #//-------------------------------------------------------//
   
-  def   __init__( self, name, content = None ):
+  def   __new__( cls, name, content = None ):
+    
+    self = super(Value,cls).__new__(cls)
     
     if content is None:
       content = NoContent()
     
     self.name = name
     self.content = content
+    
+    return self
   
   #//-------------------------------------------------------//
   
-  def   __getstate__( self ):
-    return { 'name': self.name, 'content' : self.content }
-  
-  #//-------------------------------------------------------//
-  
-  def   __setstate__( self, state ):
-    self.name = state['name']
-    self.content = state['content']
+  def     __getnewargs__(self):
+    content = self.content
+    if content is None:
+      content = None
+    
+    return ( self.name, content )
   
   #//-------------------------------------------------------//
   

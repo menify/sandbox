@@ -8,18 +8,20 @@ StringContent = str
 
 @pickleable
 class   StringContentIgnoreCase (str):
-    
+  
   def   __eq__( self, other ):
     return type(self) == type(other) and \
       (self.lower() == other.lower())
   
-  def   __ne__( self, other ):        return not self.__eq__( other )
+  def   __ne__( self, other ):
+    return not self.__eq__( other )
 
 #//===========================================================================//
 
 @pickleable
 class StringValue (Value):
-  def   __init__(self, name, content = None ):
+  def   __new__( cls, name, content = None ):
+    
     if isinstance( name, Value ):
       other = name
       name = other.name
@@ -27,7 +29,6 @@ class StringValue (Value):
       if content is None:
         content = other.content
     
-    super(StringValue, self).__init__( name, content )
-
+    return super(StringValue,cls).__new__(cls, name, content)
 
 #//===========================================================================//

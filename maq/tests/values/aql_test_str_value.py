@@ -3,7 +3,9 @@ import sys
 import pickle
 import os.path
 
-from aql_tests import testcase, skip
+sys.path.insert( 0, os.path.normpath(os.path.join( os.path.dirname( __file__ ), '..') ))
+
+from aql_tests import testcase, skip, runTests
 from aql_str_value import StringValue, StringContent, StringContentIgnoreCase
 
 #//===========================================================================//
@@ -54,5 +56,7 @@ def test_str_empty_value_save_load(self):
   self.testSaveLoad( value1 )
   self.testSaveLoad( value2 )
 
-
 #//=======================================================//
+
+if __name__ == "__main__":
+  runTests()
