@@ -8,18 +8,25 @@ from aql_data_file import DataFile
 from aql_depends_value import DependsValue
 from aql_file_value import FileName
 
-# type(None), bool, int, float, bytes, bytearray, str
-# booleans, integers, floating point numbers, complex numbers, strings, bytes, bytearrays
-
 #//---------------------------------------------------------------------------//
 
+@pickleable
 class _PickledDependsValue (object):
-  __slots__ = ('name', 'value_keys')
   
-  def   __init__( self, depends_value, value_keys ):
+  __slots__ = ('name', 'keys')
+  
+  def   __new__( cls, name, keys ):
+    self = super(_PickledDependsValue,cls).__new__(cls)
     
-    self.name = depends_value.name
-    self.value_keys = value_keys
+    self.name = name
+    self.keys = keys
+    
+    return self
+  
+  #//-------------------------------------------------------//
+  
+  def   __getnewargs__( self ):
+    return (self.name, self.keys )
   
   #//-------------------------------------------------------//
   
@@ -34,26 +41,16 @@ class _PickledDependsValue (object):
     
     values = []
     
-    for value_key in self.value_keys:
+    for key in self.keys:
       try:
-        value = values_hash[ value_key ]
+        value = values_hash[ key ]
       except KeyError:
         return None
       
       values.append( value )
     
     return DependsValue( self.name, values )
-    
-  #//-------------------------------------------------------//
   
-  def   __getstate__( self ):
-    return { 'name': self.name, 'value_keys' : self.value_keys }
-  
-  #//-------------------------------------------------------//
-  
-  def   __setstate__( self, state ):
-    self.name = state['name']
-    self.value_keys = state['value_keys']
 
 #//---------------------------------------------------------------------------//
 

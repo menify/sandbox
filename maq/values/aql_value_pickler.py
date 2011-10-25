@@ -85,21 +85,3 @@ def  pickleable( value_class, known_types = _known_types ):
   
   return value_class
 
-#//===========================================================================//
-
-if __name__ == "__main__":
-  @pickleable
-  class Foo(object):
-    def   __getstate__(self):
-      return {'a': 1, 'b': 2}
-    
-    def   __setstate__(self, state):
-      pass
-  
-  vpick = ValuePickler()
-  vl = vpick.dumps( Foo() )
-  print("vl: %s" % len(vl))
-  
-  pl = pickle.dumps( Foo() )
-  print("pl: %s" % len(pl))
-
