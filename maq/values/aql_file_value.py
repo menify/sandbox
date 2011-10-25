@@ -134,11 +134,12 @@ class   FileValue (Value):
     
       if content is None:
         content = type(other.content)( name )
+    else:
+      name = FileName( name )
     
     if content is None:
       content = FileContentChecksum( name )
-    
-    elif (type(content) is type):
+    elif type(content) is type:
       content = content( name )
     
     return super(FileValue, cls).__new__( cls, name, content )
