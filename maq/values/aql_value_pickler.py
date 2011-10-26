@@ -48,10 +48,8 @@ class   ValuePickler (object):
     type_name, new_args = pid
     
     try:
-      
       value_type = known_types[ type_name ]
-      value = value_type.__new__(value_type, *new_args )
-      return value
+      return value_type.__new__(value_type, *new_args )
     
     except KeyError:
       raise pickle.UnpicklingError("unsupported persistent object")

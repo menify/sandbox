@@ -1,75 +1,131 @@
+import os
+
+class _LockHolder (object):
+  
+  __slots__ = ('lock')
+  
+  def   __init__( self, lock ):
+    self.lock = lock
+  
+  def   __enter__(self):
+    return self
+  
+  def   __exit__(self, exc_type, exc_value, traceback):
+    self.lock.releaseLock()
 
 try:
+  #//===========================================================================//
+  #   Unix implementation
+  #//===========================================================================//
   import fcntl
   
-  def   _lockFile( filename ):
-    if os.path.isfile( filename ):
-      handle = io.open( filename, 'r+b', 0 )
-    else:
-      handle = io.open( filename, 'w+b', 0 )
+  class FileLock (object):
     
-    fcntl.lockf( )
+    __slots__ = ('fd')
+  
+    def   __init__( self, filename ):
+      self.fd = os.open( filename, os.O_RDWR | os.O_CREAT )
     
+    def   __del__(self):
+      os.close( self.fd )
+    
+    def   acquireReadLock( self, lockf = fcntl.lockf, LOCK_SH = fcntl.LOCK_SH ):
+      lockf( self.fd, LOCK_SH )
+      
+      return _LockHolder( self )
+    
+    def   acquireWriteLock( self, lockf = fcntl.lockf, LOCK_EX = fcntl.LOCK_EX):
+      lockf( self.fd, LOCK_EX )
+      
+      return _LockHolder( self )
+    
+    def   releaseLock( self, lockf = fcntl.lockf, LOCK_UN = fcntl.LOCK_UN):
+      lockf( self.fd, LOCK_UN )
   
 except ImportError:
-  
 
-if os.name == 'nt':
+  try
+    #//===========================================================================//
+    #   Widows implementation
+    #//===========================================================================//
     import win32con
     import win32file
     import pywintypes
-    LOCK_EX = win32con.LOCKFILE_EXCLUSIVE_LOCK
-    LOCK_SH = 0 # the default
-    LOCK_NB = win32con.LOCKFILE_FAIL_IMMEDIATELY
-    # is there any reason not to reuse the following structure?
-    __overlapped = pywintypes.OVERLAPPED()
-elif os.name == 'posix':
-    import fcntl
-    LOCK_EX = fcntl.LOCK_EX
-    LOCK_SH = fcntl.LOCK_SH
-    LOCK_NB = fcntl.LOCK_NB
-else:
-    raise RuntimeError, "PortaLocker only defined for nt and posix platforms"
-
-if os.name == 'nt':
-    def lock(file, flags):
-        hfile = win32file._get_osfhandle(file.fileno())
-        try:
-            win32file.LockFileEx(hfile, flags, 0, -0x10000, __overlapped)
-        except pywintypes.error, exc_value:
-            # error: (33, 'LockFileEx', 'The process cannot access the file because another process has locked a portion of the file.')
-            if exc_value[0] == 33:
-                raise LockException(LockException.LOCK_FAILED, exc_value[2])
-            else:
-                # Q:  Are there exceptions/codes we should be dealing with here?
-                raise
     
-    def unlock(file):
-        hfile = win32file._get_osfhandle(file.fileno())
-        try:
-            win32file.UnlockFileEx(hfile, 0, -0x10000, __overlapped)
-        except pywintypes.error, exc_value:
-            if exc_value[0] == 158:
-                # error: (158, 'UnlockFileEx', 'The segment is already unlocked.')
-                # To match the 'posix' implementation, silently ignore this error
-                pass
-            else:
-                # Q:  Are there exceptions/codes we should be dealing with here?
-                raise
-
-elif os.name == 'posix':
-    def lock(file, flags):
-        try:
-            fcntl.flock(file.fileno(), flags)
-        except IOError, exc_value:
-            #  IOError: [Errno 11] Resource temporarily unavailable
-            if exc_value[0] == 11:
-                raise LockException(LockException.LOCK_FAILED, exc_value[1])
-            else:
-                raise
+    _overlapped = pywintypes.OVERLAPPED()
     
-    def unlock(file):
-        fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-
-
-
+    class FileLock (object):
+      
+      __slots__ = ('fd', 'hfile')
+    
+      def   __init__( self, filename ):
+        lockfilename = filename + ".lock"
+        
+        fd = os.open( lockfilename, os.O_RDWR | os.O_CREAT )
+        self.fd =fd
+        self.hfile = win32file._get_osfhandle( fd )
+      
+      def   __del__(self):
+        os.close( self.fd )
+      
+      def   acquireReadLock( self, LockFileEx = win32file.LockFileEx, overlapped = _overlapped ):
+        LockFileEx( self.hfile, 0, 0, 4096, overlapped )
+        
+        return _LockHolder( self )
+      
+      def   acquireWriteLock( self, LockFileEx = win32file.LockFileEx, LOCKFILE_EXCLUSIVE_LOCK = win32con.LOCKFILE_EXCLUSIVE_LOCK, overlapped = _overlapped):
+        LockFileEx( self.hfile, LOCKFILE_EXCLUSIVE_LOCK, 0, 4096, overlapped )
+        
+        return _LockHolder( self )
+      
+      def   releaseLock( self, LockFileEx = win32file.UnlockFileEx, overlapped = _overlapped):
+        UnlockFileEx( self.hfile, 0, 4096, overlapped )
+  
+  except ImportError:
+    
+    import time
+    import errno
+    
+    #//===========================================================================//
+    #   Common implementation
+    #//===========================================================================//
+    class FileLock (object):
+      
+      __slots__ = ('lockfilename', 'fd')
+      
+      __TIMEOUT = 2 * 60
+      __DELAY = 1
+    
+      def   __init__( self, filename ):
+        self.lockfilename = os.path.normcase( os.path.normpath( os.path.abspath( str(filename) ) ) ) + '.lock'
+        self.fd = None
+      
+      def   __del__(self):
+        self.releaseLock()
+      
+      def   acquireReadLock( self ):
+        return self.acquireWriteLock()
+      
+      def   acquireWriteLock( self, open = os.open, open_flags = os.O_CREAT| os.O_EXCL | os.O_RDWR, clock = time.clock ):
+        
+        start_time = clock()
+        
+        while True:
+          try:
+            self.fd = open( self.lockfilename, open_flags )
+            break
+          except OSError as e:
+            self.fd = None
+            if (e.errno != errno.EEXIST) or \
+               ((clock() - start_time) >= self.__TIMEOUT):
+                raise
+          
+          time.sleep( self.__DELAY )
+        
+        return _LockHolder( self )
+      
+      def   releaseLock( self, close = os.close, remove = os.remove ):
+        if self.fd is not None:
+          self.fd = None
+          close(self.fd)
+          remove(self.lockfilename)

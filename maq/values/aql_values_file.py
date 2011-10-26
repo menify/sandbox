@@ -56,7 +56,7 @@ class _PickledDependsValue (object):
 
 class ValuesFile (object):
   
-  __slots__ = ('data_file', 'hash' )
+  __slots__ = ('data_file', 'hash', 'pickler', 'lock' )
   
   #//-------------------------------------------------------//
   
