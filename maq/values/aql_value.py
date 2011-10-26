@@ -13,6 +13,8 @@ class NoContent( object ):
   def   __ne__( self, other ):      return True
   def   __str__( self ):            return "<Not exist>"
   def   __getnewargs__(self):       return ()
+  def   __getstate__(self):         return {}
+  def   __setstate__(self,state):   pass
 
 #//===========================================================================//
 
@@ -43,6 +45,11 @@ class   Value (object):
       content = None
     
     return ( self.name, content )
+  
+  #//-------------------------------------------------------//
+  
+  def   __getstate__(self):         return {}
+  def   __setstate__(self,state):   pass
   
   #//-------------------------------------------------------//
   

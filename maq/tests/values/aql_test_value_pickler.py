@@ -68,13 +68,9 @@ def test_value_pickler(self):
 def test_value_pickler_speed( self ):
   
   with Tempfile() as tmp:
-    tmp = Tempfile()
     
     vpick = ValuePickler()
     value = FileValue( tmp.name )
-    
-    def   test_speed( pload, pdump, value ):
-      pload( pdump( value ) )
     
     t = lambda pload = vpick.loads, pdump = vpick.dumps, value = value: pload( pdump( value ) )
     t = timeit.timeit( t, number = 10000 )
@@ -86,9 +82,11 @@ def test_value_pickler_speed( self ):
   
   vl = vpick.dumps( value )
   print("vl: %s" % len(vl))
+  Tempfile().write( vl )
   
   pl = pickle.dumps( value, protocol = pickle.HIGHEST_PROTOCOL )
   print("pl: %s" % len(pl))
+  Tempfile().write( pl )
 
 
 #//===========================================================================//

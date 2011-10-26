@@ -55,6 +55,8 @@ class   FileContentChecksum (object):
   
   def   __ne__( self, other ):        return not self.__eq__( other )
   def   __getnewargs__(self):         return ( None, self.size, self.checksum )
+  def   __getstate__(self):           return {}
+  def   __setstate__(self,state):     pass
   def   __str__( self ):              return str(self.checksum)
 
 #//===========================================================================//
@@ -97,6 +99,8 @@ class   FileContentTimeStamp (object):
   def   __ne__( self, other ):        return not self.__eq__( other )
   
   def   __getnewargs__(self):         return ( None, self.size, self.modify_time )
+  def   __getstate__(self):           return {}
+  def   __setstate__(self,state):     pass
   def   __str__( self ):              return str( datetime.datetime.fromtimestamp( self.modify_time ) )
   
 
@@ -120,6 +124,9 @@ class   FileName (str):
   
   def     __getnewargs__(self):
     return (None, super(FileName,self).__getnewargs__()[0] )
+  
+  def   __getstate__(self):         return {}
+  def   __setstate__(self,state):   pass
 
 #//===========================================================================//
 
