@@ -82,11 +82,9 @@ def test_value_pickler_speed( self ):
   
   vl = vpick.dumps( value )
   print("vl: %s" % len(vl))
-  Tempfile().write( vl )
   
   pl = pickle.dumps( value, protocol = pickle.HIGHEST_PROTOCOL )
   print("pl: %s" % len(pl))
-  Tempfile().write( pl )
 
 
 #//===========================================================================//

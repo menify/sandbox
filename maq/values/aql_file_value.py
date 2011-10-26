@@ -124,9 +124,6 @@ class   FileName (str):
   
   def     __getnewargs__(self):
     return (None, super(FileName,self).__getnewargs__()[0] )
-  
-  def   __getstate__(self):         return {}
-  def   __setstate__(self,state):   pass
 
 #//===========================================================================//
 

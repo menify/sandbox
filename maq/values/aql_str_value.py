@@ -15,9 +15,6 @@ class   StringContentIgnoreCase (str):
   
   def   __ne__( self, other ):
     return not self.__eq__( other )
-  
-  def   __getstate__(self):         return {}
-  def   __setstate__(self,state):   pass
 
 #//===========================================================================//
 
