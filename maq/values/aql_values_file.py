@@ -60,7 +60,7 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __pickableValue( self, value )
+  def   __pickableValue( self, value ):
     if isinstance( value, DependsValue ):
       value_keys = self.__getValuesKeys
       

@@ -1,17 +1,61 @@
 import os
+import time
+import errno
 
-class _LockHolder (object):
+#//===========================================================================//
+#   General implementation
+#//===========================================================================//
+class GeneralFileLock (object):
   
-  __slots__ = ('lock')
+  class Timeout( Exception ): pass
   
-  def   __init__( self, lock ):
-    self.lock = lock
+  __slots__ = ('lockfilename', 'fd', 'retries', 'interval')
+  
+  def   __init__( self, filename, interval = 1, timeout = 3 * 60):
+    self.lockfilename = os.path.normcase( os.path.normpath( os.path.abspath( str(filename) ) ) ) + '.lock'
+    self.fd = None
+    self.interval = interval
+    self.retries = int(timeout / interval)
+  
+  def   __del__(self):
+    self.releaseLock()
   
   def   __enter__(self):
     return self
-  
+
   def   __exit__(self, exc_type, exc_value, traceback):
-    self.lock.releaseLock()
+    self.releaseLock()
+  
+  def   readLock( self ):
+    return self.writeLock()
+  
+  def   writeLock( self, os_open = os.open, open_flags = os.O_CREAT| os.O_EXCL | os.O_RDWR ):
+    
+    index = self.retries
+    
+    while True:
+      try:
+        self.fd = os_open( self.lockfilename, open_flags )
+        break
+      except OSError as ex:
+        self.fd = None
+        if ex.errno != errno.EEXIST:
+          raise
+        if not index:
+            raise self.Timeout("Lock file '%s' timeout." % self.lockfilename )
+        
+        index -= 1
+        
+      time.sleep( self.interval )
+    
+    return self
+  
+  def   releaseLock( self, close = os.close, remove = os.remove ):
+    if self.fd is not None:
+      close(self.fd)
+      remove(self.lockfilename)
+      self.fd = None
+
 
 try:
   #//===========================================================================//
@@ -19,7 +63,7 @@ try:
   #//===========================================================================//
   import fcntl
   
-  class FileLock (object):
+  class UnixFileLock (object):
     
     __slots__ = ('fd')
   
@@ -29,22 +73,28 @@ try:
     def   __del__(self):
       os.close( self.fd )
     
-    def   acquireReadLock( self, lockf = fcntl.lockf, LOCK_SH = fcntl.LOCK_SH ):
-      lockf( self.fd, LOCK_SH )
-      
-      return _LockHolder( self )
+    def   __enter__(self):
+      return self
+  
+    def   __exit__(self, exc_type, exc_value, traceback):
+      self.releaseLock()
     
-    def   acquireWriteLock( self, lockf = fcntl.lockf, LOCK_EX = fcntl.LOCK_EX):
+    def   readLock( self, lockf = fcntl.lockf, LOCK_SH = fcntl.LOCK_SH ):
+      lockf( self.fd, LOCK_SH )
+      return self
+    
+    def   writeLock( self, lockf = fcntl.lockf, LOCK_EX = fcntl.LOCK_EX):
       lockf( self.fd, LOCK_EX )
-      
-      return _LockHolder( self )
+      return self
     
     def   releaseLock( self, lockf = fcntl.lockf, LOCK_UN = fcntl.LOCK_UN):
       lockf( self.fd, LOCK_UN )
   
+  FileLock = UnixFileLock
+  
 except ImportError:
 
-  try
+  try:
     #//===========================================================================//
     #   Widows implementation
     #//===========================================================================//
@@ -52,11 +102,10 @@ except ImportError:
     import win32file
     import pywintypes
     
-    _overlapped = pywintypes.OVERLAPPED()
-    
-    class FileLock (object):
+    class WindowsFileLock (object):
       
-      __slots__ = ('fd', 'hfile')
+      __slots__ = ('fd', 'hfile', 'locked')
+      _overlapped = pywintypes.OVERLAPPED()
     
       def   __init__( self, filename ):
         lockfilename = filename + ".lock"
@@ -64,68 +113,34 @@ except ImportError:
         fd = os.open( lockfilename, os.O_RDWR | os.O_CREAT )
         self.fd =fd
         self.hfile = win32file._get_osfhandle( fd )
+        self.locked = False
       
       def   __del__(self):
         os.close( self.fd )
       
-      def   acquireReadLock( self, LockFileEx = win32file.LockFileEx, overlapped = _overlapped ):
-        LockFileEx( self.hfile, 0, 0, 4096, overlapped )
-        
-        return _LockHolder( self )
-      
-      def   acquireWriteLock( self, LockFileEx = win32file.LockFileEx, LOCKFILE_EXCLUSIVE_LOCK = win32con.LOCKFILE_EXCLUSIVE_LOCK, overlapped = _overlapped):
-        LockFileEx( self.hfile, LOCKFILE_EXCLUSIVE_LOCK, 0, 4096, overlapped )
-        
-        return _LockHolder( self )
-      
-      def   releaseLock( self, LockFileEx = win32file.UnlockFileEx, overlapped = _overlapped):
-        UnlockFileEx( self.hfile, 0, 4096, overlapped )
-  
-  except ImportError:
+      def   __enter__(self):
+        return self
     
-    import time
-    import errno
-    
-    #//===========================================================================//
-    #   Common implementation
-    #//===========================================================================//
-    class FileLock (object):
-      
-      __slots__ = ('lockfilename', 'fd')
-      
-      __TIMEOUT = 2 * 60
-      __DELAY = 1
-    
-      def   __init__( self, filename ):
-        self.lockfilename = os.path.normcase( os.path.normpath( os.path.abspath( str(filename) ) ) ) + '.lock'
-        self.fd = None
-      
-      def   __del__(self):
+      def   __exit__(self, exc_type, exc_value, traceback):
         self.releaseLock()
       
-      def   acquireReadLock( self ):
-        return self.acquireWriteLock()
+      def   readLock( self, LockFileEx = win32file.LockFileEx, overlapped = _overlapped ):
+        LockFileEx( self.hfile, 0, 0, 4096, overlapped )
+        self.locked = True
+        return self
       
-      def   acquireWriteLock( self, open = os.open, open_flags = os.O_CREAT| os.O_EXCL | os.O_RDWR, clock = time.clock ):
-        
-        start_time = clock()
-        
-        while True:
-          try:
-            self.fd = open( self.lockfilename, open_flags )
-            break
-          except OSError as e:
-            self.fd = None
-            if (e.errno != errno.EEXIST) or \
-               ((clock() - start_time) >= self.__TIMEOUT):
-                raise
-          
-          time.sleep( self.__DELAY )
-        
-        return _LockHolder( self )
+      def   writeLock( self, LockFileEx = win32file.LockFileEx, LOCKFILE_EXCLUSIVE_LOCK = win32con.LOCKFILE_EXCLUSIVE_LOCK, overlapped = _overlapped):
+        LockFileEx( self.hfile, LOCKFILE_EXCLUSIVE_LOCK, 0, 4096, overlapped )
+        self.locked = True
+        return self
       
-      def   releaseLock( self, close = os.close, remove = os.remove ):
-        if self.fd is not None:
-          self.fd = None
-          close(self.fd)
-          remove(self.lockfilename)
+      def   releaseLock( self, LockFileEx = win32file.UnlockFileEx, overlapped = _overlapped):
+        if self.locked:
+          UnlockFileEx( self.hfile, 0, 4096, overlapped )
+          self.locked = False
+    
+    FileLock = WindowsFileLock
+    
+  except ImportError:
+    
+    FileLock = GeneralFileLock
