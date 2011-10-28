@@ -25,13 +25,28 @@ def   writeProcess( filename, delay, LockType ):
 
 #//===========================================================================//
 
+def   readProcess( filename, delay, LockType ):
+  
+  flock = LockType( filename )
+  
+  with flock.readLock():
+    
+    time.sleep( delay )
+    
+    with open( filename, 'r+b' ) as file:
+      file.read()
+
+#//===========================================================================//
+
 def test_file_lock_type(test, LockType):
   
   with Tempfile() as temp_file:
     
     flock = LockType( temp_file.name )
+    flock.releaseLock()
+    flock.releaseLock()
     
-    delay = 10
+    delay = 3
     
     p = mp.Process( target = writeProcess, args = (temp_file.name, delay, LockType) )
     p.start()
@@ -71,9 +86,11 @@ def test_general_file_lock_timeout(self):
     flock2 = GeneralFileLock( temp_file.name, interval = 1, timeout = 3)
     
     with flock1.writeLock():
+      start_time = time.time()
       with self.assertRaises(GeneralFileLock.Timeout):
         with flock2.writeLock():
           self.assertFalse(True)
+      self.assertGreaterEqual( time.time() - start_time, 3 )
 
 #//===========================================================================//
 
@@ -96,8 +113,69 @@ def test_read_file_lock(self):
           with open( temp_file.name, 'w+b' ) as file:
             file.write(b"123")
             file.flush()
+
+#//===========================================================================//
+
+@testcase
+def test_file_wrlock(self):
   
+  if FileLock is GeneralFileLock:
+    return
   
+  with Tempfile() as temp_file:
+    
+    flock = FileLock( temp_file.name )
+    
+    delay = 3
+    
+    p = mp.Process( target = writeProcess, args = (temp_file.name, delay, FileLock) )
+    p.start()
+    
+    time.sleep(1)
+    
+    start_time = time.time()
+    
+    with flock.readLock():
+      
+      self.assertGreaterEqual( time.time() - start_time, delay - 1 )
+      
+      with open( temp_file.name, 'w+b' ) as file:
+        file.write( b'345' )
+        file.flush()
+    
+    p.join()
+  
+#//=======================================================//
+
+@testcase
+def test_file_rwlock(self):
+  
+  if FileLock is GeneralFileLock:
+    return
+  
+  with Tempfile() as temp_file:
+    
+    flock = FileLock( temp_file.name )
+    
+    delay = 3
+    
+    p = mp.Process( target = readProcess, args = (temp_file.name, delay, FileLock) )
+    p.start()
+    
+    time.sleep(1)
+    
+    start_time = time.time()
+    
+    with flock.writeLock():
+      
+      self.assertGreaterEqual( time.time() - start_time, delay - 1 )
+      
+      with open( temp_file.name, 'w+b' ) as file:
+        file.write( b'345' )
+        file.flush()
+    
+    p.join()
+
 #//=======================================================//
 
 if __name__ == "__main__":

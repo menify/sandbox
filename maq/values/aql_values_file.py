@@ -50,39 +50,12 @@ class _PickledDependsValue (object):
       values.append( value )
     
     return DependsValue( self.name, values )
-  
 
 #//---------------------------------------------------------------------------//
 
 class ValuesFile (object):
   
   __slots__ = ('data_file', 'hash', 'pickler', 'lock' )
-  
-  #//-------------------------------------------------------//
-  
-  def   __pickableValue( self, value ):
-    if isinstance( value, DependsValue ):
-      value_keys = self.__getValuesKeys
-      
-      value = _PickledDependsValue( value.name, self.hash )
-      if not value.isValid():
-        return None
-    
-    return value
-  
-  #//-------------------------------------------------------//
-  
-  def   __packValue( self, value ):
-    if isinstance(value, DependsValue):
-      value = _PickledDependsValue( value, self.hash )
-      
-    return pickle.dumps( value, pickle.HIGHEST_PROTOCOL )
-  
-  #//-------------------------------------------------------//
-  
-  def   __unpackValue( self, data ):
-    value = pickle.loads( data )
-    return value
   
   #//-------------------------------------------------------//
   
@@ -142,32 +115,36 @@ class ValuesFile (object):
   def   __init__( self, filename ):
     self.hash = Hash()
     self.data_file = None
-    
+    self.pickler = ValuePickler()
     self.open( filename )
   
   #//-------------------------------------------------------//
   
   def   open( self, filename ):
     
-    self.close()
+    lock = FileLock( filename )
     
-    self.data_file = DataFile( filename )
+    self.lock = lock
     
-    pdv_values = {}
-    
-    for key, data in self.data_file:
-      value = self.__unpackValue( data )
+    with lock.readLock():
+      self.data_file = DataFile( filename )
       
-      if isinstance( value, _PickledDependsValue ):
-        if value.isValid():
-          pdv_values[ key ] = [value, set(value.value_keys)]
+      pdv_values = {}
+      loads = self.pickler.loads
+      
+      for key, data in self.data_file:
+        value = loads( data )
+        
+        if isinstance( value, _PickledDependsValue ):
+          if value.isValid():
+            pdv_values[ key ] = [value, set(value.value_keys)]
+          else:
+            del self.data_file[ key ]
+        
         else:
-          del self.data_file[ key ]
+          self.hash[ key ] = value
       
-      else:
-        self.hash[ key ] = value
-    
-    self.__restoreDepends( pdv_values )
+      self.__restoreDepends( pdv_values )
   
   #//-------------------------------------------------------//
   
