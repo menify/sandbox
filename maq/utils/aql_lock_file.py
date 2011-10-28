@@ -110,13 +110,17 @@ except ImportError:
       def   __init__( self, filename ):
         lockfilename = filename + ".lock"
         
-        fd = os.open( lockfilename, os.O_RDWR | os.O_CREAT )
-        self.fd =fd
-        self.hfile = win32file._get_osfhandle( fd )
+        self.hfile = win32file.CreateFile( lockfilename,
+                                           win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                                           win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
+                                           None,
+                                           win32file.OPEN_ALWAYS,
+                                           0,
+                                           None )
         self.locked = False
       
       def   __del__(self):
-        os.close( self.fd )
+        self.hfile.Close()
       
       def   __enter__(self):
         return self
@@ -134,7 +138,7 @@ except ImportError:
         self.locked = True
         return self
       
-      def   releaseLock( self, LockFileEx = win32file.UnlockFileEx, overlapped = _overlapped):
+      def   releaseLock( self, UnlockFileEx = win32file.UnlockFileEx, overlapped = _overlapped ):
         if self.locked:
           UnlockFileEx( self.hfile, 0, 4096, overlapped )
           self.locked = False

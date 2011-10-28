@@ -110,9 +110,8 @@ def test_read_file_lock(self):
         with flock2.readLock():
           self.assertLess( time.time() - start_time, 1 )
           
-          with open( temp_file.name, 'w+b' ) as file:
-            file.write(b"123")
-            file.flush()
+          with open( temp_file.name, 'r+b' ) as file:
+            file.read()
 
 #//===========================================================================//
 
