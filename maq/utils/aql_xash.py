@@ -1,6 +1,4 @@
-import uuid
-
-class Hash (object):
+class Xash (object):
   
   __slots__ = ('pairs', 'seq_num', 'keys')
   

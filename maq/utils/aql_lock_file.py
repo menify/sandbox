@@ -30,7 +30,9 @@ class GeneralFileLock (object):
     return self.writeLock()
   
   def   writeLock( self, os_open = os.open, open_flags = os.O_CREAT| os.O_EXCL | os.O_RDWR ):
-    
+    if self.fd is not None:
+      return self
+      
     index = self.retries
     
     while True:
@@ -104,7 +106,7 @@ except ImportError:
     
     class WindowsFileLock (object):
       
-      __slots__ = ('fd', 'hfile', 'locked')
+      __slots__ = ('hfile', 'locked')
       _overlapped = pywintypes.OVERLAPPED()
     
       def   __init__( self, filename ):

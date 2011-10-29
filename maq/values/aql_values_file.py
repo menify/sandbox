@@ -3,7 +3,7 @@ import io
 import pickle
 
 from aql_logging import logWarning
-from aql_hash import Hash
+from aql_xash import Xash
 from aql_data_file import DataFile
 from aql_depends_value import DependsValue
 from aql_file_value import FileName
@@ -35,7 +35,7 @@ class _PickledDependsValue (object):
   
   #//-------------------------------------------------------//
   
-  def   restore( self, values_hash ):
+  def   restore( self, xash ):
     if not self.isValid():
       return None
     
@@ -43,7 +43,7 @@ class _PickledDependsValue (object):
     
     for key in self.keys:
       try:
-        value = values_hash[ key ]
+        value = xash[ key ]
       except KeyError:
         return None
       
@@ -55,7 +55,7 @@ class _PickledDependsValue (object):
 
 class ValuesFile (object):
   
-  __slots__ = ('data_file', 'hash', 'pickler', 'lock' )
+  __slots__ = ('data_file', 'xash', 'pickler', 'lock' )
   
   #//-------------------------------------------------------//
   
@@ -72,9 +72,9 @@ class ValuesFile (object):
       for key in list(pdv_values):
         pdv, pdv_keys = pdv_values[ key ]
         if not pdv_keys:
-          value = pdv.restore( self.hash )
+          value = pdv.restore( self.xash )
           if value is not None:
-            self.hash[ key ] = value
+            self.xash[ key ] = value
             self.locations[ key ] = index
             
             del pdv_values[ key ]
@@ -100,7 +100,7 @@ class ValuesFile (object):
   def   __getValueKeys( self, values ):
     value_keys = []
     
-    findValue = self.hash.find
+    findValue = self.xash.find
     for value in values:
       key = findValue( value )[0]
       if key is None:
@@ -113,7 +113,7 @@ class ValuesFile (object):
   #//-------------------------------------------------------//
   
   def   __init__( self, filename ):
-    self.hash = Hash()
+    self.xash = Xash()
     self.data_file = None
     self.pickler = ValuePickler()
     self.open( filename )
@@ -129,7 +129,7 @@ class ValuesFile (object):
     with lock.readLock():
       self.data_file = DataFile( filename )
       
-      pdv_values = {}
+      dep_values = {}
       loads = self.pickler.loads
       
       for key, data in self.data_file:
@@ -137,14 +137,47 @@ class ValuesFile (object):
         
         if isinstance( value, _PickledDependsValue ):
           if value.isValid():
-            pdv_values[ key ] = [value, set(value.value_keys)]
+            dep_values[ key ] = [value, set(value.value_keys)]
           else:
             del self.data_file[ key ]
         
         else:
-          self.hash[ key ] = value
+          self.xash[ key ] = value
       
-      self.__restoreDepends( pdv_values )
+      self.__restoreDepends( dep_values )
+  
+  #//-------------------------------------------------------//
+  
+  def   update( self ):
+    
+    xash = self.xash
+    data_file = self.data_file
+    loads = self.pickler.loads
+    
+    added_keys, deleted_keys = self.data_file.update()
+    dep_values = {}
+    
+    for key in added_keys:
+      value = loads( data_file[key] )
+      
+      if isinstance( value, _PickledDependsValue ):
+        if value.isValid():
+          dep_values[ key ] = [value, set(value.value_keys)]
+        else:
+          del self.data_file[ key ]
+      
+      else:
+        self.xash[ key ] = value
+    
+    for key in deleted_keys:
+      
+      try:
+        del xash[ key ]
+        self.__removeDepends( key )
+      except KeyError:
+        pass
+      
+    self.__restoreDepends( dep_values )
   
   #//-------------------------------------------------------//
   
@@ -154,12 +187,12 @@ class ValuesFile (object):
       self.data_file = None
     
     self.locations.clear()
-    self.hash.clear()
+    self.xash.clear()
   
   #//-------------------------------------------------------//
   
   def   findValue( self, value ):
-    value = self.hash.find( value )[1]
+    value = self.xash.find( value )[1]
     if value is not None:
       
       pick_value = self.__pickableValue( value )
@@ -179,20 +212,20 @@ class ValuesFile (object):
     
     data = self.__packValue( value )
     
-    key = self.hash.find( value )[0]
+    key = self.xash.find( value )[0]
     if key is None:
       key = self.data_file.append( data )
     else:
       self.data_file[key] = data
     
-    self.hash[key] = value
+    self.xash[key] = value
     
     return value
   
   #//-------------------------------------------------------//
   
   def   update( self, value ):
-    key, old_key = self.hash.update( value )
+    key, old_key = self.xash.update( value )
     
     data = self.__packValue( key, value )
     
@@ -209,7 +242,7 @@ class ValuesFile (object):
   #//-------------------------------------------------------//
   
   def   remove(self, value):
-    old_key = self.hash.remove( value )
+    old_key = self.xash.remove( value )
     if old_key is not None:
       locations = self.locations
       old_index = locations[ old_key ]
@@ -228,7 +261,7 @@ class ValuesFile (object):
   #//-------------------------------------------------------//
   
   def   __iter__(self):
-    return iter(self.hash)
+    return iter(self.xash)
   
   #//-------------------------------------------------------//
   
@@ -237,17 +270,17 @@ class ValuesFile (object):
       self.data_file.clear()
     
     self.locations.clear()
-    self.hash.clear()
+    self.xash.clear()
   
   #//-------------------------------------------------------//
   
   def   __len__(self):
-    return len(self.hash)
+    return len(self.xash)
   
   #//-------------------------------------------------------//
   
   def   __bool__(self):
-    return bool(self.hash)
+    return bool(self.xash)
   
   #//-------------------------------------------------------//
   
@@ -255,12 +288,12 @@ class ValuesFile (object):
     if self.data_file is not None:
       self.data_file.selfTest()
     
-    self.hash.selfTest()
+    self.xash.selfTest()
     
     size = len(self.locations)
     
-    if size != len(self.hash):
-      raise AssertionError("len(self.locations) != len(self.hash)")
+    if size != len(self.xash):
+      raise AssertionError("len(self.locations) != len(self.xash)")
     
     if size != len(self.data_file):
       raise AssertionError("size != len(self.data_file)")
@@ -269,7 +302,7 @@ class ValuesFile (object):
     
     for key, index in self.locations.items():
       try:
-        self.hash[ key ]
+        self.xash[ key ]
       except KeyError:
         raise AssertionError("Invalid value key")
       
