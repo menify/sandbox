@@ -22,7 +22,7 @@ class   StringContentIgnoreCase (str):
 class StringValue (Value):
   def   __new__( cls, name, content = None ):
     
-    if isinstance( name, Value ):
+    if isinstance( name, StringValue ):
       other = name
       name = other.name
       

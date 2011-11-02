@@ -26,28 +26,20 @@ class _PickledDependsValue (object):
   #//-------------------------------------------------------//
   
   def   __getnewargs__( self ):
-    return (self.name, self.keys )
-  
-  #//-------------------------------------------------------//
-  
-  def   isValid( self ):
-    return (self.name is not None) and (self.value_keys is not None)
+    return ( self.name, self.keys )
   
   #//-------------------------------------------------------//
   
   def   restore( self, xash ):
-    if not self.isValid():
-      return None
-    
     values = []
     
-    for key in self.keys:
-      try:
-        value = xash[ key ]
-      except KeyError:
-        return None
-      
-      values.append( value )
+    try:
+      for key in self.keys:
+        values.append( xash[ key ] )
+    except TypeError:
+      values = None
+    except KeyError:
+      values = None
     
     return DependsValue( self.name, values )
 
@@ -55,65 +47,176 @@ class _PickledDependsValue (object):
 
 class ValuesFile (object):
   
-  __slots__ = ('data_file', 'xash', 'pickler', 'lock' )
+  __slots__ = ('data_file', 'xash', 'pickler', 'lock' , 'deps', 'loads', 'dumps')
   
   #//-------------------------------------------------------//
   
-  def __restoreDepends( self, pdv_values ):
+  def   __addDeps( self, key, dep_keys ):
+    deps_Setdefault = self.deps.setdefault
+    for dep_key in dep_keys:
+      deps_Setdefault( dep_key, set() ).add( key )
+  
+  #//-------------------------------------------------------//
+  
+  def   __addValue( self, key, value )
     
-    all_keys = set( pdv_values.keys() )
+    old_key, val = self.xash.find( value )
+    if val is not None:
+      if value.content != val.content:
+        if isinstance(value, DependsValue):
+          data = self.dumps( _PickledDependsValue( value.name, value.content ) )
+          
+        data = self.dumps( value )
+        self.data_file.replace( old_key, data )
+    else:
+      if key is None:
+        key = data_file.append( data )
+      
+      xash[key] = value
+
+  
+  #//-------------------------------------------------------//
+  def   __getValueKeys( self, values ):
+  
+  if isinstance(values, NoContent):
+    return []
     
-    for key in pdv_values:
-      pdv_values[ key ][2] &= all_keys
+  value_keys = []
+  
+  findValue = self.xash.find
+  for value in values:
+    key = findValue( value )[0]
+    if key is None:
+      return None
+    
+    value_keys.append( key )
+  
+  return value_keys
+  
+  #//-------------------------------------------------------//
+  
+  def   __sortAddedValues( self, values ):
+    
+    dep_values = {}
+    
+    for val in values:
+      if isinstance(val, DependsValue ):
+        vals = getattr(val.content, 'values', None):
+        if values is not None:
+          dep_values[ id(val) ] = [val, set(map(id, vals))]
+  
+  #//-------------------------------------------------------//
+  
+  def __sortDepends( self, dep_values ):
+    
+    all_keys = set( dep_values )
+    
+    for key, value_keys in dep_values.items():
+      value_keys[1] &= all_keys
+    
+    sorted_deps = []
+    
+    added_keys = set()
+    
+    while True:
+      for key, value_keys in list(dep_values.items()):
+        value, dep_keys = value_keys
+        if not dep_keys:
+          del dep_values[ key ]
+          added_keys.add( key )
+          sorted_deps.append( (key, value ) )
+      
+      if not added_keys:
+        break
+      
+      for key, value_keys in dep_values.items():
+        value_keys[1] -= added_keys
+      
+      added_keys.clear()
+    
+    for key, value_keys in dep_values.items():
+      value = value_keys[0]
+      value.content = NoContent()
+      sorted_deps.append( (key, value) )
+    
+    return sorted_deps
+  
+  #//-------------------------------------------------------//
+  
+  def __restoreDepends( self, dep_values ):
+    
+    sorted_deps = self.__sortDepends( dep_values )
+    
+    xash = self.xash
+    
+    for key, pick_dep_value in sorted_deps:
+      dep_value = pick_dep_value.restore( xash )
+      
+      self.__addValue( key, dep_value )
+      xash[ key ] = dep_value
+      if not isinstance(dep_value.values, NoContent):
+        self.__addDeps( key, value.keys )
+
+    
+    all_keys = set( dep_values )
+    
+    for key, value_keys in dep_values.items():
+      value_keys[1] &= all_keys
     
     restored_keys = set()
     
+    xash = self.xash
+    
     while True:
-      for key in list(pdv_values):
-        pdv, pdv_keys = pdv_values[ key ]
-        if not pdv_keys:
-          value = pdv.restore( self.xash )
-          if value is not None:
-            self.xash[ key ] = value
-            self.locations[ key ] = index
-            
-            del pdv_values[ key ]
-            restored_keys.add( key )
+      for key, value_keys in list(dep_values.items()):
+        value, dep_keys = value_keys
+        if not dep_keys:
+          dep_value = value.restore( xash )
+          xash[ key ] = dep_value
+          if not isinstance(dep_value.values, NoContent):
+            self.__addDeps( key, value.keys )
           
+          del dep_values[ key ]
+          restored_keys.add( key )
       
       if not restored_keys:
         break
       
-      for key in pdv_values:
-        pdv_values[ key ][2] -= restored_keys
+      for key, value_keys in dep_values.items():
+        value_keys[1] -= restored_keys
       
       restored_keys.clear()
     
-    removed_indexes += map( lambda v: v[0], pdv_values.values() )
-    removed_indexes.sort( reverse = True )
-    
-    for index in removed_indexes:
-      self.__removeIndex( index )
+    for key, value_keys in dep_values.items():
+      value = value_keys[0]
+      xash[ key ] = DependsValue( value.name, None )
   
   #//-------------------------------------------------------//
   
-  def   __getValueKeys( self, values ):
-    value_keys = []
+  def __invalidateDepends( self, deleted_keys ):
     
-    findValue = self.xash.find
-    for value in values:
-      key = findValue( value )[0]
-      if key is None:
-        return None
+    xash = self.xash
+    data_file = self.data_file
+    dumps = self.pickler.dumps
+    
+    for key in deleted_keys:
       
-      value_keys.append( key )
-    
-    return value_keys
+      try:
+        del xash[ key ]
+        for dep_key in self.deps[key]:
+          dep_value = xash[ dep_key ]
+          dep_value.content = NoContent
+          data = dumps( _PickledDependsValue( dep_value.name, NoContent ) )
+          data_file[ dep_key ] = data
+          
+      except KeyError:
+        pass
   
   #//-------------------------------------------------------//
   
   def   __init__( self, filename ):
     self.xash = Xash()
+    self.deps = {}
     self.data_file = None
     self.pickler = ValuePickler()
     self.open( filename )
@@ -136,10 +239,7 @@ class ValuesFile (object):
         value = loads( data )
         
         if isinstance( value, _PickledDependsValue ):
-          if value.isValid():
-            dep_values[ key ] = [value, set(value.value_keys)]
-          else:
-            del self.data_file[ key ]
+          dep_values[ key ] = [value, set(value.value_keys)]
         
         else:
           self.xash[ key ] = value
@@ -161,23 +261,14 @@ class ValuesFile (object):
       value = loads( data_file[key] )
       
       if isinstance( value, _PickledDependsValue ):
-        if value.isValid():
           dep_values[ key ] = [value, set(value.value_keys)]
-        else:
-          del self.data_file[ key ]
       
       else:
-        self.xash[ key ] = value
+        xash[ key ] = value
     
-    for key in deleted_keys:
-      
-      try:
-        del xash[ key ]
-        self.__removeDepends( key )
-      except KeyError:
-        pass
-      
     self.__restoreDepends( dep_values )
+    
+    self.__invalidateDepends( deleted_keys )
   
   #//-------------------------------------------------------//
   
@@ -191,53 +282,41 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   findValue( self, value ):
-    value = self.xash.find( value )[1]
-    if value is not None:
+  def   findValues( self, values ):
+    
+    with self.lock.readLock():
+      self.update()
+    
+    out_values = []
+    
+    xash = self.xash
+    for value in values:
+      val = xash.find( value )[1]
+      if val is None:
+        val = type(value)( value.name, None )
       
-      pick_value = self.__pickableValue( value )
-      if pick_value is None:
-        return None
+      out_values.append( val )
     
-    return value
-    
+    return out_values
   
   #//-------------------------------------------------------//
   
-  def   addValue( self, value ):
+  def   addValues( self, values ):
     
-    pick_value = self.__pickableValue(value)
-    if pick_value is None:
-      return None
-    
-    data = self.__packValue( value )
-    
-    key = self.xash.find( value )[0]
-    if key is None:
-      key = self.data_file.append( data )
-    else:
-      self.data_file[key] = data
-    
-    self.xash[key] = value
-    
-    return value
-  
-  #//-------------------------------------------------------//
-  
-  def   update( self, value ):
-    key, old_key = self.xash.update( value )
-    
-    data = self.__packValue( key, value )
-    
-    if old_key is None:
-      self.locations[ key ] = len(self.data_file)
-      self.data_file.append( data )
-    
-    else:
-      index = self.locations[ old_key ]
-      del self.locations[ old_key ]
-      self.locations[ key ] = index
-      self.data_file[ index ] = data
+    with self.lock.writeLock():
+      self.update()
+      
+      data_file = self.data_file
+      xash = self.xash
+      
+      for value in values:
+        key, val = xash.find( value )
+        if val is not None:
+          if value.content != val.content:
+            data_file.replace( key, data )
+        else:
+          key = data_file.append( data )
+          xash[key] = value
   
   #//-------------------------------------------------------//
   
@@ -255,32 +334,13 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __contains__(self, value):
-    return self.find( value ) is not None
-  
-  #//-------------------------------------------------------//
-  
-  def   __iter__(self):
-    return iter(self.xash)
-  
-  #//-------------------------------------------------------//
-  
   def   clear(self):
-    if self.data_file is not None:
-      self.data_file.clear()
+    with self.lock.writeLock():
+      if self.data_file is not None:
+        self.data_file.clear()
     
     self.locations.clear()
     self.xash.clear()
-  
-  #//-------------------------------------------------------//
-  
-  def   __len__(self):
-    return len(self.xash)
-  
-  #//-------------------------------------------------------//
-  
-  def   __bool__(self):
-    return bool(self.xash)
   
   #//-------------------------------------------------------//
   

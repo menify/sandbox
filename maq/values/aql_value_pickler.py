@@ -52,7 +52,7 @@ class   ValuePickler (object):
       return value_type.__new__(value_type, *new_args )
     
     except KeyError:
-      raise pickle.UnpicklingError("unsupported persistent object")
+      raise pickle.UnpicklingError("Unsupported persistent object")
   
   #//-------------------------------------------------------//
   

@@ -1,41 +1,37 @@
 
-from aql_value import Value
+from aql_value import Value, NoContent
 
 #//===========================================================================//
 
-class   DependsValueContent (object):
-  
-  __slots__ = ( 'values', )
+class   DependsValueContent (tuple):
   
   def   __new__( cls, values = None ):
     
     if isinstance( values, DependsValueContent ):
       return values
     
-    return super(DependsValueContent,cls).__new__(cls, values )
-  
-  #//-------------------------------------------------------//
-  
-  def   __init__( self, values = None ):
+    if values is None:
+      return NoContent()
     
     try:
-      if values is not None:
-        values = list(values)
-      else:
-        values = []
-      
+      values = list(values)
     except TypeError:
       values = [values]
     
     values.sort()
     
-    self.values = values
+    self = super(DependsValueContent,cls).__new__(cls, tuple(values) )
     
+    return self
+  
   #//-------------------------------------------------------//
   
   def   __eq__( self, other ):
-    if (type(self) != type(other)) or (self.values != other.values):
+    if (type(self) != type(other)) or \
+      (self.values != other.values):
       return False
+    
+    super(DependsValueContent,self).__eq__(self, other )
     
     for value1, value2 in zip( self.values, other.values ):
       if value1.content != value2.content:
@@ -73,18 +69,17 @@ class   DependsValueContent (object):
 
 class   DependsValue (Value):
   
-  def   __init__( self, name, content = None ):
-    
-    if content is not None:
-      content = DependsValueContent( content )
+  def   __new__( cls, name, content = None ):
     
     if isinstance( name, DependsValue ):
       other = name
       name = other.name
-    
+      
       if content is None:
         content = other.content
     
-    super(DependsValue, self).__init__( name, content )
+    content = DependsValueContent( content )
+    
+    return super(DependsValue,cls).__new__(cls, name, content )
 
 #//===========================================================================//

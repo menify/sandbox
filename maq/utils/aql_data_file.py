@@ -378,8 +378,9 @@ class DataFile (object):
   #//-------------------------------------------------------//
   
   def   __iter__(self):
+    stream = self.stream
     for key, location in self.locations.items():
-      yield key, location.data( self.stream )
+      yield key, location.data( stream )
   
   #//-------------------------------------------------------//
   
