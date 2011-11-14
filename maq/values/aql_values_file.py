@@ -10,38 +10,20 @@ from aql_file_value import FileName
 
 #//---------------------------------------------------------------------------//
 
-@pickleable
-class _PickledDependsValue (object):
+DependsKeysContent = tuple
+
+def   restoreDependsValue( name, keys, xash ):
+  values = []
   
-  __slots__ = ('name', 'keys')
+  try:
+    for key in keys:
+      values.append( xash[ key ] )
+  except TypeError:
+    values = None
+  except KeyError:
+    values = None
   
-  def   __new__( cls, name, keys ):
-    self = super(_PickledDependsValue,cls).__new__(cls)
-    
-    self.name = name
-    self.keys = keys
-    
-    return self
-  
-  #//-------------------------------------------------------//
-  
-  def   __getnewargs__( self ):
-    return ( self.name, self.keys )
-  
-  #//-------------------------------------------------------//
-  
-  def   restore( self, xash ):
-    values = []
-    
-    try:
-      for key in self.keys:
-        values.append( xash[ key ] )
-    except TypeError:
-      values = None
-    except KeyError:
-      values = None
-    
-    return DependsValue( self.name, values )
+  return DependsValue( self.name, values )
 
 #//---------------------------------------------------------------------------//
 
@@ -51,37 +33,33 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __addDeps( self, key, dep_keys ):
-    deps_Setdefault = self.deps.setdefault
-    for dep_key in dep_keys:
-      deps_Setdefault( dep_key, set() ).add( key )
+  def   __addedDependsValue( self, key, value ):
+    deps_setdefault = self.deps.setdefault
+    for val_key in value.content:
+      deps_setdefault( val_key, set() ).add( key )
   
   #//-------------------------------------------------------//
   
-  def   __addValue( self, key, value )
+  def   __removeDependsValue( self, val_key ):
     
-    old_key, val = self.xash.find( value )
-    if val is not None:
-      if value.content != val.content:
-        if isinstance(value, DependsValue):
-          data = self.dumps( _PickledDependsValue( value.name, value.content ) )
-          
-        data = self.dumps( value )
-        self.data_file.replace( old_key, data )
-    else:
-      if key is None:
-        key = data_file.append( data )
+    dep_keys = self.deps.setdefault( val_key, set() )
+    
+    for dep_key in list(dep_keys)
+      dep_value = self.xash[ dep_key ]
       
-      xash[key] = value
-
+      dep_value = DependsValue( dep_value.name, None )
+      new_dep_key = self.data_file.replace( dep_key, dumps( dep_value ) )
+      self.xash[ new_dep_key ] = dep_value
+      
+      dep_keys.remove( dep_key )
+      self.__removeDependsValue( dep_key )
   
   #//-------------------------------------------------------//
+  
   def   __getValueKeys( self, values ):
   
-  if isinstance(values, NoContent):
-    return []
-    
   value_keys = []
+  value_keys_append = value_keys.append
   
   findValue = self.xash.find
   for value in values:
@@ -89,9 +67,22 @@ class ValuesFile (object):
     if key is None:
       return None
     
-    value_keys.append( key )
+    value_keys_append( key )
   
   return value_keys
+  
+  #//-------------------------------------------------------//
+  
+  def   __getValues( self, keys ):
+  
+  values = []
+  values_append = values.append
+  
+  getValue = self.xash.__getitem__
+  for key in keys:
+    values_append( getValue( key ) )
+  
+  return values
   
   #//-------------------------------------------------------//
   
@@ -136,7 +127,7 @@ class ValuesFile (object):
     
     for key, value_keys in dep_values.items():
       value = value_keys[0]
-      value.content = NoContent()
+      value = DependsValue( value.name, None )
       sorted_deps.append( (key, value) )
     
     return sorted_deps
@@ -149,14 +140,14 @@ class ValuesFile (object):
     
     xash = self.xash
     
-    for key, pick_dep_value in sorted_deps:
+    for key, dep_value in sorted_deps:
+      values = self.__getValues( dep_value.content )
       dep_value = pick_dep_value.restore( xash )
       
       self.__addValue( key, dep_value )
       xash[ key ] = dep_value
       if not isinstance(dep_value.values, NoContent):
-        self.__addDeps( key, value.keys )
-
+        self.__addedDependsValue( key, value.keys )
     
     all_keys = set( dep_values )
     
@@ -193,27 +184,6 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def __invalidateDepends( self, deleted_keys ):
-    
-    xash = self.xash
-    data_file = self.data_file
-    dumps = self.pickler.dumps
-    
-    for key in deleted_keys:
-      
-      try:
-        del xash[ key ]
-        for dep_key in self.deps[key]:
-          dep_value = xash[ dep_key ]
-          dep_value.content = NoContent
-          data = dumps( _PickledDependsValue( dep_value.name, NoContent ) )
-          data_file[ dep_key ] = data
-          
-      except KeyError:
-        pass
-  
-  #//-------------------------------------------------------//
-  
   def   __init__( self, filename ):
     self.xash = Xash()
     self.deps = {}
@@ -238,8 +208,8 @@ class ValuesFile (object):
       for key, data in self.data_file:
         value = loads( data )
         
-        if isinstance( value, _PickledDependsValue ):
-          dep_values[ key ] = [value, set(value.value_keys)]
+        if isinstance( value, DependsValue ):
+          dep_values[ key ] = [value, set(value.content)]
         
         else:
           self.xash[ key ] = value
@@ -260,15 +230,15 @@ class ValuesFile (object):
     for key in added_keys:
       value = loads( data_file[key] )
       
-      if isinstance( value, _PickledDependsValue ):
-          dep_values[ key ] = [value, set(value.value_keys)]
+      if isinstance( value, DependsValue ):
+          dep_values[ key ] = [value, set(value.content)]
       
       else:
         xash[ key ] = value
     
     self.__restoreDepends( dep_values )
     
-    self.__invalidateDepends( deleted_keys )
+    self.__removedKeys( deleted_keys )
   
   #//-------------------------------------------------------//
   

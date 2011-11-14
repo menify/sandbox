@@ -1,5 +1,6 @@
 
 from aql_value import Value, NoContent
+from aql_value_pickler import pickleable
 
 #//===========================================================================//
 
@@ -28,12 +29,10 @@ class   DependsValueContent (tuple):
   
   def   __eq__( self, other ):
     if (type(self) != type(other)) or \
-      (self.values != other.values):
+      super(DependsValueContent,self).__ne__(self, other ):
       return False
     
-    super(DependsValueContent,self).__eq__(self, other )
-    
-    for value1, value2 in zip( self.values, other.values ):
+    for value1, value2 in zip( self, other ):
       if value1.content != value2.content:
         return False
     
@@ -67,15 +66,16 @@ class   DependsValueContent (tuple):
 
 #//===========================================================================//
 
+@pickleable
 class   DependsValue (Value):
   
-  def   __new__( cls, name, content = None ):
+  def   __new__( cls, name, content = Ellipsis ):
     
     if isinstance( name, DependsValue ):
       other = name
       name = other.name
       
-      if content is None:
+      if content is Ellipsis:
         content = other.content
     
     content = DependsValueContent( content )
