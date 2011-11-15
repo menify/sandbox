@@ -69,13 +69,13 @@ class   DependsValueContent (tuple):
 @pickleable
 class   DependsValue (Value):
   
-  def   __new__( cls, name, content = Ellipsis ):
+  def   __new__( cls, name, content = None ):
     
     if isinstance( name, DependsValue ):
       other = name
       name = other.name
       
-      if content is Ellipsis:
+      if content is None:
         content = other.content
     
     content = DependsValueContent( content )

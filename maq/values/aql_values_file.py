@@ -40,23 +40,25 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __removeDependsValue( self, val_key ):
+  def   __removeDependsValues( self, val_key ):
     
     dep_keys = self.deps.setdefault( val_key, set() )
+    replace = self.data_file.replace
+    dumps = self.dumps
     
     for dep_key in list(dep_keys)
       dep_value = self.xash[ dep_key ]
       
       dep_value = DependsValue( dep_value.name, None )
-      new_dep_key = self.data_file.replace( dep_key, dumps( dep_value ) )
+      new_dep_key = replace( dep_key, dumps( dep_value ) )
       self.xash[ new_dep_key ] = dep_value
       
       dep_keys.remove( dep_key )
-      self.__removeDependsValue( dep_key )
+      self.__removeDependsValues( dep_key )
   
   #//-------------------------------------------------------//
   
-  def   __getValueKeys( self, values ):
+  def   __getKeysOfValues( self, values ):
   
   value_keys = []
   value_keys_append = value_keys.append
@@ -73,28 +75,22 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __getValues( self, keys ):
+  def   __getValuesByKeys( self, keys ):
   
   values = []
   values_append = values.append
   
   getValue = self.xash.__getitem__
-  for key in keys:
-    values_append( getValue( key ) )
+  
+  try:
+    for key in keys
+      values_append( getValue( key ) )
+  except KeyError:
+    return None
+  except TypeError:
+    return None
   
   return values
-  
-  #//-------------------------------------------------------//
-  
-  def   __sortAddedValues( self, values ):
-    
-    dep_values = {}
-    
-    for val in values:
-      if isinstance(val, DependsValue ):
-        vals = getattr(val.content, 'values', None):
-        if values is not None:
-          dep_values[ id(val) ] = [val, set(map(id, vals))]
   
   #//-------------------------------------------------------//
   
@@ -140,47 +136,13 @@ class ValuesFile (object):
     
     xash = self.xash
     
-    for key, dep_value in sorted_deps:
-      values = self.__getValues( dep_value.content )
-      dep_value = pick_dep_value.restore( xash )
+    for key, dep_keys_value in sorted_deps:
+      dep_content = self.__getValuesByKeys( dep_keys_value.content )
+      dep_value = DependsValue( dep_keys_value.name, dep_content )
       
-      self.__addValue( key, dep_value )
       xash[ key ] = dep_value
-      if not isinstance(dep_value.values, NoContent):
-        self.__addedDependsValue( key, value.keys )
-    
-    all_keys = set( dep_values )
-    
-    for key, value_keys in dep_values.items():
-      value_keys[1] &= all_keys
-    
-    restored_keys = set()
-    
-    xash = self.xash
-    
-    while True:
-      for key, value_keys in list(dep_values.items()):
-        value, dep_keys = value_keys
-        if not dep_keys:
-          dep_value = value.restore( xash )
-          xash[ key ] = dep_value
-          if not isinstance(dep_value.values, NoContent):
-            self.__addDeps( key, value.keys )
-          
-          del dep_values[ key ]
-          restored_keys.add( key )
-      
-      if not restored_keys:
-        break
-      
-      for key, value_keys in dep_values.items():
-        value_keys[1] -= restored_keys
-      
-      restored_keys.clear()
-    
-    for key, value_keys in dep_values.items():
-      value = value_keys[0]
-      xash[ key ] = DependsValue( value.name, None )
+      if dep_content is not None:
+        self.__addedDependsValue( key, dep_keys_value )
   
   #//-------------------------------------------------------//
   
@@ -236,9 +198,13 @@ class ValuesFile (object):
       else:
         xash[ key ] = value
     
-    self.__restoreDepends( dep_values )
+    deleted_values = self.__getValuesByKeys( deleted_keys )
     
-    self.__removedKeys( deleted_keys )
+    for del_key in deleted_keys:
+      del xash[ del_key ]
+      self.__removeDependsValues( del_key )
+    
+    self.__restoreDepends( dep_values )
   
   #//-------------------------------------------------------//
   
@@ -268,6 +234,25 @@ class ValuesFile (object):
       out_values.append( val )
     
     return out_values
+  
+  #//-------------------------------------------------------//
+  
+  def   __sortAddedValues( self, values ):
+    
+    sorted_values = []
+    
+    dep_values = {}
+    
+    for value in values:
+      if isinstance(value, DependsValue ):
+        try:
+          dep_values[ id(value) ] = [value, set(map(id, value.content))]
+        except TypeError:
+          sorted_values.append( value )
+      else:
+        sorted_values.append( value )
+    
+    sorted_values += self.__sortDepends( dep_values )
   
   #//-------------------------------------------------------//
   
