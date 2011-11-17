@@ -27,34 +27,70 @@ def   restoreDependsValue( name, keys, xash ):
 
 #//---------------------------------------------------------------------------//
 
+class DependsKeys (object):
+  __slots__ = ('values', 'deps')
+  
+  #//-------------------------------------------------------//
+  
+  def   __init__(self):
+    values = {}
+    deps = {}
+  
+  #//-------------------------------------------------------//
+  
+  def   __setitem__(self, dep_key, value_keys ):
+    self.deps[ dep_key ] = keys
+    values_setdefault = self.values.setdefault
+    for value_key in value_keys:
+      values_setdefault( value_key , set() ).add( dep_key )
+  
+  #//-------------------------------------------------------//
+  
+  def   remove( self, key ):
+    
+    removed_deps = set()
+    removing_keys = set([key])
+    
+    values_pop = self.values.pop
+    deps = self.deps
+    
+    while removing_keys:
+      key = removing_keys.pop()
+      
+      try:
+        del deps[ key ]
+        removed_deps.add( key )
+      except KeyError:
+        pass
+      
+      try:
+        removing_keys += values_pop( key )
+      except KeyError:
+        pass
+      
+    return removed_deps
+  
+#//---------------------------------------------------------------------------//
+
 class ValuesFile (object):
   
   __slots__ = ('data_file', 'xash', 'pickler', 'lock' , 'deps', 'loads', 'dumps')
   
   #//-------------------------------------------------------//
   
-  def   __addedDependsValue( self, key, value ):
-    deps_setdefault = self.deps.setdefault
-    for val_key in value.content:
-      deps_setdefault( val_key, set() ).add( key )
-  
-  #//-------------------------------------------------------//
-  
   def   __removeDependsValues( self, val_key ):
     
-    dep_keys = self.deps.setdefault( val_key, set() )
-    replace = self.data_file.replace
-    dumps = self.dumps
+    removed_keys = self.deps.remove( val_key )
     
-    for dep_key in list(dep_keys)
-      dep_value = self.xash[ dep_key ]
-      
+    replace = self.data_file.replace
+    xash = self.xash
+    
+    for removed_key in removed_keys:
+      dep_value = xash[ removed_key ]
       dep_value = DependsValue( dep_value.name, None )
-      new_dep_key = replace( dep_key, dumps( dep_value ) )
-      self.xash[ new_dep_key ] = dep_value
       
-      dep_keys.remove( dep_key )
-      self.__removeDependsValues( dep_key )
+      key = replace( removed_key, dumps( dep_value ) )
+      xash[ key ] = dep_value
   
   #//-------------------------------------------------------//
   
@@ -137,12 +173,13 @@ class ValuesFile (object):
     xash = self.xash
     
     for key, dep_keys_value in sorted_deps:
-      dep_content = self.__getValuesByKeys( dep_keys_value.content )
-      dep_value = DependsValue( dep_keys_value.name, dep_content )
+      values_keys = dep_keys_value.content
+      values = self.__getValuesByKeys( values_keys )
+      dep_value = DependsValue( dep_keys_value.name, values )
       
       xash[ key ] = dep_value
-      if dep_content is not None:
-        self.__addedDependsValue( key, dep_keys_value )
+      if values is not None:
+        self.deps[ key ] = value_keys
   
   #//-------------------------------------------------------//
   
