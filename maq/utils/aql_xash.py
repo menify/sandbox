@@ -73,6 +73,13 @@ class Xash (object):
   
   #//-------------------------------------------------------//
   
+  def   pop(self, key):
+    item = self.keys[ key ]
+    self.removeByRef( self.getRef( item ) )
+    return item
+  
+  #//-------------------------------------------------------//
+  
   def   getKey( self, ref ):
     pairs, index = ref
     if index != -1:

@@ -12,18 +12,41 @@ from aql_file_value import FileName
 
 DependsKeysContent = tuple
 
-def   restoreDependsValue( name, keys, xash ):
-  values = []
+#//---------------------------------------------------------------------------//
+
+def _sortDepends( dep_sort_data ):
   
-  try:
-    for key in keys:
-      values.append( xash[ key ] )
-  except TypeError:
-    values = None
-  except KeyError:
-    values = None
+  all_keys = set( dep_sort_data )
   
-  return DependsValue( self.name, values )
+  for key, value_keys in dep_sort_data.items():
+    value_keys[1] &= all_keys
+  
+  sorted_deps = []
+  
+  added_keys = set()
+  
+  while True:
+    for key, value_keys in list(dep_sort_data.items()):
+      value, dep_keys = value_keys
+      if not dep_keys:
+        del dep_sort_data[ key ]
+        added_keys.add( key )
+        sorted_deps.append( (key, value ) )
+    
+    if not added_keys:
+      break
+    
+    for key, value_keys in dep_sort_data.items():
+      value_keys[1] -= added_keys
+    
+    added_keys.clear()
+  
+  for key, value_keys in dep_values.items():
+    value = value_keys[0]
+    value = DependsValue( value.name, None )
+    sorted_deps.append( (key, value) )
+  
+  return sorted_deps
 
 #//---------------------------------------------------------------------------//
 
@@ -46,20 +69,34 @@ class DependsKeys (object):
   
   #//-------------------------------------------------------//
   
+  def   clear(self):
+    self.deps.clear()
+    self.values.clear()
+  
+  #//-------------------------------------------------------//
+  
   def   remove( self, key ):
     
     removed_deps = set()
     removing_keys = set([key])
     
-    values_pop = self.values.pop
-    deps = self.deps
+    values = self.values
+    values_pop = values.pop
+    deps_pop = self.deps.pop
     
     while removing_keys:
       key = removing_keys.pop()
       
       try:
-        del deps[ key ]
+        value_keys = deps_pop( key )
         removed_deps.add( key )
+        
+        for value_key in value_keys:
+          try:
+            values[value_key].remove( key )
+          except KeyError:
+            pass
+        
       except KeyError:
         pass
       
@@ -67,7 +104,7 @@ class DependsKeys (object):
         removing_keys += values_pop( key )
       except KeyError:
         pass
-      
+    
     return removed_deps
   
 #//---------------------------------------------------------------------------//
@@ -78,34 +115,22 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __removeDependsValues( self, val_key ):
-    
-    removed_keys = self.deps.remove( val_key )
-    
-    replace = self.data_file.replace
-    xash = self.xash
-    
-    for removed_key in removed_keys:
-      dep_value = xash[ removed_key ]
-      dep_value = DependsValue( dep_value.name, None )
-      
-      key = replace( removed_key, dumps( dep_value ) )
-      xash[ key ] = dep_value
-  
-  #//-------------------------------------------------------//
-  
   def   __getKeysOfValues( self, values ):
   
   value_keys = []
   value_keys_append = value_keys.append
   
   findValue = self.xash.find
-  for value in values:
-    key = findValue( value )[0]
-    if key is None:
-      return None
-    
-    value_keys_append( key )
+  try:
+    for value in values:
+      key = findValue( value )[0]
+      if key is None:
+        return None
+      
+      value_keys_append( key )
+  
+  except TypeError:
+    return None
   
   return value_keys
   
@@ -130,45 +155,28 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def __sortDepends( self, dep_values ):
+  def   __sortValues( self, values ):
     
-    all_keys = set( dep_values )
+    sorted_values = []
     
-    for key, value_keys in dep_values.items():
-      value_keys[1] &= all_keys
+    dep_values = {}
     
-    sorted_deps = []
+    for value in values:
+      if isinstance(value, DependsValue ):
+        try:
+          dep_values[ id(value) ] = [value, set(map(id, value.content))]
+        except TypeError:
+          sorted_values.append( value )
+      else:
+        sorted_values.append( value )
     
-    added_keys = set()
-    
-    while True:
-      for key, value_keys in list(dep_values.items()):
-        value, dep_keys = value_keys
-        if not dep_keys:
-          del dep_values[ key ]
-          added_keys.add( key )
-          sorted_deps.append( (key, value ) )
-      
-      if not added_keys:
-        break
-      
-      for key, value_keys in dep_values.items():
-        value_keys[1] -= added_keys
-      
-      added_keys.clear()
-    
-    for key, value_keys in dep_values.items():
-      value = value_keys[0]
-      value = DependsValue( value.name, None )
-      sorted_deps.append( (key, value) )
-    
-    return sorted_deps
+    return sorted_values, _sortDepends( dep_values )
   
   #//-------------------------------------------------------//
   
   def __restoreDepends( self, dep_values ):
     
-    sorted_deps = self.__sortDepends( dep_values )
+    sorted_deps = _sortDepends( dep_values )
     
     xash = self.xash
     
@@ -180,6 +188,21 @@ class ValuesFile (object):
       xash[ key ] = dep_value
       if values is not None:
         self.deps[ key ] = value_keys
+  
+  #//-------------------------------------------------------//
+  
+  def   __removedDepends( self, removed_deps ):
+    if removed_keys:
+      logWarning("DataFile is unsynchronized or internal error")
+      xash = self.xash
+      replace = self.data_file.replace
+      dumps = self.dumps
+      
+      for removed_key in removed_keys:
+        dep_value = xash.pop( removed_key )
+        dep_value = DependsValue( dep_value.name, None )
+        new_key = replace( removed_key, dumps( dep_value ) )
+        xash[ new_key ] = dep_value
   
   #//-------------------------------------------------------//
   
@@ -224,6 +247,23 @@ class ValuesFile (object):
     loads = self.pickler.loads
     
     added_keys, deleted_keys = self.data_file.update()
+    
+    #//-------------------------------------------------------//
+    
+    removed_keys = set()
+    deps_remove = self.deps.remove
+    for del_key in deleted_keys:
+      del xash[ del_key ]
+      removed_keys += deps_remove( del_key )
+    
+    removed_keys -= deleted_keys
+    
+    if removed_keys:
+      logWarning("DataFile is unsynchronized or internal error")
+      self.__removedDepends( removed_keys )
+    
+    #//-------------------------------------------------------//
+    
     dep_values = {}
     
     for key in added_keys:
@@ -234,12 +274,6 @@ class ValuesFile (object):
       
       else:
         xash[ key ] = value
-    
-    deleted_values = self.__getValuesByKeys( deleted_keys )
-    
-    for del_key in deleted_keys:
-      del xash[ del_key ]
-      self.__removeDependsValues( del_key )
     
     self.__restoreDepends( dep_values )
   
@@ -274,26 +308,9 @@ class ValuesFile (object):
   
   #//-------------------------------------------------------//
   
-  def   __sortAddedValues( self, values ):
-    
-    sorted_values = []
-    
-    dep_values = {}
-    
-    for value in values:
-      if isinstance(value, DependsValue ):
-        try:
-          dep_values[ id(value) ] = [value, set(map(id, value.content))]
-        except TypeError:
-          sorted_values.append( value )
-      else:
-        sorted_values.append( value )
-    
-    sorted_values += self.__sortDepends( dep_values )
-  
-  #//-------------------------------------------------------//
-  
   def   addValues( self, values ):
+    
+    values, dep_values = self.__sortValues( values )
     
     with self.lock.writeLock():
       self.update()
@@ -301,28 +318,50 @@ class ValuesFile (object):
       data_file = self.data_file
       xash = self.xash
       
+      valToKeys = self.__getKeysOfValues
+      dumps = self.dumps
+      
+      #//-------------------------------------------------------//
+      
       for value in values:
         key, val = xash.find( value )
         if val is not None:
           if value.content != val.content:
-            data_file.replace( key, data )
+            new_key = data_file.replace( key, dumps( value ) )
+            xash[ new_key ] = value
+            
+            removed_keys = self.deps.remove( key )
+            self.__removedDepends( removed_keys )
+            
         else:
+          key = data_file.append( dumps( value ) )
+          xash[key] = value
+      
+      #//-------------------------------------------------------//
+      
+      for dep_value in dep_values:
+        key, val = xash.find( value )
+        if val is not None:
+          content_keys = valToKeys( dep_value.content )
+          if self.deps.deps[ key ] != set(content_keys):
+            data = dumps( DependsValue( value.name, content_keys ) )
+            
+            new_key = data_file.replace( key, data )
+            xash[ new_key ] = dep_value
+            
+            removed_keys = self.deps.remove( key )
+            self.__removedDepends( removed_keys )
+            
+            self.deps[ key ] = content_keys
+            
+        else:
+          content_keys = valToKeys( dep_value.content )
+          data = dumps( DependsValue( value.name, content_keys ) )
+          
           key = data_file.append( data )
           xash[key] = value
-  
-  #//-------------------------------------------------------//
-  
-  def   remove(self, value):
-    old_key = self.xash.remove( value )
-    if old_key is not None:
-      locations = self.locations
-      old_index = locations[ old_key ]
-      del self.data_file[ old_index ]
-      
-      for key in locations:
-        index = locations[key]
-        if old_index > index:
-          locations[ key ] = index - 1
+          self.deps[ key ] = content_keys
+          
   
   #//-------------------------------------------------------//
   
@@ -331,8 +370,8 @@ class ValuesFile (object):
       if self.data_file is not None:
         self.data_file.clear()
     
-    self.locations.clear()
     self.xash.clear()
+    self.deps.clear()
   
   #//-------------------------------------------------------//
   
