@@ -1,12 +1,10 @@
 
-import io
-import pickle
-
 from aql_logging import logWarning
 from aql_xash import Xash
+from aql_lock_file import FileLock
 from aql_data_file import DataFile
 from aql_depends_value import DependsValue
-from aql_file_value import FileName
+from aql_value_pickler import ValuePickler
 
 #//===========================================================================//
 
@@ -37,7 +35,7 @@ def _sortDepends( dep_sort_data ):
     
     added_keys.clear()
   
-  for key, value_keys in dep_values.items():
+  for key, value_keys in dep_sort_data.items():
     value = value_keys[0]
     value = DependsValue( value.name, None )
     sorted_deps.append( (key, value) )
@@ -53,8 +51,8 @@ class DependsKeys (object):
   #//-------------------------------------------------------//
   
   def   __init__(self):
-    values = {}
-    deps = {}
+    self.values = {}
+    self.deps = {}
   
   #//-------------------------------------------------------//
   
@@ -142,7 +140,7 @@ class DependsKeys (object):
     if len(all_keys) != len(self.deps):
       raise AssertionError("len(all_keys) (%s) != len(self.deps)" % (len(all_keys), len(self.deps)))
     
-    if len(all_value_keys) != len(self.value_keys):
+    if len(all_value_keys) != len(self.values):
       raise AssertionError("len(all_value_keys) (%s) != len(self.value_keys)" % (len(all_value_keys), len(self.value_keys)))
     
   
@@ -156,41 +154,40 @@ class ValuesFile (object):
   
   def   __getKeysOfValues( self, values ):
   
-  value_keys = set()
-  value_keys_append = value_keys.add
-  
-  findValue = self.xash.find
-  try:
-    for value in values:
-      key = findValue( value )[0]
-      if key is None:
-        return None
-      
-      value_keys_append( key )
-  
-  except TypeError:
-    return None
-  
-  return value_keys
+    value_keys = set()
+    value_keys_append = value_keys.add
+    
+    findValue = self.xash.find
+    try:
+      for value in values:
+        key = findValue( value )[0]
+        if key is None:
+          return None
+        
+        value_keys_append( key )
+    
+    except TypeError:
+      return None
+    
+    return value_keys
   
   #//---------------------------------------------------------------------------//
   
   def   __getValuesByKeys( self, keys ):
-  
-  values = []
-  values_append = values.append
-  
-  getValue = self.xash.__getitem__
-  
-  try:
-    for key in keys
-      values_append( getValue( key ) )
-  except KeyError:
-    return None
-  except TypeError:
-    return None
-  
-  return values
+    values = []
+    values_append = values.append
+    
+    getValue = self.xash.__getitem__
+    
+    try:
+      for key in keys:
+        values_append( getValue( key ) )
+    except KeyError:
+      return None
+    except TypeError:
+      return None
+    
+    return values
   
   #//---------------------------------------------------------------------------//
   
@@ -347,16 +344,17 @@ class ValuesFile (object):
   #//---------------------------------------------------------------------------//
   
   def   __addValue( self, value ):
+    xash = self.xash
     key, val = xash.find( value )
     if val is not None:
       if value.content != val.content:
-        new_key = data_file.replace( key, self.dumps( value ) )
+        new_key = self.data_file.replace( key, self.dumps( value ) )
         xash[ new_key ] = value
         
         removed_keys = deps.remove( key )
         self.__removedDepends( removed_keys )
     else:
-      key = data_file.append( self.dumps( value ) )
+      key = self.data_file.append( self.dumps( value ) )
       xash[key] = value
   
   #//---------------------------------------------------------------------------//

@@ -11,11 +11,24 @@ class   DependsValueContent (tuple):
     if isinstance( values, DependsValueContent ):
       return values
     
+    if isinstance( values, NoContent ):
+      return values
+    
     if values is None:
       return NoContent()
     
     try:
-      values = list(values)
+      values_list = []
+      for value in values:
+        if not isinstance( value, Value ):
+          return values
+        values_list.append( value )
+      
+      if not values_list:
+        return values
+      
+      values = values_list
+      
     except TypeError:
       values = [values]
     

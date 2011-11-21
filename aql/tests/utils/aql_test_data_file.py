@@ -47,7 +47,7 @@ def test_data_file(self):
     data_list = generateDataList( 50, 50, 7, 57 )
     data_hash = {}
     
-    df = DataFile( tmp.name )
+    df = DataFile( tmp.name ); df.selfTest()
     
     for data in data_list:
       key = df.append( data ); df.selfTest()
@@ -106,7 +106,7 @@ def   test_data_file_update(self):
     data_list = generateDataList( 10, 10, 7, 57 )
     data_hash = {}
     
-    df = DataFile( tmp.name )
+    df = DataFile( tmp.name ); df.selfTest()
     
     for data in data_list:
       key = df.append( data ); df.selfTest()

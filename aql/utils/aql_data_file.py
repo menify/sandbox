@@ -129,7 +129,7 @@ class DataFileHeader( object ):
     
     if len(header) != header_size:
       self.version, self.uid = 0, 0
-      return True, header_size
+      return True
     
     version = self.version
     self.version, self.uid = header_struct.unpack( header )
@@ -241,11 +241,11 @@ class DataFile (object):
   
   def   update(self, loadLocation = DataFileChunk.load ):
     if not self.file_header.update( self.stream ):
-      return [], []
+      return set(), set()
     
     offset = self.file_header.header_size
     
-    added_keys = []
+    added_keys = set()
     deleted_keys = set(self.locations)
     
     locations = {}
@@ -261,7 +261,7 @@ class DataFile (object):
       try:
         deleted_keys.remove( key )
       except KeyError:
-          added_keys.append( key )
+          added_keys.add( key )
       
       locations[key] = location
       offset += size
@@ -424,8 +424,8 @@ class DataFile (object):
           raise AssertionError("Invalid real_file_size(%s), last_location: %s" % (real_file_size, last_location) )
       
       else:
-        if file_size != real_file_size:
-          raise AssertionError("file_size != real_file_size")
+        if (file_size != real_file_size) and (real_file_size != 0 or file_size != self.file_header.header_size):
+          raise AssertionError("file_size(%s) != real_file_size(%s)" % (file_size, real_file_size))
     
     prev_location = None
     for location in ordered_location:
