@@ -73,6 +73,11 @@ class Xash (object):
   
   #//-------------------------------------------------------//
   
+  def   __iter__(self):
+    return iter(self.keys):
+  
+  #//-------------------------------------------------------//
+  
   def   pop(self, key):
     item = self.keys[ key ]
     self.removeByRef( self.getRef( item ) )
@@ -109,12 +114,6 @@ class Xash (object):
   
   def   __contains__(self, item):
     return self.getRef( item )[1] != -1
-  
-  #//-------------------------------------------------------//
-  
-  def   __iter__(self):
-    for key, item in self.keys.items():
-      yield item
   
   #//-------------------------------------------------------//
   

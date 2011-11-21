@@ -8,11 +8,7 @@ from aql_data_file import DataFile
 from aql_depends_value import DependsValue
 from aql_file_value import FileName
 
-#//---------------------------------------------------------------------------//
-
-DependsKeysContent = tuple
-
-#//---------------------------------------------------------------------------//
+#//===========================================================================//
 
 def _sortDepends( dep_sort_data ):
   
@@ -48,9 +44,10 @@ def _sortDepends( dep_sort_data ):
   
   return sorted_deps
 
-#//---------------------------------------------------------------------------//
+#//===========================================================================//
 
 class DependsKeys (object):
+  
   __slots__ = ('values', 'deps')
   
   #//-------------------------------------------------------//
@@ -62,7 +59,7 @@ class DependsKeys (object):
   #//-------------------------------------------------------//
   
   def   __setitem__(self, dep_key, value_keys ):
-    self.deps[ dep_key ] = keys
+    self.deps[ dep_key ] = value_keys
     values_setdefault = self.values.setdefault
     for value_key in value_keys:
       values_setdefault( value_key , set() ).add( dep_key )
@@ -74,6 +71,21 @@ class DependsKeys (object):
   
   #//-------------------------------------------------------//
   
+  def   __iter__(self):
+    return iter(self.deps)
+  
+  #//-------------------------------------------------------//
+  
+  def   items(self):
+    return self.deps.items()
+  
+  #//-------------------------------------------------------//
+  
+  def   __contains__(self, key):
+    return key in self.deps
+  
+  #//-------------------------------------------------------//
+  
   def   clear(self):
     self.deps.clear()
     self.values.clear()
@@ -81,7 +93,6 @@ class DependsKeys (object):
   #//-------------------------------------------------------//
   
   def   remove( self, key ):
-    
     removed_deps = set()
     removing_keys = set([key])
     
@@ -112,13 +123,36 @@ class DependsKeys (object):
     
     return removed_deps
   
-#//---------------------------------------------------------------------------//
+  #//-------------------------------------------------------//
+  
+  def   selfTest( self ):
+    all_keys = set()
+    all_value_keys = set()
+    
+    for key, value_keys in self.deps.items():
+      for value_key in value_keys:
+        dep_keys = self.value_keys[ value_key ]
+        if key not in dep_keys:
+          raise AssertionError("dep (%s) is not in value_keys[%s]" % (key, value_key))
+        
+        all_keys += dep_keys
+      
+      all_value_keys += value_keys
+    
+    if len(all_keys) != len(self.deps):
+      raise AssertionError("len(all_keys) (%s) != len(self.deps)" % (len(all_keys), len(self.deps)))
+    
+    if len(all_value_keys) != len(self.value_keys):
+      raise AssertionError("len(all_value_keys) (%s) != len(self.value_keys)" % (len(all_value_keys), len(self.value_keys)))
+    
+  
+#//===========================================================================//
 
 class ValuesFile (object):
   
   __slots__ = ('data_file', 'xash', 'pickler', 'lock' , 'deps', 'loads', 'dumps')
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __getKeysOfValues( self, values ):
   
@@ -139,7 +173,7 @@ class ValuesFile (object):
   
   return value_keys
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __getValuesByKeys( self, keys ):
   
@@ -158,7 +192,7 @@ class ValuesFile (object):
   
   return values
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __sortValues( self, values ):
     
@@ -177,7 +211,7 @@ class ValuesFile (object):
     
     return sorted_values, _sortDepends( dep_values )
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def __restoreDepends( self, dep_values ):
     
@@ -193,7 +227,7 @@ class ValuesFile (object):
       if values is not None:
         self.deps[ key ] = value_keys
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __removedDepends( self, removed_deps ):
     if removed_keys:
@@ -207,7 +241,7 @@ class ValuesFile (object):
         new_key = replace( removed_key, dumps( dep_value ) )
         xash[ new_key ] = dep_value
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __init__( self, filename ):
     self.xash = Xash()
@@ -218,7 +252,7 @@ class ValuesFile (object):
     self.loads = self.pickler.loads
     self.dumps = self.pickler.dumps
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __loadValue( self, key, data, dep_values ):
     
@@ -232,7 +266,7 @@ class ValuesFile (object):
     else:
       self.xash[ key ] = value
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   open( self, filename ):
     
@@ -248,7 +282,7 @@ class ValuesFile (object):
       
       self.__restoreDepends( dep_values )
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __update( self ):
     
@@ -281,7 +315,7 @@ class ValuesFile (object):
     
     self.__restoreDepends( dep_values )
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   close( self ):
     if self.data_file is not None:
@@ -291,7 +325,7 @@ class ValuesFile (object):
     self.locations.clear()
     self.xash.clear()
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   findValues( self, values ):
     
@@ -310,7 +344,7 @@ class ValuesFile (object):
     
     return out_values
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __addValue( self, value ):
     key, val = xash.find( value )
@@ -325,7 +359,7 @@ class ValuesFile (object):
       key = data_file.append( self.dumps( value ) )
       xash[key] = value
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   __addDepValue( self, value ):
     
@@ -351,7 +385,7 @@ class ValuesFile (object):
       xash[key] = value
       deps[ key ] = content_keys
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   addValues( self, values ):
     
@@ -366,7 +400,7 @@ class ValuesFile (object):
       for dep_value in dep_values:
         self.__addDepValue( dep_value )
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   clear(self):
     with self.lock.writeLock():
@@ -376,34 +410,46 @@ class ValuesFile (object):
     self.xash.clear()
     self.deps.clear()
   
-  #//-------------------------------------------------------//
+  #//---------------------------------------------------------------------------//
   
   def   selfTest(self):
-    if self.data_file is not None:
-      self.data_file.selfTest()
+    with self.lock.writeLock():
+      self.__update()
     
-    self.xash.selfTest()
-    
-    size = len(self.locations)
-    
-    if size != len(self.xash):
-      raise AssertionError("len(self.locations) != len(self.xash)")
-    
-    if size != len(self.data_file):
-      raise AssertionError("size != len(self.data_file)")
-    
-    indexes = set()
-    
-    for key, index in self.locations.items():
-      try:
-        self.xash[ key ]
-      except KeyError:
-        raise AssertionError("Invalid value key")
+      self.deps.selfTest()
       
-      if index >= size:
-        raise AssertionError("index >= size")
+      if self.data_file is not None:
+        self.data_file.selfTest()
       
-      indexes.add( index )
-    
-    if len(indexes) != size:
-      raise AssertionError("len(indexes) != size")
+      self.xash.selfTest()
+      
+      #//-------------------------------------------------------//
+      
+      for dep_key in self.deps:
+        dep_value = self.xash[dep_key]
+        if not isinstance( dep_value, DependsValue ):
+          raise AssertionError("dep_value(%s) is not DependsValue" % (dep_value.name,) )
+        
+        if len(self.deps[dep_key]) != len(dep_value.content):
+          raise AssertionError("len(self.deps[%s])(%s) != len(dep_value.content)(%s)" % (dep_key, len(self.deps[dep_key]), len(dep_value.content)) )
+        
+        value_keys = self.__getKeysOfValues( dep_value.content )
+        
+        if self.deps[dep_key] != value_keys:
+          raise AssertionError("self.deps[%s])(%s) != value_keys(%s)" % (dep_key, self.deps[dep_key], value_keys) )
+      
+      #//-------------------------------------------------------//
+      
+      for key in self.xash:
+        value = self.xash[key]
+        if isinstance(value, DependsValue):
+          if isinstance(value.content, NoContent):
+            if key in self.deps:
+              raise AssertionError("empty dep value(%s) is in deps" % (value.name,) )
+          else:
+            if key not in self.deps:
+              raise AssertionError("dep value(%s) is not in deps" % (value.name,) )
+        else:
+          if key in self.deps:
+            raise AssertionError("value(%s) is in deps" % (value.name,) )
+
