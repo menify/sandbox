@@ -61,7 +61,7 @@ class RemoteHost (object):
 _REMOTE_HOSTS = {
   'dev11': RemoteHost( 'c4dev', 'c4dev!', '10.64.74.114' ),
   'sim': RemoteHost( 'root', 'c4proto!', '10.64.75.121' ),
-  #~ 'sim': RemoteHost( 'root', 'c4proto!', '10.109.17.45' ),
+  #~ 'sim': RemoteHost( 'root', 'c4proto!', '10.64.77.58' ),
 }
 
 #//---------------------------------------------------------------------------//

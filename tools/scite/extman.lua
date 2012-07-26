@@ -1,3 +1,4 @@
+
 -- Extman is a Lua script manager for SciTE. It enables multiple scripts to capture standard events
 -- without interfering with each other. For instance, scite_OnDoubleClick() will register handlers
 -- for scripts that need to know when a double-click event has happened. (To know whether it
@@ -286,20 +287,15 @@ end
 local GTK = scite_GetProp('PLAT_GTK')
 local default_path
 local tmpfile
-if GTK then
-	default_path = props['SciteUserHome']
-	tmpfile = '/tmp/.scite-temp-file'
-else
-	default_path = props['SciteUserHome']
-	tmpfile = props['ext.lua.temp_directory']..'.scite-temp-file'
-end
+default_path = props['SciteUserHome']
+tmpfile = props['ext.lua.temp_directory']..'/.scite-temp-file'
 
 function scite_Files(mask)
   local f,path
   if  GTK then
 --    f = io.popen('ls -1 '..mask)
-	os.execute('ls -1 '..mask..' > '..tmpfile)
-	f = io.open(tmpfile)
+    os.execute('ls -1 '..mask..' > '..tmpfile)
+    f = io.open(tmpfile)
     path = ''
   else
     mask = gsub(mask,'/','\\')
