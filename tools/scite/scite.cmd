@@ -1,9 +1,9 @@
 @echo off
 
 set PATH=%PATH%;%~dp0
-rem set PATH=%PATH%;C:\bin\ctags
+set PATH=%PATH%;C:\bin\tags
 rem set PATH=%PATH%;C:\bin\astyle\bin
-rem set PATH=%PATH%;C:\bin\putty
+set PATH=%PATH%;C:\bin\putty
 set PATH=%PATH%;C:\Python27;"C:\Program Files\TortoiseSVN\bin";C:\bin\putty;C:\bin\ctags
 
 set USERPROFILE=%~dp0
