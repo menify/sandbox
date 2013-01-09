@@ -3,11 +3,10 @@
 //      QUALIFICATION
 //---------------------------------------------------------------------------//
 
-Professional experience: 7 years
+Professional experience: 12 years
 Good knowledge and understanding of programming languages: C/C++, Python, Assembler (x86, arm).
 Able to develop a good object oriented design, effective (for performance and consuming resources)
 and cross-platform programs.
-Good understanding of low-level memory management.
 
 
 //===========================================================================//
@@ -18,7 +17,7 @@ Programming languages:     C/C++, Python, Assembler (x86, arm)
 
 Compilers:      GNU C/C++, Microsoft Visual C/C++ 6.0 - 2005, Watcom C/C++, Borland C/C++, Digital Mars C/C++
 
-Libraries:      STL, Troltech QT/embedded QT, wxWidgets, Win32 API, POSIX
+Libraries:      STL, Boost, Troltech QT/embedded QT, wxWidgets, Win32 API, POSIX
 
 Debuggers:      GNU debugger (GDB), Python Debugger, Watcom debugger, Microsoft Visual Studio debugger
 
@@ -26,11 +25,11 @@ Make tools:     make (wmake, nmake, GNU make), Perforce Jam, SCons
 
 Host OS:        MS Windows 9x\NT\2000\XP, Linux, FreeBSD
 
-Target OS:      embedded Linux, P2K (Motorola's proprietary platform), MS Windows
+Target OS:      Linux, embedded Linux, MS Windows, P2K (Motorola's proprietary platform)
 
-Static analysis tools:      Flexelint/PC-Lint, RSM (Resource Standard Metrics), Klocwork
+Static analysis tools:      Coverity, Flexelint/PC-Lint, RSM (Resource Standard Metrics), Klocwork
 
-Version control systems:    Clearcase, Subversion, Perforce
+Version control systems:    Accurev, Clearcase, Subversion, Perforce
 
 Other: GNU tools
 
@@ -42,62 +41,63 @@ Other: GNU tools
 As employee of Rhonda Ltd. (Oct, 2000 - May, 2008):
 
   for Motorola Inc.:
-    - Adding support of POCSAG protocol into FlexStack framework FlexStack for Motorola's pagers.
+    - (C) Adding support of POCSAG protocol into FlexStack framework FlexStack for Motorola's pagers.
     
-    - Developing of DNS protocol client for Motorola's mobile phones on Legacy platform.
+    - (C) Developing of DNS protocol client for Motorola's mobile phones on P2K platform.
     
-    - Developing of some parts of Email client application for Motorola's mobile phones on P2K platform.
+    - (C) Developing of some parts of Email client application for Motorola's mobile phones on P2K platform.
     
-    - Developing of debug logging module for Email client application.
+    - (C) Developing of debug logging module for Email client application.
     
     - Investigation and deployment of static analysis tools for C/C++ languages.
     
-    - Support of Multimedia applications for Motorola's mobile phones on P2K platform.
+    - (C) Support of Multimedia applications for Motorola's mobile phones on P2K platform.
     
-    - Developing of new features for Multimedia applications on P2K platform.
+    - (C) Developing of new features for Multimedia applications on P2K platform.
     
-    - Developing of runtime analysis tool - SPY, for debugging dynamic memory issues,
+    - (C) Developing of runtime analysis tool - SPY, for debugging dynamic memory issues,
       like memory corruptions, memory leaks, stack overflow for Motorola's mobile phones on P2K platform.
       It's widely used in Motorola for GSM/3G phones on P2K platform.
     
-    - Developing of architecture and code of debug logging module for Multimedia applications on P2K platform.
+    - (C) Developing of architecture and code of debug logging module for Multimedia applications on P2K platform.
     
-    - Developing of new experimental features for MediaFinder on LinuxJava platform.
-
-
+    - (C++) Developing of new experimental features for MediaFinder on LinuxJava platform.
+  
   for F-Origin (Jan, 2007 - Jun, 2007):
     
-    - Developing a 3D application to demonstrate an effect of virtual mirror controlled by movements of a hand,
+    - (C++) Developing a 3D application to demonstrate an effect of virtual mirror controlled by movements of a hand,
       data is received from the acceleration sensors embedded into the phone.
       For mobile phones on Linux/QT embedded platform.
     
-    - Developing a class to work with fixed point numbers optimized to iWMMXt (Intel Wireless MMX technology).
+    - (C++, Assembler) Developing a class to work with fixed point numbers optimized to iWMMXt (Intel Wireless MMX technology).
     
-    - Developing a test application to research and tuning HaptiTouch technology (touch screen
+    - (C++) Developing a test application to research and tuning HaptiTouch technology (touch screen
       technology is based on a data from pressure sensors). For Windows, using wxWidgets library.
     
-    - Developing a phone book demo application controlled by movements of a hand,
+    - (C++) Developing a phone book demo application controlled by movements of a hand,
       data is received from the acceleration sensors embedded into the phone.
       For mobile phones on Linux/QT embedded platform.
 
 
-As employee of Creat Studuios (June, 2008 - present):
+As employee of Creat Studuios (June, 2008 - June, 2009):
     
-    - Refactoring the internal build system (it builds game engine and unit tests, and runs the unit tests)
-    - Develoing a simple C++ preprocessor on Python to extract some useful information from
-      C++ files for the build system
-    - Developing dependecies finder between modules of the game engine (it generates diagrams for all modules)
+    - (Python) Refactoring the internal build system (it builds game engine and unit tests, and runs the unit tests)
+    - (Python) Develoing a simple C/C++ preprocessor to extract some useful information from C++ files for the build system
+    - (Python) Developing dependecies finder for build system which finds dependecies between modules of the game engine (it generates dependecy diagrams)
+    - (C++) Developing and optimization graphical and sound effects for computer game "Smash Cars" for PS3 (https://www.youtube.com/watch?v=vOXQ68UjwqE)
 
+
+As employee of EMC (Jule, 2009 - present):
+    
+    - (C++) Developing a business logic of server side for configuration network settings related to data traffic (CIFS, NFS, iSCSI, NIS etc.) for VNXe systems
+      The code is responsible to receive HTTP requests from client, validate them, orchistrate, perform transactional changes on system side and persist the new state.
+      All components are implemented as CIM objects (http://dmtf.org/standards/cim), each component communicates between each other using CIM protocol.
+    - (Python) Developing a component tests framework to test business logic side via HTTP requests and/or CIM protocol.
 
 Personal projects:
     
-    - Developing a cross-platform library for runtime analysis of dynamic memory issues, like
-      consumptions, memory leaks, memory corruptions & etc.
-    
-    - Developing the Soko-Ban game.
-    
-    - Developing an extension to the SCons build tool on Python language.
-      To easily support several compilers and build variants at the same time (http://aqualid.googlecode.com).
+    - (Python) Developing a general purpose build tool alternative to the make, SCons, WAF and others.
+      Source code is available here: http://aqualid.googlecode.com/svn/aql
 
 
 //===========================================================================//
