@@ -279,10 +279,6 @@ public:
     inline T *          back( void )            { return (this->head_ != NULL) ? static_cast<T*>(this->head_->prev_) : NULL; }
     inline T const *    back( void ) const      { return (this->head_ != NULL) ? static_cast<T*>(this->head_->prev_) : NULL; }
     
-    inline Iterator     begin( void )           { return Iterator(this->head_); }
-    inline Iterator     end( void )             { return Iterator(); }
-
-
     class Iterator
     {
         T*      first_;
@@ -358,9 +354,12 @@ public:
         
         inline bool     valid( void ) const         { return this->list_ != NULL; }
         
-        inline PtrData &     operator*( void )      { return *this->list_; }
-        inline PtrData *     operator->( void )     { return this->list_; }
+        inline T &      operator*( void )      { return *this->current_; }
+        inline T *      operator->( void )     { return this->current_; }
     };
+    
+    inline Iterator     begin( void )           { return Iterator(this->head_); }
+    inline Iterator     end( void )             { return Iterator(); }
 };
 
 }   // namespace spy

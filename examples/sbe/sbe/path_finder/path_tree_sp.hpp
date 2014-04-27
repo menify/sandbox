@@ -1,7 +1,8 @@
 #ifndef PATH_TREE_HPP_INCLUDED
 #define PATH_TREE_HPP_INCLUDED
 
-#include <stddef.h>
+#include <cstddef>
+#include <cstdio>
 
 namespace sbe{
 
