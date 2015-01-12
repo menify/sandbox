@@ -1,109 +1,84 @@
+Name: Konstantin Bozhikov
+Location: Saint-Petersburg, Russia
 
 //===========================================================================//
-//      QUALIFICATION
+// QUALIFICATION
 //---------------------------------------------------------------------------//
 
-Professional experience: 12 years
+Professional experience: 14 years
 Good knowledge and understanding of programming languages: C/C++, Python, Assembler (x86, arm).
 Able to develop a good object oriented design, effective (for performance and consuming resources)
 and cross-platform programs.
 
-
 //===========================================================================//
-//      DEVELOPMENT TOOLS EXPERIENCE
-//---------------------------------------------------------------------------//
-
-Programming languages:     C/C++, Python, Assembler (x86, arm)
-
-Compilers:      GNU C/C++, Microsoft Visual C/C++ 6.0 - 2005, Watcom C/C++, Borland C/C++, Digital Mars C/C++
-
-Libraries:      STL, Boost, Troltech QT/embedded QT, wxWidgets, Win32 API, POSIX
-
-Debuggers:      GNU debugger (GDB), Python Debugger, Watcom debugger, Microsoft Visual Studio debugger
-
-Make tools:     make (wmake, nmake, GNU make), Perforce Jam, SCons
-
-Host OS:        MS Windows 9x\NT\2000\XP, Linux, FreeBSD
-
-Target OS:      Linux, embedded Linux, MS Windows, P2K (Motorola's proprietary platform)
-
-Static analysis tools:      Coverity, Flexelint/PC-Lint, RSM (Resource Standard Metrics), Klocwork
-
-Version control systems:    Accurev, Clearcase, Subversion, Perforce
-
-Other: GNU tools
-
-
-//===========================================================================//
-//      EXPERIENCE
-//---------------------------------------------------------------------------//
-
-As employee of Rhonda Ltd. (Oct, 2000 - May, 2008):
-
-  for Motorola Inc.:
-    - (C) Adding support of POCSAG protocol into FlexStack framework FlexStack for Motorola's pagers.
-    
-    - (C) Developing of DNS protocol client for Motorola's mobile phones on P2K platform.
-    
-    - (C) Developing of some parts of Email client application for Motorola's mobile phones on P2K platform.
-    
-    - (C) Developing of debug logging module for Email client application.
-    
-    - Investigation and deployment of static analysis tools for C/C++ languages.
-    
-    - (C) Support of Multimedia applications for Motorola's mobile phones on P2K platform.
-    
-    - (C) Developing of new features for Multimedia applications on P2K platform.
-    
-    - (C) Developing of runtime analysis tool - SPY, for debugging dynamic memory issues,
-      like memory corruptions, memory leaks, stack overflow for Motorola's mobile phones on P2K platform.
-      It's widely used in Motorola for GSM/3G phones on P2K platform.
-    
-    - (C) Developing of architecture and code of debug logging module for Multimedia applications on P2K platform.
-    
-    - (C++) Developing of new experimental features for MediaFinder on LinuxJava platform.
-  
-  for F-Origin (Jan, 2007 - Jun, 2007):
-    
-    - (C++) Developing a 3D application to demonstrate an effect of virtual mirror controlled by movements of a hand,
-      data is received from the acceleration sensors embedded into the phone.
-      For mobile phones on Linux/QT embedded platform.
-    
-    - (C++, Assembler) Developing a class to work with fixed point numbers optimized to iWMMXt (Intel Wireless MMX technology).
-    
-    - (C++) Developing a test application to research and tuning HaptiTouch technology (touch screen
-      technology is based on a data from pressure sensors). For Windows, using wxWidgets library.
-    
-    - (C++) Developing a phone book demo application controlled by movements of a hand,
-      data is received from the acceleration sensors embedded into the phone.
-      For mobile phones on Linux/QT embedded platform.
-
-
-As employee of Creat Studuios (June, 2008 - June, 2009):
-    
-    - (Python) Refactoring the internal build system (it builds game engine and unit tests, and runs the unit tests)
-    - (Python) Develoing a simple C/C++ preprocessor to extract some useful information from C++ files for the build system
-    - (Python) Developing dependecies finder for build system which finds dependecies between modules of the game engine (it generates dependecy diagrams)
-    - (C++) Developing and optimization graphical and sound effects for computer game "Smash Cars" for PS3 (https://www.youtube.com/watch?v=vOXQ68UjwqE)
-
-
-As employee of EMC (Jule, 2009 - present):
-    
-    - (C++) Developing a business logic of server side for configuration network settings related to data traffic (CIFS, NFS, iSCSI, NIS etc.) for VNXe systems
-      The code is responsible to receive HTTP requests from client, validate them, orchistrate, perform transactional changes on system side and persist the new state.
-      All components are implemented as CIM objects (http://dmtf.org/standards/cim), each component communicates between each other using CIM protocol.
-    - (Python) Developing a component tests framework to test business logic side via HTTP requests and/or CIM protocol.
-
-Personal projects:
-    
-    - (Python) Developing a general purpose build tool alternative to the make, SCons, WAF and others.
-      Source code is available here: http://aqualid.googlecode.com/svn/aql
-
-
-//===========================================================================//
-//      EDUCATION
+// EDUCATION
 //---------------------------------------------------------------------------//
 
 1995-2000   Far Eastern State Technical University, Faculty of Informatics and Computers Technologies.
-            Graduate work: "Developing of cross-platform applications"
-            Graduated to engineer.
+	Graduate work: "Developing of cross-platform applications"
+
+//===========================================================================//
+// EXPERIENCE
+//---------------------------------------------------------------------------//
+
+As contractor for Motorola Inc. (Oct, 2000 – May, 2008):
+Developing embedded software for Motorola's pagers and mobile phones:
+  - Adding support of POCSAG protocol into FlexStack framework FlexStack for Motorola's pagers.
+  - Developing of DNS protocol client for Motorola's mobile phones on P2K platform.
+  - Developing of some parts of Email client application for Motorola's mobile phones on P2K platform
+  - Developing of debug logging module for Email client application.
+  - Investigation and deployment of static analysis tools for C/C++ languages.
+  - Support of Multimedia applications for Motorola's mobile phones on P2K platform.
+  - Developing of new features for Multimedia applications on P2K platform.
+  - Developing of run-time analysis tool - SPY, for debugging dynamic memory issues, like memory corruptions, memory leaks, stack overflow for Motorola's mobile phones on P2K platform. It was widely used in Motorola for GSM/3G phones on P2K platform.
+  - Developing of architecture and code of debug logging module for Multimedia applications on P2K platform.
+  - Developing of new experimental features for MediaFinder on LinuxJava platform.
+
+As contractor for F-Origin (Jan, 2007 - Jun, 2007):
+  - Developing embedded software and engineering tools for new research project:
+  - Developing a 3D application to demonstrate an effect of virtual mirror controlled by movements of a hand, data is received from the acceleration sensors embedded into the phone. For mobile phones on Linux/QT embedded platform.
+  - Developing a module to work with fixed point numbers optimized to iWMMXt (Intel Wireless MMX technology).
+  - Developing a test application to research and tuning HaptiTouch technology (touch screen technology is based on a data from pressure sensors). 
+  - Developing a phone book demo application controlled by movements of a hand, data is received from the acceleration sensors embedded into the phone. For mobile phones on Linux/QT embedded platform.
+
+As employee of Creat Studios (June, 2008 - June, 2009):
+Game development projects:
+  - Re-factoring of the internal build system (it builds game engine and unit tests, and runs the unit tests)
+  - Developing of a simple C/C++ preprocessor on Python to extract some useful information from C++ files for the build system
+  - Developing of dependencies finder for build system which finds dependencies between modules of the game engine (it generates dependency diagrams)
+  - Developing and optimizing of graphical and sound effects for computer game "Smash Cars" for PS3 (https://www.youtube.com/watch?v=vOXQ68UjwqE)
+
+As employee of EMC (July, 2009 – present):
+  - Developing software for Storage Systems:
+  - Developing of a server side business logic for configuration network protocols (CIFS, NFS, iSCSI, NIS, LDAP, DNS etc.) for VNXe systems
+  - Developing a component tests framework on Python with integration with EMC internal reporting tools
+
+Open source projects:
+   Contributed to SCons build system.
+
+   Author of a general purpose build system:
+		https://github.com/aqualid
+
+
+//===========================================================================//
+// DEVELOPMENT TOOLS EXPERIENCE
+//---------------------------------------------------------------------------//
+
+  Programming languages:	C/C++, Python, Assembler (x86, arm)
+
+  Compilers: GNU C/C++, Microsoft Visual C/C++, Watcom C/C++, Borland C/C++, Digital Mars C/C++
+
+  Libraries: STL, Boost, QT, wxWidgets, Win32 API, POSIX
+
+  Debuggers: GNU Debugger (GDB), Python Debugger, Watcom Debugger, Microsoft Visual Studio Debugger
+
+  Make tools: make (wmake, nmake, GNU make), Perforce Jam, SCons
+
+  OS: Linux, embedded Linux, MS Windows
+
+  Static analysis tools: Coverity, Flexelint/PC-Lint, RSM (Resource Standard Metrics), Klocwork
+
+  Version control systems: Accurev, Clearcase, Subversion, Perforce
+
+  Other: GNU tools, Jenkins, Remedy Action Request System , Rally Software
+

@@ -1,0 +1,10 @@
+Hello SCons developers,
+
+I'm experienced user of SCons.
+I extensively used SCons from 2003 till 2011. 
+And I contributed some changes to SCons 0.98 (see http://www.scons.org/CHANGES.txt)
+
+I think that SCons is great build system, but from my point of view it has some scalability problems.
+
+Initially I implemented an extension to SCons to solve some problems (something like Parts).
+But to solve other problems (performance and memory ) are in core implementation
