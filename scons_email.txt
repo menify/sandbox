@@ -1,10 +1,45 @@
 Hello SCons developers,
 
-I'm experienced user of SCons.
-I extensively used SCons from 2003 till 2011. 
+I intensively used SCons from 2003 till 2010. 
 And I contributed some changes to SCons 0.98 (see http://www.scons.org/CHANGES.txt)
 
-I think that SCons is great build system, but from my point of view it has some scalability problems.
+I think that SCons is good build system, but from my point of view it has some scalability problems.
 
-Initially I implemented an extension to SCons to solve some problems (something like Parts).
-But to solve other problems (performance and memory ) are in core implementation
+Initially I implemented an extension to SCons to solve some problems (something similar to the Parts).
+But to solve other problems the core implementation should be significantly changed.
+
+So I implemented a new SCons-like build system trying to solve these problems.
+I named it Aqualid: https://github.com/aqualid/aqualid
+
+To compare Aqualid with others I tested three build systems: SCons, Waf and Aqualid
+On the following page you may review results for different project sizes (100, 1000, 10000 and 100000 C++ source files):
+  https://github.com/aqualid/aqualid/wiki/Benchmark-results-for-v0.5
+
+Aqualid uses less memory because it fully releases built nodes. 
+That's the reason why you can see almost the flat graph for large projects.  
+
+The tests sources and Aqualid itself can be found here: https://github.com/aqualid/aqualid/releases
+
+From end user point of view these two build systems look more or less similar.  
+But there are many differences:
+  - By default it uses the current OS environment to initialize tools
+  - But it's easy to customize OS environment for specific tool or specific version of tool
+  - Each tool has own subset of options, for example CPPDEFINES is defined only for C/C++ tool
+  - Output build directory can be set to any place (even outside of project) for the whole project or for specific nodes
+  - API is totally different from SCons
+  - There are no emitters and scanners, all targets and implicit dependencies are identified during the build step
+  - Nodes are processed dynamically while other nodes are being built
+  - Target type could be a simple string, int, bool or any other type (it depends from only from builder)
+  - Node may even have no targets at all
+  - There is no strict rule for the project root (like SConstruct), any build script may be used as the project root
+  and many others...
+
+You can find several usage examples here: https://github.com/aqualid/aqualid/wiki/An-introduction-to-Aqualid
+
+I will be glad to discuss any implementation details.
+Probably something could be potentially reused in SCons.
+
+Thank you.
+
+Best regards,
+Konstantin.
